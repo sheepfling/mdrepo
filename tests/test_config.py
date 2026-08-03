@@ -45,6 +45,24 @@ check-case = false
     )
 
 
+def test_external_overlay_does_not_change_discovered_root(tmp_path: Path) -> None:
+    overlay = tmp_path.parent / f"{tmp_path.name}-overlay.toml"
+    overlay.write_text("[links]\ncheck-case = false\n", encoding="utf-8")
+    try:
+        loaded = load_configuration(
+            cwd=tmp_path,
+            root_override=None,
+            config_paths=[overlay],
+            overrides=[],
+        )
+    finally:
+        overlay.unlink()
+
+    assert loaded.root == tmp_path
+    assert loaded.model.links.check_case is False
+    assert loaded.sources == (tmp_path / "pyproject.toml", overlay)
+
+
 def test_unknown_configuration_is_rejected(tmp_path: Path) -> None:
     (tmp_path / "pyproject.toml").write_text(
         "[tool.mdrepo]\nunknown-option = true\n",

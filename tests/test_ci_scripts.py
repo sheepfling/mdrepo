@@ -1,6 +1,7 @@
 """Contracts for the local CI runner and packaging validation script."""
 
 import subprocess
+from collections.abc import Sequence
 
 import pytest
 
@@ -29,6 +30,27 @@ def test_ci_runner_maps_unstartable_commands_to_failure(
     monkeypatch.setattr(ci.subprocess, "run", raise_os_error)
 
     assert ci.run_command(("missing-python", "-m", "pytest")) == 1
+
+
+def test_ci_runner_executes_every_command_until_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    commands = (("python", "first"), ("python", "second"), ("python", "third"))
+    executed: list[tuple[str, ...]] = []
+
+    def fake_commands(*, fix: bool = False) -> tuple[tuple[str, ...], ...]:
+        del fix
+        return commands
+
+    def fake_run_command(command: Sequence[str]) -> int:
+        executed.append(tuple(command))
+        return 0
+
+    monkeypatch.setattr(ci, "ci_commands", fake_commands)
+    monkeypatch.setattr(ci, "run_command", fake_run_command)
+
+    assert ci.main(()) == 0
+    assert executed == list(commands)
 
 
 def test_build_check_runs_sdist_wheel_then_twine(

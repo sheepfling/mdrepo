@@ -193,7 +193,6 @@ def load_configuration(
     root = _resolve_root(
         cwd=cwd.resolve(),
         root_override=root_override,
-        explicit_paths=explicit_paths,
     )
     discovered_paths = _config_paths_at_root(root)
 
@@ -317,16 +316,12 @@ def _resolve_root(
     *,
     cwd: Path,
     root_override: Path | None,
-    explicit_paths: tuple[Path, ...],
 ) -> Path:
     if root_override is not None:
         root = root_override.expanduser().resolve()
         if not root.is_dir():
             raise ConfigurationError(f"project root is not a directory: {root}")
         return root
-
-    if explicit_paths:
-        return explicit_paths[0].parent
 
     discovered = _discover_root(cwd)
     return discovered or cwd
