@@ -87,6 +87,7 @@ MkDocs guidance, guarantees, and non-goals.
 | Portable destinations | Backslashes, local absolute paths, and disallowed root-relative paths |
 | Repository boundaries | Local destinations that resolve outside the configured root |
 | Exact path case | Links that pass on case-insensitive filesystems and fail on Linux |
+| Durable local targets | Existing links to Git-ignored or mdrepo-excluded files |
 | Rooted document graph | Pages disconnected from configured roots |
 | Structured exceptions | Anonymous ignores, expired waivers, and stale policy debt |
 | Conservative fixing | Ambiguous edits, overlapping replacements, and changed CRLF line endings |
@@ -119,7 +120,8 @@ roots = ["README.md", "docs/index.md"]
 
 The link-policy defaults are strict and portable. In the normal paired workflow,
 `links.check-missing-targets` remains `false` so rumdl `MD057` is the sole authority for ordinary
-missing targets.
+missing targets. `links.check-durable-targets` remains enabled so existing links cannot silently
+point at transient or excluded files.
 
 ### Structured exceptions
 
@@ -214,6 +216,7 @@ Exit statuses are stable:
 | `MDR003` | Local destination escapes the repository root | No |
 | `MDR004` | Standalone missing-target fallback; disabled with rumdl | No |
 | `MDR005` | Path spelling differs from exact on-disk case | Yes |
+| `MDR006` | Existing local target is Git-ignored or mdrepo-excluded | No |
 | `MDR100` | No configured orphan-graph root exists | No |
 | `MDR101` | Markdown document is unreachable from all roots | No |
 | `MDR201` | Structured exception is expired | No |

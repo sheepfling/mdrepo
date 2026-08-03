@@ -62,6 +62,7 @@ class LinkConfig(ConfigModel):
     allow_outside_root: bool = False
     check_missing_targets: bool = False
     check_case: bool = True
+    check_durable_targets: bool = True
 
 
 class OrphanConfig(ConfigModel):

@@ -20,6 +20,7 @@ allow-root-relative = false
 allow-outside-root = false
 check-missing-targets = false
 check-case = true
+check-durable-targets = true
 ```
 
 Keep `check-missing-targets = false` when rumdl runs. Rumdl `MD057` owns ordinary local-target
@@ -47,7 +48,10 @@ false by default. `check-case` enables portable exact-case checks.
 
 `check-missing-targets` enables `MDR004`. Leave it false in the normal rumdl pairing. Enable it only
 when mdrepo is intentionally being used without rumdl and the reduced standalone check is preferable
-to no target validation.
+to no target validation. `check-durable-targets` enables `MDR006`, which reports existing local
+targets matched by applicable repository `.gitignore` files or by mdrepo's `exclude` patterns. It is
+enabled by default because an existing transient target is not a durable repository link. Use a
+narrow exception or explicitly disable it when generated or local-only targets are intentional.
 
 ## `[orphans]`
 

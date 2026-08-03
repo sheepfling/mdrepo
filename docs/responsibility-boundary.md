@@ -54,6 +54,7 @@ policy, retry policy, or interpretation of a remote server response.
 | No drive path, UNC path, home-relative path, or `file:` URL            | `mdrepo`                                      | These destinations embed one machine's filesystem assumptions.               |
 | A local destination must not escape the repository root                | `mdrepo`                                      | The repository root is required to decide the rule.                          |
 | Destination spelling matches exact on-disk case                        | `mdrepo`                                      | This protects Windows-authored links from failing on case-sensitive systems. |
+| Existing local target is not Git-ignored or mdrepo-excluded             | `mdrepo`                                      | Existence alone does not prove that the target is durable in a checkout.     |
 | Markdown page is reachable from configured documentation roots         | `mdrepo`                                      | This is a generic repository-wide graph property.                            |
 | Exception has a reason, is unexpired, and still suppresses something   | `mdrepo`                                      | This is repository-policy governance rather than Markdown linting.           |
 | External website currently responds                                    | Neither                                       | The focused toolchain intentionally performs no network crawl.               |

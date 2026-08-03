@@ -41,10 +41,11 @@ disabled by default and should stay disabled when rumdl `MD057` runs.
 3. Parse each document with `markdown-it-py`.
 4. Record direct destinations, autolinks, reference uses, and reference definitions separately.
 5. Resolve selected documents' policy destinations against the repository filesystem.
-6. Build the complete document graph when orphan analysis or graph output is requested.
-7. Run the fixed built-in rule registry.
-8. Apply structured exceptions and produce exception-health diagnostics.
-9. Render text, JSON, or GitHub Actions diagnostics.
+6. Classify existing local targets against `.gitignore` and mdrepo exclusion policy.
+7. Build the complete document graph when orphan analysis or graph output is requested.
+8. Run the fixed built-in rule registry.
+9. Apply structured exceptions and produce exception-health diagnostics.
+10. Render text, JSON, or GitHub Actions diagnostics.
 
 No network request or subprocess invocation of another checker occurs in this flow.
 

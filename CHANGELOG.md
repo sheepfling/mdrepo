@@ -2,6 +2,9 @@
 
 ## 0.2.1
 
+- Added `MDR006` to reject existing local links that are excluded by applicable `.gitignore` files
+  or mdrepo's own discovery exclusions, preventing links to transient artifacts from passing only
+  an existence check.
 - Added an explicit responsibility contract defining the boundary between rumdl, `mdrepo`, network
   checking, and documentation-site builds.
 - Documented one authoritative owner for missing targets, fragments, path portability, document
