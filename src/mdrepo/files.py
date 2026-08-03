@@ -8,8 +8,10 @@ from pathspec import GitIgnoreSpec
 
 from mdrepo.config import ApplicationConfig
 
+
 class FileDiscoveryError(RuntimeError):
     """Raised when requested repository inputs are invalid."""
+
 
 def collect_project_markdown(*, root: Path, config: ApplicationConfig) -> tuple[Path, ...]:
     """Collect all configured Markdown files beneath the project root."""
@@ -18,7 +20,7 @@ def collect_project_markdown(*, root: Path, config: ApplicationConfig) -> tuple[
     exclude_spec = GitIgnoreSpec.from_lines(config.exclude)
     collected: list[Path] = []
     for path in root.rglob("*"):
-        if not path.is_file() or path.is_symlink():
+        if not _is_regular_file(path):
             continue
         relative = path.relative_to(root).as_posix()
         if exclude_spec.match_file(relative):
@@ -29,11 +31,18 @@ def collect_project_markdown(*, root: Path, config: ApplicationConfig) -> tuple[
         sorted(collected, key=lambda candidate_path: candidate_path.relative_to(root).as_posix())
     )
 
+
+def _is_regular_file(path: Path) -> bool:
+    """Return whether a candidate is a non-symlink regular file."""
+
+    return path.is_file() and not path.is_symlink()
+
+
 def select_requested_markdown(
-        *,
-        root: Path,
-        requested_paths: list[str],
-        project_paths: tuple[Path, ...],
+    *,
+    root: Path,
+    requested_paths: list[str],
+    project_paths: tuple[Path, ...],
 ) -> tuple[Path, ...]:
     """Resolve explicit files or directories against the project document set."""
 

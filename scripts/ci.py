@@ -11,10 +11,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
+
 def ci_commands(
-        python: str = sys.executable,
-        *,
-        fix: bool = False,
+    python: str = sys.executable,
+    *,
+    fix: bool = False,
 ) -> tuple[tuple[str, ...], ...]:
     """Return the ordered, platform-independent commands used by CI."""
 
@@ -57,6 +58,7 @@ def ci_commands(
     )
     return tuple(commands)
 
+
 def run_command(command: Sequence[str]) -> int:
     """Run one CI command from the repository root and return its exit code."""
 
@@ -80,6 +82,7 @@ def run_command(command: Sequence[str]) -> int:
         return 1
     return completed.returncode
 
+
 def main(argv: Sequence[str] = ()) -> int:
     """Run each CI command in order, stopping at the first failure."""
 
@@ -102,6 +105,7 @@ def main(argv: Sequence[str] = ()) -> int:
         if return_code:
             return return_code
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv[1:]))

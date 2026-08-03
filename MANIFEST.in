@@ -1,5 +1,4 @@
 include CHANGELOG.md
-include VALIDATION.md
 include .gitignore
 include .pre-commit-hooks.yaml
 include .pre-commit-config.yaml

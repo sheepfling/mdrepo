@@ -23,8 +23,10 @@ from mdrepo.rules import (
     rule_enabled,
 )
 
+
 class EngineError(RuntimeError):
     """Raised when repository files cannot be read or checked safely."""
+
 
 @dataclass(frozen=True, slots=True)
 class RunResult:
@@ -38,12 +40,13 @@ class RunResult:
     diagnostics: tuple[Diagnostic, ...]
     suppressed: tuple[Diagnostic, ...]
 
+
 def run_repository(
-        *,
-        loaded_config: LoadedConfig,
-        requested_paths: list[str],
-        force_graph: bool = False,
-        today: date | None = None,
+    *,
+    loaded_config: LoadedConfig,
+    requested_paths: list[str],
+    force_graph: bool = False,
+    today: date | None = None,
 ) -> RunResult:
     """Parse the repository and evaluate every enabled focused rule."""
 
@@ -148,6 +151,7 @@ def run_repository(
         suppressed=suppressed,
     )
 
+
 def _deduplicate(diagnostics: list[Diagnostic]) -> tuple[Diagnostic, ...]:
     unique: dict[tuple[object, ...], Diagnostic] = {}
     for diagnostic in diagnostics:
@@ -161,6 +165,7 @@ def _deduplicate(diagnostics: list[Diagnostic]) -> tuple[Diagnostic, ...]:
         )
         unique.setdefault(key, diagnostic)
     return tuple(diagnostic for diagnostic in unique.values())
+
 
 def _sort_diagnostics(diagnostics: tuple[Diagnostic, ...]) -> tuple[Diagnostic, ...]:
     return tuple(

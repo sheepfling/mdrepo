@@ -1,13 +1,19 @@
 """Configured Markdown discovery and explicit path selection."""
 
+import os
+from collections.abc import Callable
+from pathlib import Path
+from typing import cast
+
 import pytest
 
 from mdrepo.config import ApplicationConfig
 from mdrepo.files import FileDiscoveryError, collect_project_markdown, select_requested_markdown
 from tests.support import RepositoryBuilder
 
+
 def test_project_discovery_applies_include_exclude_and_ignores_symlinks(
-        repository: RepositoryBuilder,
+    repository: RepositoryBuilder,
 ) -> None:
     repository.markdown("README.md", "# Root\n")
     repository.markdown("docs/guide.md", "# Guide\n")
@@ -19,12 +25,47 @@ def test_project_discovery_applies_include_exclude_and_ignores_symlinks(
     )
 
     assert [
-               path.relative_to(repository.root).as_posix()
-               for path in collect_project_markdown(root=repository.root, config=config)
-           ] == ["README.md", "docs/guide.md"]
+        path.relative_to(repository.root).as_posix()
+        for path in collect_project_markdown(root=repository.root, config=config)
+    ] == ["README.md", "docs/guide.md"]
+
+
+@pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="named pipes are not supported on this OS")
+def test_project_discovery_ignores_non_regular_files(repository: RepositoryBuilder) -> None:
+    """A matching FIFO must not enter the set of files later read by the engine."""
+
+    fifo = repository.root / "pipe.py"
+    mkfifo = cast(Callable[[str], None] | None, getattr(os, "mkfifo", None))
+    if mkfifo is None:
+        pytest.skip("named pipes are not supported on this OS")
+    mkfifo(str(fifo))
+    config = ApplicationConfig.model_validate({"include": ["*.py"]})
+
+    assert collect_project_markdown(root=repository.root, config=config) == ()
+
+
+def test_project_discovery_requires_regular_file(
+    monkeypatch: pytest.MonkeyPatch,
+    repository: RepositoryBuilder,
+) -> None:
+    """A matching candidate reported as non-regular must be ignored."""
+
+    candidate = repository.write_text("pipe.py", "would block if opened\n")
+    original_is_file = Path.is_file
+
+    def pretend_non_regular(path: Path) -> bool:
+        if path == candidate:
+            return False
+        return original_is_file(path)
+
+    monkeypatch.setattr(Path, "is_file", pretend_non_regular)
+    config = ApplicationConfig.model_validate({"include": ["*.py"]})
+
+    assert collect_project_markdown(root=repository.root, config=config) == ()
+
 
 def test_requested_selection_deduplicates_files_and_rejects_invalid_inputs(
-        repository: RepositoryBuilder,
+    repository: RepositoryBuilder,
 ) -> None:
     repository.markdown("README.md", "# Root\n")
     repository.markdown("docs/guide.md", "# Guide\n")
@@ -59,8 +100,9 @@ def test_requested_selection_deduplicates_files_and_rejects_invalid_inputs(
             project_paths=project,
         )
 
+
 def test_requested_non_markdown_file_is_rejected_by_include_policy(
-        repository: RepositoryBuilder,
+    repository: RepositoryBuilder,
 ) -> None:
     repository.markdown("README.md", "# Root\n")
     repository.write_text("notes.txt", "notes\n")

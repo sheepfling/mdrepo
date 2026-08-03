@@ -50,6 +50,20 @@ disabled by default and should stay disabled when rumdl `MD057` runs.
 No network request or subprocess invocation of another checker occurs in this flow. The only
 subprocess use is bounded, read-only local Git metadata discovery.
 
+## Filesystem input-safety invariant
+
+Filesystem discovery is a trust boundary. A path is eligible for parsing, graph construction, safe
+fixes, or artifact validation only when it is a regular file; repository Markdown candidates and
+release artifacts must also be non-symlinks. Recursive directory scans can report named pipes,
+sockets, devices, and other filesystem entries whose names match an include pattern; those entries
+must be rejected before any code calls `read_bytes()` or otherwise opens them. Explicit path
+selection must continue to select from the same validated project-file set, and configuration paths
+must be checked before TOML is read.
+
+Every change to file discovery or path selection must preserve this invariant with a regression
+test for non-regular entries. Use a real FIFO test on platforms that support `os.mkfifo` and a
+cross-platform simulated candidate test elsewhere.
+
 ## Why reference definitions are checked once
 
 A reference destination belongs to its definition rather than each use site. Reporting and fixing

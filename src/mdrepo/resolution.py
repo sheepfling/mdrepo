@@ -14,6 +14,7 @@ from mdrepo.models import Document, LinkOccurrence
 
 _WINDOWS_ABSOLUTE: Final[re.Pattern[str]] = re.compile(r"^(?:[A-Za-z]:[\\/]|\\{2})")
 
+
 @dataclass(frozen=True, slots=True)
 class LocalTargetResolution:
     """Filesystem interpretation of one local Markdown destination."""
@@ -39,19 +40,20 @@ class LocalTargetResolution:
         """Return whether the destination is machine- or root-absolute."""
 
         return (
-                self.windows_absolute
-                or self.root_relative
-                or self.protocol_relative
-                or self.file_uri
-                or self.home_relative
+            self.windows_absolute
+            or self.root_relative
+            or self.protocol_relative
+            or self.file_uri
+            or self.home_relative
         )
 
+
 def resolve_local_target(
-        *,
-        root: Path,
-        document: Document,
-        occurrence: LinkOccurrence,
-        config: LinkConfig,
+    *,
+    root: Path,
+    document: Document,
+    occurrence: LinkOccurrence,
+    config: LinkConfig,
 ) -> LocalTargetResolution | None:
     """Resolve a destination when it represents a local repository path."""
 
@@ -87,11 +89,11 @@ def resolve_local_target(
     outside_root = False
 
     if (
-            not windows_absolute
-            and not protocol_relative
-            and not file_uri
-            and not home_relative
-            and normalized_path
+        not windows_absolute
+        and not protocol_relative
+        and not file_uri
+        and not home_relative
+        and normalized_path
     ):
         base = root if root_relative else document.path.parent
         path_text = normalized_path.lstrip("/") if root_relative else normalized_path
@@ -135,10 +137,11 @@ def resolve_local_target(
         suggested_target=suggested_target,
     )
 
+
 def canonicalize_case(
-        *,
-        root: Path,
-        candidate: Path,
+    *,
+    root: Path,
+    candidate: Path,
 ) -> tuple[Path | None, bool, bool]:
     """Find the exact on-disk path spelling independent of host case sensitivity."""
 
@@ -169,12 +172,13 @@ def canonicalize_case(
         mismatch = True
     return current, current.exists(), mismatch
 
+
 def make_relative_target(
-        *,
-        source: Path,
-        target: Path,
-        query: str = "",
-        fragment: str = "",
+    *,
+    source: Path,
+    target: Path,
+    query: str = "",
+    fragment: str = "",
 ) -> str:
     """Create a POSIX, percent-encoded destination relative to a source document."""
 
@@ -182,12 +186,13 @@ def make_relative_target(
     encoded = quote(relative, safe="/.-_~")
     return urlunsplit(("", "", encoded, query, fragment))
 
+
 def make_repository_target(
-        *,
-        root: Path,
-        source: Path,
-        repository_path: PurePosixPath,
-        fragment: str = "",
+    *,
+    root: Path,
+    source: Path,
+    repository_path: PurePosixPath,
+    fragment: str = "",
 ) -> tuple[Path, str]:
     """Resolve and render a repository-relative web target as a local destination."""
 
@@ -199,12 +204,13 @@ def make_repository_target(
     )
     return target_path, replacement
 
+
 def resolve_graph_document(
-        *,
-        root: Path,
-        resolution: LocalTargetResolution,
-        documents: dict[Path, Document],
-        config: OrphanConfig,
+    *,
+    root: Path,
+    resolution: LocalTargetResolution,
+    documents: dict[Path, Document],
+    config: OrphanConfig,
 ) -> Path | None:
     """Resolve local paths, extensionless routes, and directory indexes to Markdown documents."""
 
@@ -243,11 +249,12 @@ def resolve_graph_document(
                 return extended
     return None
 
+
 def _document_candidate(
-        *,
-        root: Path,
-        candidate: Path,
-        documents: dict[Path, Document],
+    *,
+    root: Path,
+    candidate: Path,
+    documents: dict[Path, Document],
 ) -> Path | None:
     canonical, exists, _ = canonicalize_case(root=root, candidate=candidate)
     if not exists or canonical is None:

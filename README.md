@@ -268,5 +268,5 @@ plugin-specific configuration merging.
 
 See [the responsibility boundary](docs/responsibility-boundary.md),
 [design notes](docs/design.md), [configuration reference](docs/configuration.md),
-[migration notes from the 0.1 prototype](docs/migration-from-0.1.md),
-[validation record](./VALIDATION.md), and [project changelog](./CHANGELOG.md).
+[migration notes from the 0.1 prototype](docs/migration-from-0.1.md), and
+[project changelog](./CHANGELOG.md).

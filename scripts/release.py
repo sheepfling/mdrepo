@@ -12,13 +12,18 @@ from typing import Any, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 
+
 class ReleaseError(RuntimeError):
     """Raised when release metadata or artifacts are invalid."""
+
 
 def project_version() -> str:
     """Read the package version from the authoritative project metadata."""
 
-    with (ROOT / "pyproject.toml").open("rb") as stream:
+    metadata_path = ROOT / "pyproject.toml"
+    if not metadata_path.is_file() or metadata_path.is_symlink():
+        raise ReleaseError("pyproject.toml is not a regular file")
+    with metadata_path.open("rb") as stream:
         document: dict[str, Any] = tomllib.load(stream)
     project = document.get("project")
     if not isinstance(project, dict):
@@ -28,6 +33,7 @@ def project_version() -> str:
     if not isinstance(version, str):
         raise ReleaseError("pyproject.toml does not define project.version")
     return version
+
 
 def verify_tag(tag: str | None) -> None:
     """Require a release tag to match the project version."""
@@ -39,6 +45,7 @@ def verify_tag(tag: str | None) -> None:
         raise ReleaseError(
             f"release tag {release_tag!r} does not match project version {project_version()!r}"
         )
+
 
 def build_release(*, output: Path, tag: str | None = None) -> tuple[Path, ...]:
     """Build sdist and wheel, validate them with twine, and return their paths."""
@@ -58,7 +65,11 @@ def build_release(*, output: Path, tag: str | None = None) -> tuple[Path, ...]:
     if result.returncode:
         raise ReleaseError(f"distribution build failed with status {result.returncode}")
 
-    distributions = tuple(sorted(output.glob("*.whl"))) + tuple(sorted(output.glob("*.tar.gz")))
+    distributions = tuple(
+        path
+        for path in sorted(output.glob("*.whl")) + sorted(output.glob("*.tar.gz"))
+        if path.is_file() and not path.is_symlink()
+    )
     if not distributions:
         raise ReleaseError(f"no distributions were produced in {output}")
 
@@ -67,6 +78,7 @@ def build_release(*, output: Path, tag: str | None = None) -> tuple[Path, ...]:
     if result.returncode:
         raise ReleaseError(f"twine validation failed with status {result.returncode}")
     return distributions
+
 
 def main(argv: tuple[str, ...] = ()) -> int:
     """Run one provider-neutral release operation."""
@@ -84,6 +96,7 @@ def main(argv: tuple[str, ...] = ()) -> int:
         print(f"release: error: {error}", file=sys.stderr)
         return 1
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main(tuple(sys.argv[1:])))

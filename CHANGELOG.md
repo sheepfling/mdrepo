@@ -30,6 +30,8 @@
   exception suppression, CLI output modes, and dry-run versus applied fixes.
 - Removed Scope Markers integration so Ruff, tests, and repository checks operate directly on the
   source tree without generated marker comments.
+- Added a filesystem input-safety invariant and regression coverage preventing recursive discovery
+  from admitting FIFOs or other non-regular entries for later reads.
 - Resolved PyCharm-reported API, typing, shadowing, and expression issues, and tightened direct
   Ruff lint and formatting validation.
 - Moved release tag verification, distribution building, and twine validation into a tested Python

@@ -135,7 +135,7 @@ ordinary lint rules, checks local file targets, and validates heading fragments.
 `mdrepo` then:
 
 1. discovers the repository root and resolves typed configuration;
-2. discovers the configured Markdown document set;
+2. discovers the configured Markdown document set, admitting only regular non-symlink files;
 3. parses Markdown link destinations and reference definitions;
 4. resolves local destinations against the repository filesystem;
 5. discovers the repository's web identity from configuration or local Git metadata;

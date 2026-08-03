@@ -14,6 +14,7 @@ from mdrepo.config import (
 )
 from mdrepo.models import Severity
 
+
 @pytest.mark.parametrize(
     ("expression", "expected"),
     [
@@ -24,15 +25,17 @@ from mdrepo.models import Severity
     ],
 )
 def test_parse_override_accepts_typed_and_fallback_values(
-        expression: str,
-        expected: tuple[str, object],
+    expression: str,
+    expected: tuple[str, object],
 ) -> None:
     assert parse_override(expression) == expected
+
 
 @pytest.mark.parametrize("expression", ("missing", "=value", "   =value"))
 def test_parse_override_rejects_missing_or_blank_keys(expression: str) -> None:
     with pytest.raises(ConfigurationError, match="KEY=VALUE"):
         parse_override(expression)
+
 
 def test_set_dotted_value_normalizes_underscores_and_rejects_scalar_parents() -> None:
     target: dict[str, object] = {}
@@ -44,6 +47,7 @@ def test_set_dotted_value_normalizes_underscores_and_rejects_scalar_parents() ->
 
     with pytest.raises(ConfigurationError, match="invalid dotted"):
         set_dotted_value({}, "rules..select", [])
+
 
 def test_deep_merge_copies_nested_values_and_replaces_lists() -> None:
     base = {"links": {"check-case": True, "extensions": ["md"]}}
@@ -58,6 +62,7 @@ def test_deep_merge_copies_nested_values_and_replaces_lists() -> None:
         }
     }
     assert base == {"links": {"check-case": True, "extensions": ["md"]}}
+
 
 def test_application_config_normalizes_rules_refs_extensions_and_exceptions() -> None:
     config = ApplicationConfig.model_validate(
@@ -88,6 +93,7 @@ def test_application_config_normalizes_rules_refs_extensions_and_exceptions() ->
     assert config.repository.relative_refs == ["main", "feature/docs"]
     assert config.orphans.markdown_extensions == [".md", ".markdown"]
     assert config.exceptions[0].id == "temporary"
+
 
 @pytest.mark.parametrize(
     "payload",

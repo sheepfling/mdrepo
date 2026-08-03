@@ -12,8 +12,10 @@ from pathlib import Path
 
 from mdrepo.models import Diagnostic, Fix
 
+
 class FixError(RuntimeError):
     """Raised when safe edits overlap, become stale, or cannot be written."""
+
 
 @dataclass(frozen=True, slots=True)
 class FixResult:
@@ -22,6 +24,7 @@ class FixResult:
     applied_count: int
     changed_files: tuple[Path, ...]
     diffs: tuple[str, ...]
+
 
 def collect_fixes(diagnostics: tuple[Diagnostic, ...]) -> tuple[Fix, ...]:
     """Collect and de-duplicate safe edits attached to visible diagnostics."""
@@ -55,12 +58,13 @@ def collect_fixes(diagnostics: tuple[Diagnostic, ...]) -> tuple[Fix, ...]:
     _validate_non_overlapping(ordered)
     return ordered
 
+
 def apply_fixes(
-        *,
-        fixes: tuple[Fix, ...],
-        root: Path,
-        encoding: str,
-        dry_run: bool,
+    *,
+    fixes: tuple[Fix, ...],
+    root: Path,
+    encoding: str,
+    dry_run: bool,
 ) -> FixResult:
     """Apply safe edits atomically per file or return unified diffs without writing."""
 
@@ -78,14 +82,14 @@ def apply_fixes(
 
         updated = original
         for fix in sorted(grouped[path], key=lambda item: item.span.start, reverse=True):
-            actual = updated[fix.span.start: fix.span.end]
+            actual = updated[fix.span.start : fix.span.end]
             if actual != fix.expected:
                 raise FixError(
                     "source changed after analysis at "
                     f"{path}:{fix.span.line}:{fix.span.column}; "
                     f"expected {fix.expected!r}, found {actual!r}"
                 )
-            updated = updated[: fix.span.start] + fix.replacement + updated[fix.span.end:]
+            updated = updated[: fix.span.start] + fix.replacement + updated[fix.span.end :]
 
         if updated == original:
             continue
@@ -110,6 +114,7 @@ def apply_fixes(
         diffs=tuple(diffs),
     )
 
+
 def _validate_non_overlapping(fixes: tuple[Fix, ...]) -> None:
     previous_by_path: dict[Path, Fix] = {}
     for fix in fixes:
@@ -121,16 +126,17 @@ def _validate_non_overlapping(fixes: tuple[Fix, ...]) -> None:
             )
         previous_by_path[fix.path] = fix
 
+
 def _atomic_write(*, path: Path, text: str, encoding: str) -> None:
     temporary_path: Path | None = None
     try:
         mode = stat.S_IMODE(path.stat().st_mode)
         with tempfile.NamedTemporaryFile(
-                mode="wb",
-                dir=path.parent,
-                prefix=f".{path.name}.",
-                suffix=".tmp",
-                delete=False,
+            mode="wb",
+            dir=path.parent,
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+            delete=False,
         ) as temporary:
             temporary_path = Path(temporary.name)
             temporary.write(text.encode(encoding))
