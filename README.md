@@ -73,9 +73,17 @@ python -m pip install -e ".[dev]"
 python -m scripts.ci
 ```
 
-The runner is read-only by default. For local cleanup, `python -m scripts.ci --fix` runs Ruff,
-Ruff formatting, rumdl, and `mdrepo fix` in their safe-fix modes before repeating the checks
-against the resulting checkout.
+The runner is read-only by default. During development, run the fix pass first, then run the
+read-only pass before committing or pushing:
+
+```bash
+python -m scripts.ci --fix
+python -m scripts.ci
+```
+
+The fix pass runs Ruff, Ruff formatting, rumdl, and `mdrepo fix` in their safe-fix modes. The
+read-only pass is the final gate and must pass against the resulting checkout; hosted CI uses that
+read-only mode so formatting or lint drift cannot be silently normalized.
 
 The CI matrix covers Ubuntu and Windows on Python 3.12, 3.13, and 3.14. It checks compilation,
 Ruff, formatting, tests with branch coverage reporting, isolated sdist/wheel builds with `twine
