@@ -96,6 +96,7 @@ def test_application_config_normalizes_rules_extensions_and_exceptions() -> None
         {"orphans": {"markdown_extensions": []}},
         {"exceptions": [{"id": "bad", "rule": "MDR201", "reason": "Not allowed."}]},
         {"exceptions": [{"id": "bad", "rule": "MDR101", "reason": "short"}]},
+        {"exceptions": [{"id": "bad", "rule": "MDR101", "reason": "       a"}]},
     ],
 )
 def test_application_config_rejects_invalid_policy_values(payload: dict[str, object]) -> None:

@@ -109,7 +109,7 @@ class ExceptionConfig(ConfigModel):
     reason: str = Field(min_length=8)
     expires: date | None = None
 
-    @field_validator("id", "path", "reason")
+    @field_validator("id", "path", "reason", mode="before")
     @classmethod
     def _strip_required_text(cls, value: str) -> str:
         normalized = value.strip()
