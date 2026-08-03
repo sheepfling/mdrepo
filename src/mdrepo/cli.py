@@ -7,7 +7,6 @@ import json
 import sys
 from collections.abc import Sequence
 from pathlib import Path
-from typing import TextIO
 
 from mdrepo import __version__
 from mdrepo.config import ConfigurationError, LoadedConfig, load_configuration
@@ -16,7 +15,7 @@ from mdrepo.files import FileDiscoveryError
 from mdrepo.fixes import FixError, apply_fixes, collect_fixes
 from mdrepo.graph import DocumentGraph
 from mdrepo.models import OutputFormat, Severity
-from mdrepo.reporting import should_fail, write_diagnostics
+from mdrepo.reporting import TextWriter, should_fail, write_diagnostics
 from mdrepo.rules import RULE_METADATA
 
 class CliError(RuntimeError):
@@ -178,8 +177,8 @@ def _dispatch(
         *,
         namespace: argparse.Namespace,
         loaded: LoadedConfig,
-        stdout: TextIO,
-        stderr: TextIO,
+        stdout: TextWriter,
+        stderr: TextWriter,
 ) -> int:
     command = str(namespace.command)
     if command == "check":
@@ -198,8 +197,8 @@ def _check(
         *,
         namespace: argparse.Namespace,
         loaded: LoadedConfig,
-        stdout: TextIO,
-        stderr: TextIO,
+        stdout: TextWriter,
+        stderr: TextWriter,
 ) -> int:
     result = run_repository(
         loaded_config=loaded,
@@ -221,8 +220,8 @@ def _fix(
         *,
         namespace: argparse.Namespace,
         loaded: LoadedConfig,
-        stdout: TextIO,
-        stderr: TextIO,
+        stdout: TextWriter,
+        stderr: TextWriter,
 ) -> int:
     if (namespace.dry_run or namespace.diff) and loaded.model.output is not OutputFormat.TEXT:
         raise CliError("fix diffs require --format text")
@@ -277,7 +276,7 @@ def _graph(
         *,
         namespace: argparse.Namespace,
         loaded: LoadedConfig,
-        stdout: TextIO,
+        stdout: TextWriter,
 ) -> int:
     if namespace.paths:
         raise CliError("graph is repository-wide and does not accept path filters")
@@ -296,7 +295,7 @@ def _graph(
     )
     return 0
 
-def _rules(*, loaded: LoadedConfig, stdout: TextIO) -> int:
+def _rules(*, loaded: LoadedConfig, stdout: TextWriter) -> int:
     if loaded.model.output is OutputFormat.JSON:
         json.dump(
             [
@@ -325,7 +324,7 @@ def _rules(*, loaded: LoadedConfig, stdout: TextIO) -> int:
         stdout.write(f"  {metadata.description}\n")
     return 0
 
-def _config(*, loaded: LoadedConfig, stdout: TextIO) -> int:
+def _config(*, loaded: LoadedConfig, stdout: TextWriter) -> int:
     payload = {
         "config": loaded.model.model_dump(by_alias=True, mode="json"),
         "root": str(loaded.root),
@@ -340,7 +339,7 @@ def _write_graph(
         graph: DocumentGraph,
         root: Path,
         graph_format: str,
-        stream: TextIO,
+        stream: TextWriter,
 ) -> None:
     relative_edges = {
         source.relative_to(root).as_posix(): sorted(
@@ -382,7 +381,7 @@ def _write_graph(
         stream.write(f"{source} -> {rendered}\n")
     stream.write(f"unreachable: {', '.join(unreachable) if unreachable else '(none)'}\n")
 
-def _write_summary(*, result: RunResult, stream: TextIO) -> None:
+def _write_summary(*, result: RunResult, stream: TextWriter) -> None:
     errors = sum(diagnostic.severity is Severity.ERROR for diagnostic in result.diagnostics)
     warnings = sum(diagnostic.severity is Severity.WARNING for diagnostic in result.diagnostics)
     infos = sum(diagnostic.severity is Severity.INFO for diagnostic in result.diagnostics)

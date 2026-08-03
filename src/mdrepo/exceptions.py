@@ -62,7 +62,7 @@ def apply_exceptions(
             health.append(
                 Diagnostic(
                     rule_id="MDR201",
-                    message=(f"exception {exception.id!r} expired on {_expiry_text(exception)}"),
+                    message=f"exception {exception.id!r} expired on {_expiry_text(exception)}",
                     severity=config.exception_policy.expired_severity,
                     target=exception.id,
                     hint=f"Remove or renew it deliberately. Recorded reason: {exception.reason}",

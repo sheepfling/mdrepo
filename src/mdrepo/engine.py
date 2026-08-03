@@ -160,7 +160,7 @@ def _deduplicate(diagnostics: list[Diagnostic]) -> tuple[Diagnostic, ...]:
             diagnostic.message,
         )
         unique.setdefault(key, diagnostic)
-    return tuple(unique.values())
+    return tuple(diagnostic for diagnostic in unique.values())
 
 def _sort_diagnostics(diagnostics: tuple[Diagnostic, ...]) -> tuple[Diagnostic, ...]:
     return tuple(

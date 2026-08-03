@@ -51,7 +51,7 @@ def resolve_local_target(
         root: Path,
         document: Document,
         occurrence: LinkOccurrence,
-        _config: LinkConfig,
+        config: LinkConfig,
 ) -> LocalTargetResolution | None:
     """Resolve a destination when it represents a local repository path."""
 

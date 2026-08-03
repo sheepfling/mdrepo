@@ -25,7 +25,9 @@ def collect_project_markdown(*, root: Path, config: ApplicationConfig) -> tuple[
             continue
         if include_spec.match_file(relative):
             collected.append(path.resolve())
-    return tuple(sorted(collected, key=lambda path: path.relative_to(root).as_posix()))
+    return tuple(
+        sorted(collected, key=lambda candidate_path: candidate_path.relative_to(root).as_posix())
+    )
 
 def select_requested_markdown(
         *,
@@ -58,5 +60,9 @@ def select_requested_markdown(
             selected.add(candidate)
             continue
 
-        selected.update(path for path in project_paths if path.is_relative_to(candidate))
-    return tuple(sorted(selected, key=lambda path: path.relative_to(root).as_posix()))
+        selected.update(
+            project_path for project_path in project_paths if project_path.is_relative_to(candidate)
+        )
+    return tuple(
+        sorted(selected, key=lambda selected_path: selected_path.relative_to(root).as_posix())
+    )

@@ -11,10 +11,14 @@
 .rumdl_cache/
 .ruff_cache/
 .tmp/
+tmp/
+.temp/
+temp/
 __pycache__/
 *.py[cod]
 .coverage
 htmlcov/
+inbox/
 
 # Packaging and build output
 build/

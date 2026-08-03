@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import TextIO
+from typing import Protocol
 
 from mdrepo.models import Diagnostic, OutputFormat, Severity
 
@@ -13,11 +13,19 @@ _SEVERITY_RANK = {
     Severity.ERROR: 2,
 }
 
+class TextWriter(Protocol):
+    """Minimal structural interface required by diagnostic renderers."""
+
+    def write(self, text: str, /) -> int:
+        """Write text and return the number of characters accepted."""
+
+        ...
+
 def write_diagnostics(
         *,
         diagnostics: tuple[Diagnostic, ...],
         output_format: OutputFormat,
-        stream: TextIO,
+        stream: TextWriter,
 ) -> None:
     """Render diagnostics in one deterministic output format."""
 
@@ -67,13 +75,14 @@ def _location(diagnostic: Diagnostic) -> str:
 
 def _json_record(diagnostic: Diagnostic) -> dict[str, object]:
     fix: dict[str, object] | None = None
-    if diagnostic.fix is not None:
+    edit = diagnostic.fix
+    if edit is not None:
         fix = {
-            "description": diagnostic.fix.description,
-            "end": diagnostic.fix.span.end,
-            "expected": diagnostic.fix.expected,
-            "replacement": diagnostic.fix.replacement,
-            "start": diagnostic.fix.span.start,
+            "description": edit.description,
+            "end": edit.span.end,
+            "expected": edit.expected,
+            "replacement": edit.replacement,
+            "start": edit.span.start,
         }
     return {
         "column": diagnostic.column,

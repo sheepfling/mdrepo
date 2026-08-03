@@ -390,7 +390,9 @@ def _parse_direct_destination(
     while position < len(source) and (source[position].isspace() or source[position] == "\n"):
         position += 1
     title = parser.helpers.parseLinkTitle(source, position, len(source))
-    if position < len(source) and before_title != position and title.ok:
+    has_title_spacing = before_title != position
+    has_valid_title = position < len(source) and title.ok
+    if has_title_spacing and has_valid_title:
         position = title.pos
         while position < len(source) and (source[position].isspace() or source[position] == "\n"):
             position += 1

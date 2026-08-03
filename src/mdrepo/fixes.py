@@ -45,7 +45,11 @@ def collect_fixes(diagnostics: tuple[Diagnostic, ...]) -> tuple[Fix, ...]:
     ordered = tuple(
         sorted(
             unique.values(),
-            key=lambda fix: (str(fix.path), fix.span.start, fix.span.end),
+            key=lambda candidate_fix: (
+                str(candidate_fix.path),
+                candidate_fix.span.start,
+                candidate_fix.span.end,
+            ),
         )
     )
     _validate_non_overlapping(ordered)
