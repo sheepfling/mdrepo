@@ -14,7 +14,7 @@ rumdl                                   mdrepo
 
 syntax and structure                    portable local path policy
 formatting and ordinary lint rules      exact on-disk path spelling
-local target existence                  same-repository web URL policy
+local target existence                  rooted document reachability
 heading-fragment validity               rooted document reachability
 Markdown flavor behavior                governed exception lifecycle
 
@@ -26,12 +26,11 @@ Markdown flavor behavior                governed exception lifecycle
 ## Ownership rule
 
 A proposed feature belongs in `rumdl` when it can be decided from Markdown syntax, a Markdown
-flavor, a target file, or a target heading without knowing the repository's identity or policy.
+flavor, a target file, or a target heading without knowing the repository's filesystem policy.
 
 A proposed feature belongs in `mdrepo` only when it needs one or more of these:
 
 - the repository root;
-- the repository's Git hosting identity;
 - operating-system-independent path semantics;
 - relationships among multiple Markdown documents;
 - a rooted documentation graph;
@@ -55,7 +54,6 @@ policy, retry policy, or interpretation of a remote server response.
 | No drive path, UNC path, home-relative path, or `file:` URL            | `mdrepo`                                      | These destinations embed one machine's filesystem assumptions.               |
 | A local destination must not escape the repository root                | `mdrepo`                                      | The repository root is required to decide the rule.                          |
 | Destination spelling matches exact on-disk case                        | `mdrepo`                                      | This protects Windows-authored links from failing on case-sensitive systems. |
-| Mutable hosted URL points back into this repository                    | `mdrepo`                                      | The decision requires Git remote identity and provider URL semantics.        |
 | Markdown page is reachable from configured documentation roots         | `mdrepo`                                      | This is a generic repository-wide graph property.                            |
 | Exception has a reason, is unexpired, and still suppresses something   | `mdrepo`                                      | This is repository-policy governance rather than Markdown linting.           |
 | External website currently responds                                    | Neither                                       | The focused toolchain intentionally performs no network crawl.               |
@@ -138,11 +136,10 @@ ordinary lint rules, checks local file targets, and validates heading fragments.
 2. discovers the configured Markdown document set, admitting only regular non-symlink files;
 3. parses Markdown link destinations and reference definitions;
 4. resolves local destinations against the repository filesystem;
-5. discovers the repository's web identity from configuration or local Git metadata;
-6. applies portable-path, exact-case, and same-repository URL policy;
-7. optionally constructs the rooted documentation graph;
-8. applies structured exceptions and reports their health;
-9. emits text, JSON, or GitHub Actions diagnostics.
+5. applies portable-path and exact-case policy;
+6. optionally constructs the rooted documentation graph;
+7. applies structured exceptions and reports their health;
+8. emits text, JSON, or GitHub Actions diagnostics.
 
 No step performs a network request.
 
@@ -160,12 +157,6 @@ allow-root-relative = false
 allow-outside-root = false
 check-missing-targets = false
 check-case = true
-
-[tool.mdrepo.repository]
-enabled = true
-discover-from-git = true
-remote = "origin"
-relative-refs = ["main", "master"]
 
 [tool.mdrepo.orphans]
 enabled = true
@@ -228,7 +219,7 @@ policy is invalid.
 Before adding a rule, ask these questions in order:
 
 1. Can rumdl already express it directly or through a flavor-specific rule?
-2. Can it be decided without repository identity, repository root, or a multi-document graph?
+2. Can it be decided without repository root or a multi-document graph?
 3. Does it require network access or build-system execution?
 4. Is the result deterministic from the checked-out repository?
 

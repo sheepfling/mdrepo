@@ -10,7 +10,7 @@ The durable boundary is:
 
 ```text
 Document semantics and presentation  -> rumdl
-Repository identity and topology     -> mdrepo
+Repository filesystem and topology   -> mdrepo
 Network and generated-site behavior  -> other tools
 ```
 
@@ -41,14 +41,12 @@ disabled by default and should stay disabled when rumdl `MD057` runs.
 3. Parse each document with `markdown-it-py`.
 4. Record direct destinations, autolinks, reference uses, and reference definitions separately.
 5. Resolve selected documents' policy destinations against the repository filesystem.
-6. Discover the local Git web identity when same-repository checks are enabled.
-7. Build the complete document graph when orphan analysis or graph output is requested.
-8. Run the fixed built-in rule registry.
-9. Apply structured exceptions and produce exception-health diagnostics.
-10. Render text, JSON, or GitHub Actions diagnostics.
+6. Build the complete document graph when orphan analysis or graph output is requested.
+7. Run the fixed built-in rule registry.
+8. Apply structured exceptions and produce exception-health diagnostics.
+9. Render text, JSON, or GitHub Actions diagnostics.
 
-No network request or subprocess invocation of another checker occurs in this flow. The only
-subprocess use is bounded, read-only local Git metadata discovery.
+No network request or subprocess invocation of another checker occurs in this flow.
 
 ## Filesystem input-safety invariant
 
@@ -94,18 +92,6 @@ directory while preserving its permission mode and original line-ending bytes.
 
 `mdrepo fix` changes only destination spans for rules with a semantically equivalent replacement. It
 does not reflow, restyle, or otherwise format Markdown; that remains rumdl's responsibility.
-
-## Same-repository conversion
-
-Repository identity is read from explicit configuration or `git config --get remote.<name>.url`.
-HTTPS, SSH, and SCP-style Git remotes are normalized to a web base. Supported file routes are:
-
-- GitHub: `/blob/<ref>/<path>` and `raw.githubusercontent.com`;
-- GitLab: `/-/blob/<ref>/<path>`;
-- Bitbucket: `/src/<ref>/<path>`.
-
-A route is eligible only when its ref is in the configured/discovered mutable-ref set. Provider line
-anchors and query strings are skipped because conversion would not be semantically equivalent.
 
 ## Graph scope
 

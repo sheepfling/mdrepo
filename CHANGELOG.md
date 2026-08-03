@@ -4,8 +4,8 @@
 
 - Added an explicit responsibility contract defining the boundary between rumdl, `mdrepo`, network
   checking, and documentation-site builds.
-- Documented one authoritative owner for missing targets, fragments, path portability, hosted
-  repository URLs, document reachability, and exception governance.
+- Documented one authoritative owner for missing targets, fragments, path portability, document
+  reachability, and exception governance.
 - Documented the canonical local-cleanup and CI workflows with rumdl.
 - Reframed `MDR004` as a disabled standalone fallback rather than a normal paired rule.
 - Clarified the difference between MkDocs navigation membership (`MD074`) and generic Markdown graph
@@ -19,15 +19,14 @@
 - Added cross-platform CI coverage for Windows and Ubuntu on Python 3.12, 3.13, and 3.14.
 - Added strict Pyright checking, branch coverage reporting, `twine check` packaging validation,
   and pre-commit configuration and hook validation.
-- Added direct Bitbucket `src` route coverage and made the repository's default orphan policy part
-  of CI self-checks.
-- Added regression coverage for stale exception reporting, malformed and non-default repository
-  ports, home-relative destinations, and the interconnected repository scenario.
+- Made the repository's default orphan policy part of CI self-checks.
+- Added regression coverage for stale exception reporting, home-relative destinations, and the
+  interconnected repository scenario.
 - Made the marker-compatible Ruff formatting check read-only and kept the standard CI coverage
   report informational rather than coupling it to a hardcoded threshold.
 - Added reusable pseudo-repository test fixtures and expanded scenario coverage across Markdown
-  parsing, filesystem resolution, repository URL identity, graph reachability, rule toggles,
-  exception suppression, CLI output modes, and dry-run versus applied fixes.
+  parsing, filesystem resolution, graph reachability, rule toggles, exception suppression, CLI
+  output modes, and dry-run versus applied fixes.
 - Removed Scope Markers integration so Ruff, tests, and repository checks operate directly on the
   source tree without generated marker comments.
 - Added a filesystem input-safety invariant and regression coverage preventing recursive discovery
@@ -36,6 +35,10 @@
   Ruff lint and formatting validation.
 - Moved release tag verification, distribution building, and twine validation into a tested Python
   helper; GitLab CI delegates to the repository runner, while the final PyPI upload remains manual.
+- Made repository tooling importable as a `scripts` package, with CI and release operations exposed
+  through `python -m scripts.ci` and `python -m scripts.release`.
+- Removed hosted repository URL normalization and provider-specific `MDR006`; external GitHub,
+  GitLab, Bitbucket, and other hosted URLs are outside `mdrepo`'s policy scope.
 
 ## 0.2.0
 

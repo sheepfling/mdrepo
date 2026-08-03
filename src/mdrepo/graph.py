@@ -9,7 +9,6 @@ from pathlib import Path
 
 from mdrepo.config import ApplicationConfig
 from mdrepo.models import Document, LinkKind, LinkOccurrence
-from mdrepo.repository import RepositoryIdentity, parse_same_repository_url
 from mdrepo.resolution import canonicalize_case, resolve_graph_document, resolve_local_target
 
 
@@ -27,9 +26,8 @@ def build_document_graph(
     root: Path,
     documents: dict[Path, Document],
     config: ApplicationConfig,
-    identity: RepositoryIdentity | None,
 ) -> DocumentGraph:
-    """Build local and same-repository web edges, then walk configured roots."""
+    """Build local Markdown-link edges, then walk configured roots."""
 
     mutable_edges: dict[Path, set[Path]] = {path: set() for path in documents}
     for document in documents.values():
@@ -43,7 +41,6 @@ def build_document_graph(
                 occurrence=occurrence,
                 documents=documents,
                 config=config,
-                identity=identity,
             )
             if target_document is not None:
                 mutable_edges[document.path].add(target_document)
@@ -75,13 +72,11 @@ def _link_document_target(
     occurrence: LinkOccurrence,
     documents: dict[Path, Document],
     config: ApplicationConfig,
-    identity: RepositoryIdentity | None,
 ) -> Path | None:
     local = resolve_local_target(
         root=root,
         document=document,
         occurrence=occurrence,
-        config=config.links,
     )
     if local is not None:
         return resolve_graph_document(
@@ -90,18 +85,6 @@ def _link_document_target(
             documents=documents,
             config=config.orphans,
         )
-
-    if identity is None:
-        return None
-    remote = parse_same_repository_url(target=occurrence.target, identity=identity)
-    if remote is None:
-        return None
-    candidate = Path(os.path.abspath(os.path.join(root, remote.repository_path.as_posix())))
-    canonical, exists, _ = canonicalize_case(root=root, candidate=candidate)
-    if not exists or canonical is None:
-        return None
-    resolved = canonical.resolve()
-    return resolved if resolved in documents else None
 
 
 def _resolve_roots(

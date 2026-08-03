@@ -5,11 +5,11 @@ from __future__ import annotations
 import os
 import re
 from dataclasses import dataclass
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from typing import Final
 from urllib.parse import SplitResult, quote, unquote, urlsplit, urlunsplit
 
-from mdrepo.config import LinkConfig, OrphanConfig
+from mdrepo.config import OrphanConfig
 from mdrepo.models import Document, LinkOccurrence
 
 _WINDOWS_ABSOLUTE: Final[re.Pattern[str]] = re.compile(r"^(?:[A-Za-z]:[\\/]|\\{2})")
@@ -53,7 +53,6 @@ def resolve_local_target(
     root: Path,
     document: Document,
     occurrence: LinkOccurrence,
-    config: LinkConfig,
 ) -> LocalTargetResolution | None:
     """Resolve a destination when it represents a local repository path."""
 
@@ -185,24 +184,6 @@ def make_relative_target(
     relative = os.path.relpath(target, start=source.parent).replace(os.sep, "/")
     encoded = quote(relative, safe="/.-_~")
     return urlunsplit(("", "", encoded, query, fragment))
-
-
-def make_repository_target(
-    *,
-    root: Path,
-    source: Path,
-    repository_path: PurePosixPath,
-    fragment: str = "",
-) -> tuple[Path, str]:
-    """Resolve and render a repository-relative web target as a local destination."""
-
-    target_path = Path(os.path.abspath(os.path.join(root, repository_path.as_posix())))
-    replacement = make_relative_target(
-        source=source,
-        target=target_path,
-        fragment=fragment,
-    )
-    return target_path, replacement
 
 
 def resolve_graph_document(

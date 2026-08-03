@@ -49,16 +49,6 @@ false by default. `check-case` enables portable exact-case checks.
 when mdrepo is intentionally being used without rumdl and the reduced standalone check is preferable
 to no target validation.
 
-## `[repository]`
-
-`url` overrides Git discovery. `provider` is `auto`, `github`, `gitlab`, or `bitbucket`.
-`relative-refs` limits web-to-relative conversion to known mutable refs. The current local branch and
-local remote-HEAD symbolic ref are added when `include-current-branch` and Git discovery are enabled.
-`require-existing-target` prevents conversion when the checked-out tree does not contain the target.
-
-This table concerns only repository identity for `MDR006`; it does not cause network access or invoke
-a hosting-provider API.
-
 ## `[orphans]`
 
 Orphan analysis is disabled by default. `roots` identifies entry documents. `extensionless-links`

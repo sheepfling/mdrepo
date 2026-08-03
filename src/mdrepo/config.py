@@ -36,15 +36,6 @@ class ConfigModel(BaseModel):
     )
 
 
-class RepositoryProvider(str):
-    """String constants accepted for repository web URL parsing."""
-
-    AUTO = "auto"
-    GITHUB = "github"
-    GITLAB = "gitlab"
-    BITBUCKET = "bitbucket"
-
-
 class RuleSelectionConfig(ConfigModel):
     """Rule selection and severity overrides."""
 
@@ -71,43 +62,6 @@ class LinkConfig(ConfigModel):
     allow_outside_root: bool = False
     check_missing_targets: bool = False
     check_case: bool = True
-
-
-class RepositoryConfig(ConfigModel):
-    """Same-repository web-link detection."""
-
-    enabled: bool = True
-    url: str | None = None
-    discover_from_git: bool = True
-    remote: str = "origin"
-    provider: str = RepositoryProvider.AUTO
-    relative_refs: list[str] = Field(default_factory=lambda: ["main", "master"])
-    include_current_branch: bool = True
-    require_existing_target: bool = True
-
-    @field_validator("provider")
-    @classmethod
-    def _validate_provider(cls, value: str) -> str:
-        normalized = value.strip().lower()
-        allowed = {
-            RepositoryProvider.AUTO,
-            RepositoryProvider.GITHUB,
-            RepositoryProvider.GITLAB,
-            RepositoryProvider.BITBUCKET,
-        }
-        if normalized not in allowed:
-            raise ValueError(f"provider must be one of {sorted(allowed)}")
-        return normalized
-
-    @field_validator("relative_refs")
-    @classmethod
-    def _normalize_refs(cls, values: list[str]) -> list[str]:
-        normalized: list[str] = []
-        for value in values:
-            item = value.strip().strip("/")
-            if item and item not in normalized:
-                normalized.append(item)
-        return normalized
 
 
 class OrphanConfig(ConfigModel):
@@ -198,7 +152,6 @@ class ApplicationConfig(ConfigModel):
     fail_on: Severity = Severity.ERROR
     rules: RuleSelectionConfig = Field(default_factory=RuleSelectionConfig)
     links: LinkConfig = Field(default_factory=LinkConfig)
-    repository: RepositoryConfig = Field(default_factory=RepositoryConfig)
     orphans: OrphanConfig = Field(default_factory=OrphanConfig)
     exception_policy: ExceptionPolicyConfig = Field(default_factory=ExceptionPolicyConfig)
     exceptions: list[ExceptionConfig] = Field(default_factory=lambda: list[ExceptionConfig]())

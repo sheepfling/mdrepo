@@ -64,16 +64,12 @@ def test_deep_merge_copies_nested_values_and_replaces_lists() -> None:
     assert base == {"links": {"check-case": True, "extensions": ["md"]}}
 
 
-def test_application_config_normalizes_rules_refs_extensions_and_exceptions() -> None:
+def test_application_config_normalizes_rules_extensions_and_exceptions() -> None:
     config = ApplicationConfig.model_validate(
         {
             "rules": {
                 "select": ["mdr001, MDR002", "MDR001"],
                 "severity": {" mdr001 ": "warning"},
-            },
-            "repository": {
-                "provider": " GITHUB ",
-                "relative_refs": ["/main/", "main", " feature/docs "],
             },
             "orphans": {"markdown_extensions": ["md", ".MARKDOWN", ""]},
             "exceptions": [
@@ -89,8 +85,6 @@ def test_application_config_normalizes_rules_refs_extensions_and_exceptions() ->
 
     assert config.rules.select == ["MDR001", "MDR002"]
     assert config.rules.severity == {"MDR001": Severity.WARNING}
-    assert config.repository.provider == "github"
-    assert config.repository.relative_refs == ["main", "feature/docs"]
     assert config.orphans.markdown_extensions == [".md", ".markdown"]
     assert config.exceptions[0].id == "temporary"
 
@@ -98,7 +92,6 @@ def test_application_config_normalizes_rules_refs_extensions_and_exceptions() ->
 @pytest.mark.parametrize(
     "payload",
     [
-        {"repository": {"provider": "unknown"}},
         {"orphans": {"markdown_extensions": []}},
         {"exceptions": [{"id": "bad", "rule": "MDR201", "reason": "Not allowed."}]},
         {"exceptions": [{"id": "bad", "rule": "MDR101", "reason": "short"}]},

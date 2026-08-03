@@ -23,7 +23,7 @@ def test_release_build_runs_build_and_twine_checks(
 ) -> None:
     commands: list[list[str]] = []
 
-    def fake_run(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+    def fake_run(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
         commands.append(command)
         if "build" in command:
             (tmp_path / "markdown_repo_policy-0.2.1.tar.gz").write_bytes(b"sdist")

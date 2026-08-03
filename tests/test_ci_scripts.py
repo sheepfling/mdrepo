@@ -14,7 +14,7 @@ def test_ci_command_sets_keep_read_only_and_fix_modes_distinct() -> None:
     assert ("python", "-m", "pytest", "--cov=mdrepo", "--cov-report=term-missing") in readonly
     assert all("--cov-fail-under" not in command for command in readonly)
     assert ("python", "-m", "mdrepo", "fix", ".") not in readonly
-    assert ("python", "scripts/check_format.py") in readonly
+    assert ("python", "-m", "scripts.check_format") in readonly
     assert ("python", "-m", "ruff", "check", "src", "scripts", "tests") in readonly
     assert ("python", "-m", "mdrepo", "fix", ".") in fixing
     assert len(fixing) > len(readonly)

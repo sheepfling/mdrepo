@@ -8,8 +8,8 @@ rumdl   -> Is each Markdown document well formed, consistently styled, and local
 mdrepo  -> Does the document set obey this repository's portability and navigation policy?
 ```
 
-`mdrepo` begins where a decision requires repository identity, cross-platform filesystem semantics,
-or the topology of the document set. It ends before Markdown formatting, dialect conformance,
+`mdrepo` begins where a decision requires cross-platform filesystem semantics or the topology of the
+document set. It ends before Markdown formatting, dialect conformance,
 heading-fragment validation, live HTTP checking, and documentation-site builds.
 
 There is no Node or npm runtime, no live HTTP crawler, no plugin loader, and no subprocess wrapper.
@@ -23,7 +23,6 @@ The runtime dependencies are `markdown-it-py`, `pathspec`, and Pydantic.
 | Relative target existence and heading fragments                                 | rumdl `MD057` and `MD051` |
 | MkDocs navigation validation                                                    | rumdl `MD074`             |
 | POSIX local paths, repository boundaries, and exact on-disk case                | `mdrepo`                  |
-| Mutable provider URLs that point back into the same repository                  | `mdrepo`                  |
 | Generic document reachability from configured roots                             | `mdrepo`                  |
 | Reasoned, expiring, and stale-exception governance                              | `mdrepo`                  |
 | Live external URL availability                                                  | Neither tool              |
@@ -39,8 +38,6 @@ MkDocs distinction, guarantees, and non-goals.
 ## What the focused tool adds
 
 - Rejects backslashes, machine-local absolute paths, root escapes, and non-portable path casing.
-- Detects mutable GitHub, GitLab, or Bitbucket web links that point back into the current repository
-  and can safely replace them with relative links.
 - Treats Markdown documents as a rooted graph and reports unreachable documents when orphan checks
   are enabled.
 - Uses structured exceptions with IDs, reasons, optional target patterns, and expiry dates.
@@ -73,10 +70,10 @@ Install the complete development environment and run exactly the checks used by 
 
 ```bash
 python -m pip install -e ".[dev]"
-python scripts/ci.py
+python -m scripts.ci
 ```
 
-The runner is read-only by default. For local cleanup, `python scripts/ci.py --fix` runs Ruff,
+The runner is read-only by default. For local cleanup, `python -m scripts.ci --fix` runs Ruff,
 Ruff formatting, rumdl, and `mdrepo fix` in their safe-fix modes before repeating the checks
 against the resulting checkout.
 
@@ -90,11 +87,11 @@ repositories can use the `.pre-commit-hooks.yaml` definition.
 
 ### Release process
 
-Releases are published manually. Update the version and changelog, run `python scripts/ci.py`, and
+Releases are published manually. Update the version and changelog, run `python -m scripts.ci`, and
 build the tagged distributions with the tested release helper:
 
 ```bash
-RELEASE_TAG=vX.Y.Z python scripts/release.py build
+RELEASE_TAG=vX.Y.Z python -m scripts.release build
 python -m twine upload dist/*
 ```
 
@@ -162,14 +159,6 @@ allow-outside-root = false
 check-missing-targets = false # Rumdl MD057 owns ordinary target existence.
 check-case = true
 
-[tool.mdrepo.repository]
-enabled = true
-discover-from-git = true
-remote = "origin"
-relative-refs = ["main", "master"]
-include-current-branch = true
-require-existing-target = true
-
 [tool.mdrepo.orphans]
 enabled = true
 roots = ["README.md", "docs/index.md"]
@@ -196,20 +185,6 @@ reason = "Package tooling exposes this document independently of the documentati
 expires = 2027-01-01
 ```
 
-A repository URL may be supplied explicitly when Git metadata is unavailable:
-
-```toml
-[tool.mdrepo.repository]
-url = "https://github.com/owner/project"
-discover-from-git = false
-provider = "github"
-relative-refs = ["main"]
-```
-
-Only configured mutable refs are converted. Commit-pinned links, provider line anchors such as
-`#L10`, and URLs with query strings are intentionally left alone because a relative Markdown link
-would not preserve their semantics.
-
 ## Commands
 
 ```bash
@@ -228,7 +203,7 @@ Useful invocation overrides:
 
 ```bash
 mdrepo check . --set links.check-missing-targets=true
-mdrepo check . --select MDR001,MDR005,MDR006
+mdrepo check . --select MDR001,MDR005
 mdrepo check . --ignore MDR101
 mdrepo check . --format github
 mdrepo check . --fail-on warning
@@ -249,7 +224,6 @@ Exit statuses are stable:
 | `MDR003` | Local destination escapes the repository root                |                 No |
 | `MDR004` | Standalone missing-target fallback; disabled with rumdl      |                 No |
 | `MDR005` | Path spelling differs from exact on-disk case                |                Yes |
-| `MDR006` | Mutable web URL points back into this repository             |                Yes |
 | `MDR100` | No configured orphan-graph root exists                       |                 No |
 | `MDR101` | Markdown document is unreachable from all roots              |                 No |
 | `MDR201` | Structured exception is expired                              |                 No |

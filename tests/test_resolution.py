@@ -1,16 +1,15 @@
 """Filesystem target classification and document resolution coverage."""
 
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 
 import pytest
 
-from mdrepo.config import LinkConfig, OrphanConfig
+from mdrepo.config import OrphanConfig
 from mdrepo.markdown import MarkdownParser
 from mdrepo.models import Document, LinkKind, LinkOccurrence, LinkSourceKind
 from mdrepo.resolution import (
     canonicalize_case,
     make_relative_target,
-    make_repository_target,
     resolve_graph_document,
     resolve_local_target,
 )
@@ -59,7 +58,6 @@ def test_local_target_classifies_machine_and_root_absolute_forms(
         root=tmp_path,
         document=_document(tmp_path),
         occurrence=_occurrence(target),
-        config=LinkConfig(),
     )
 
     assert resolution is not None
@@ -78,7 +76,6 @@ def test_non_local_or_fragment_targets_are_not_resolved(tmp_path: Path, target: 
             root=tmp_path,
             document=_document(tmp_path),
             occurrence=_occurrence(target),
-            config=LinkConfig(),
         )
         is None
     )
@@ -93,7 +90,6 @@ def test_local_target_resolves_case_and_repository_escape(tmp_path: Path) -> Non
         root=tmp_path,
         document=document,
         occurrence=_occurrence("guide.md"),
-        config=LinkConfig(),
     )
     assert mismatch is not None
     assert mismatch.exists is True
@@ -104,7 +100,6 @@ def test_local_target_resolves_case_and_repository_escape(tmp_path: Path) -> Non
         root=tmp_path,
         document=document,
         occurrence=_occurrence("../../outside.md"),
-        config=LinkConfig(),
     )
     assert escaped is not None
     assert escaped.outside_root is True
@@ -155,15 +150,6 @@ def test_target_rendering_quotes_paths_and_preserves_query_fragments(tmp_path: P
         == "guide%20with%20space.md?raw=1#setup"
     )
 
-    target_path, replacement = make_repository_target(
-        root=tmp_path,
-        source=source,
-        repository_path=PurePosixPath("guide.md"),
-        fragment="intro",
-    )
-    assert target_path == tmp_path / "guide.md"
-    assert replacement == "../guide.md#intro"
-
 
 def test_extensionless_graph_resolution_uses_configured_markdown_extensions(tmp_path: Path) -> None:
     (tmp_path / "docs").mkdir()
@@ -176,7 +162,6 @@ def test_extensionless_graph_resolution_uses_configured_markdown_extensions(tmp_
         root=tmp_path,
         document=document,
         occurrence=document.links[0],
-        config=LinkConfig(),
     )
     assert resolution is not None
     documents = {guide.resolve(): _document(tmp_path, "docs/guide.markdown")}

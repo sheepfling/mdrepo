@@ -21,7 +21,7 @@ def ci_commands(
 
     ruff_check = (python, "-m", "ruff", "check")
     ruff_format = (python, "-m", "ruff", "format")
-    rumdl = (python, "scripts/check_rumdl.py")
+    rumdl = (python, "-m", "scripts.check_rumdl")
     mdrepo_fix = (python, "-m", "mdrepo", "fix", ".")
 
     python_paths = ("src", "scripts", "tests")
@@ -40,7 +40,7 @@ def ci_commands(
     commands.extend(
         [
             ruff_check + python_paths,
-            (python, "scripts/check_format.py"),
+            (python, "-m", "scripts.check_format"),
             (
                 python,
                 "-m",
@@ -48,9 +48,9 @@ def ci_commands(
                 "--cov=mdrepo",
                 "--cov-report=term-missing",
             ),
-            (python, "scripts/check_build.py"),
-            (python, "scripts/check_pre_commit.py"),
-            (python, "-m", "pyright", "--pythonpath", python),
+            (python, "-m", "scripts.check_build"),
+            (python, "-m", "scripts.check_pre_commit"),
+            (python, "-m", "scripts.check_pyright"),
             rumdl,
             (python, "-m", "pre_commit", "run", "--all-files"),
             (python, "-m", "mdrepo", "check", "."),
@@ -63,18 +63,13 @@ def run_command(command: Sequence[str]) -> int:
     """Run one CI command from the repository root and return its exit code."""
 
     environment = os.environ.copy()
-    source_path = str(ROOT / "src")
-    existing_pythonpath = environment.get("PYTHONPATH")
-    environment["PYTHONPATH"] = os.pathsep.join(
-        path for path in (source_path, existing_pythonpath) if path
-    )
+    environment["PRE_COMMIT_HOME"] = str(ROOT / ".pre-commit-cache")
     python_path = Path(command[0])
     if python_path.is_absolute():
         existing_path = environment.get("PATH")
         environment["PATH"] = os.pathsep.join(
             path for path in (str(python_path.parent), existing_path) if path
         )
-    environment["PRE_COMMIT_HOME"] = str(ROOT / ".pre-commit-cache")
     try:
         completed = subprocess.run(command, cwd=ROOT, env=environment, check=False)
     except OSError as error:

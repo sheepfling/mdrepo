@@ -12,7 +12,6 @@ from mdrepo.files import collect_project_markdown, select_requested_markdown
 from mdrepo.graph import DocumentGraph, build_document_graph
 from mdrepo.markdown import MarkdownParser
 from mdrepo.models import Diagnostic, Document
-from mdrepo.repository import RepositoryIdentity, discover_repository_identity
 from mdrepo.resolution import resolve_local_target
 from mdrepo.rules import (
     BUILTIN_RULES,
@@ -35,7 +34,6 @@ class RunResult:
     root: Path
     documents: dict[Path, Document]
     selected_documents: tuple[Document, ...]
-    identity: RepositoryIdentity | None
     graph: DocumentGraph | None
     diagnostics: tuple[Diagnostic, ...]
     suppressed: tuple[Diagnostic, ...]
@@ -69,11 +67,6 @@ def run_repository(
         documents[document.path] = document
 
     selected_documents = tuple(documents[path] for path in selected_paths)
-    identity = discover_repository_identity(
-        root=root,
-        config=loaded_config.model.repository,
-    )
-
     policy_links: list[PolicyLink] = []
     for document in selected_documents:
         for occurrence in document.policy_occurrences:
@@ -85,7 +78,6 @@ def run_repository(
                         root=root,
                         document=document,
                         occurrence=occurrence,
-                        config=loaded_config.model.links,
                     ),
                 )
             )
@@ -96,7 +88,6 @@ def run_repository(
             root=root,
             documents=documents,
             config=loaded_config.model,
-            identity=identity,
         )
 
     context = RuleContext(
@@ -105,7 +96,6 @@ def run_repository(
         documents=documents,
         selected_documents=selected_documents,
         policy_links=tuple(policy_links),
-        identity=identity,
         graph=graph,
     )
     raw_diagnostics: list[Diagnostic] = []
@@ -145,7 +135,6 @@ def run_repository(
         root=root,
         documents=documents,
         selected_documents=selected_documents,
-        identity=identity,
         graph=graph,
         diagnostics=visible,
         suppressed=suppressed,

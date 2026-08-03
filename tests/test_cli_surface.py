@@ -22,11 +22,13 @@ def test_rules_command_supports_text_and_json_output(
     text_output = capsys.readouterr().out
     assert "MDR001" in text_output
     assert "MDR202" in text_output
+    assert "MDR006" not in text_output
 
     repository.configure('[tool.mdrepo]\noutput = "json"')
     assert repository.run(monkeypatch, "rules") == 0
     records = json.loads(capsys.readouterr().out)
     assert {record["rule_id"] for record in records} >= {"MDR001", "MDR202"}
+    assert "MDR006" not in {record["rule_id"] for record in records}
 
 
 def test_config_command_reports_layered_sources(

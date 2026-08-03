@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from typing import Protocol
 
 from mdrepo.config import ApplicationConfig
@@ -17,12 +17,7 @@ from mdrepo.models import (
     RuleMetadata,
     Severity,
 )
-from mdrepo.repository import RepositoryIdentity, parse_same_repository_url
-from mdrepo.resolution import (
-    LocalTargetResolution,
-    canonicalize_case,
-    make_repository_target,
-)
+from mdrepo.resolution import LocalTargetResolution
 
 RULE_METADATA: tuple[RuleMetadata, ...] = (
     RuleMetadata(
@@ -57,13 +52,6 @@ RULE_METADATA: tuple[RuleMetadata, ...] = (
         rule_id="MDR005",
         name="local-target-case",
         description="Local path spelling must match on-disk case for cross-platform builds.",
-        default_severity=Severity.ERROR,
-        fixable=True,
-    ),
-    RuleMetadata(
-        rule_id="MDR006",
-        name="same-repository-web-link",
-        description="Mutable web links back into this repository should be relative links.",
         default_severity=Severity.ERROR,
         fixable=True,
     ),
@@ -119,7 +107,6 @@ class RuleContext:
     documents: dict[Path, Document]
     selected_documents: tuple[Document, ...]
     policy_links: tuple[PolicyLink, ...]
-    identity: RepositoryIdentity | None
     graph: DocumentGraph | None
 
 
@@ -274,56 +261,6 @@ class LocalTargetCaseRule:
         return tuple(diagnostics)
 
 
-class SameRepositoryWebLinkRule:
-    """MDR006 implementation."""
-
-    metadata = RULES_BY_ID["MDR006"]
-
-    def check(self, context: RuleContext) -> tuple[Diagnostic, ...]:
-        if context.identity is None:
-            return ()
-
-        diagnostics: list[Diagnostic] = []
-        for link in context.policy_links:
-            remote = parse_same_repository_url(
-                target=link.occurrence.target,
-                identity=context.identity,
-            )
-            if remote is None or remote.query or remote.line_fragment:
-                continue
-
-            target_path, replacement = make_repository_target(
-                root=context.root,
-                source=link.document.path,
-                repository_path=remote.repository_path,
-                fragment=remote.fragment,
-            )
-            canonical, exists, _ = canonicalize_case(root=context.root, candidate=target_path)
-            if context.config.repository.require_existing_target and not exists:
-                continue
-            if canonical is not None:
-                _, replacement = make_repository_target(
-                    root=context.root,
-                    source=link.document.path,
-                    repository_path=PurePosixPath(canonical.relative_to(context.root).as_posix()),
-                    fragment=remote.fragment,
-                )
-
-            diagnostics.append(
-                _link_diagnostic(
-                    metadata=self.metadata,
-                    link=link,
-                    message=(
-                        f"web URL points back into this repository at mutable ref {remote.ref!r}; "
-                        "use a portable relative destination"
-                    ),
-                    replacement=replacement if exists else None,
-                    fix_description="replace the provider-specific web URL with a relative path",
-                )
-            )
-        return tuple(diagnostics)
-
-
 class MissingGraphRootRule:
     """MDR100 implementation."""
 
@@ -378,7 +315,6 @@ BUILTIN_RULES: tuple[Rule, ...] = (
     RepositoryEscapeRule(),
     MissingLocalTargetRule(),
     LocalTargetCaseRule(),
-    SameRepositoryWebLinkRule(),
     MissingGraphRootRule(),
     OrphanDocumentRule(),
 )
