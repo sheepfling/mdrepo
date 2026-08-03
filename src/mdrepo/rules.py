@@ -156,7 +156,14 @@ class AbsoluteLocalLinkRule:
             local = link.local
             if local is None or not local.absolute:
                 continue
-            if local.root_relative and context.config.links.allow_root_relative:
+            if (
+                local.root_relative
+                and not local.windows_absolute
+                and not local.protocol_relative
+                and not local.file_uri
+                and not local.home_relative
+                and context.config.links.allow_root_relative
+            ):
                 continue
 
             if local.protocol_relative:
