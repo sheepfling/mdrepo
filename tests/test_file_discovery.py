@@ -115,3 +115,30 @@ def test_requested_non_markdown_file_is_rejected_by_include_policy(
             requested_paths=["notes.txt"],
             project_paths=project,
         )
+
+
+def test_requested_symlinked_markdown_file_is_rejected(
+    monkeypatch: pytest.MonkeyPatch,
+    repository: RepositoryBuilder,
+) -> None:
+    repository.markdown("README.md", "# Root\n")
+    link = repository.root / "linked.md"
+    try:
+        link.symlink_to(repository.root / "README.md")
+    except OSError as error:
+        original_is_symlink = Path.is_symlink
+
+        def simulated_is_symlink(path: Path) -> bool:
+            return path == link or original_is_symlink(path)
+
+        monkeypatch.setattr(Path, "is_symlink", simulated_is_symlink)
+
+    config = ApplicationConfig.model_validate({})
+    project = collect_project_markdown(root=repository.root, config=config)
+
+    with pytest.raises(FileDiscoveryError, match="must not be a symlink"):
+        select_requested_markdown(
+            root=repository.root,
+            requested_paths=["linked.md"],
+            project_paths=project,
+        )

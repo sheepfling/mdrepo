@@ -55,6 +55,8 @@ def select_requested_markdown(
         candidate = Path(raw_path).expanduser()
         if not candidate.is_absolute():
             candidate = root / candidate
+        if candidate.is_symlink():
+            raise FileDiscoveryError(f"input path must not be a symlink: {candidate}")
         candidate = candidate.resolve()
         if not candidate.exists():
             raise FileDiscoveryError(f"input path does not exist: {candidate}")
