@@ -6,10 +6,11 @@ import pytest
 
 from mdrepo.cli import main
 
+
 def test_backslash_and_case_are_combined_into_one_safe_edit(
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
-        capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
     (tmp_path / "docs").mkdir()
@@ -25,9 +26,10 @@ def test_backslash_and_case_are_combined_into_one_safe_edit(
     capsys.readouterr()
     assert (tmp_path / "README.md").read_text(encoding="utf-8") == "[Guide](docs/Guide.md)\n"
 
+
 def test_root_relative_link_is_fixed_when_target_exists(
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.chdir(tmp_path)
     (tmp_path / "docs").mkdir()
@@ -37,10 +39,11 @@ def test_root_relative_link_is_fixed_when_target_exists(
     assert main(["fix", "."]) == 0
     assert (tmp_path / "README.md").read_text(encoding="utf-8") == "[Guide](docs/guide.md)\n"
 
+
 def test_windows_absolute_and_repository_escape_are_reported(
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
-        capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
     (tmp_path / "README.md").write_text(
@@ -53,10 +56,11 @@ def test_windows_absolute_and_repository_escape_are_reported(
     assert "MDR002" in output
     assert "MDR003" in output
 
+
 def test_home_relative_destination_is_reported(
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
-        capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
     (tmp_path / "README.md").write_text("[Home](~/docs/guide.md)\n", encoding="utf-8")
@@ -66,10 +70,11 @@ def test_home_relative_destination_is_reported(
     assert "MDR002" in output
     assert "home-relative" in output
 
+
 def test_missing_target_check_is_opt_in(
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
-        capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
     (tmp_path / "README.md").write_text("[Missing](docs/nope.md)\n", encoding="utf-8")
@@ -80,9 +85,10 @@ def test_missing_target_check_is_opt_in(
     assert main(["check", ".", "--set", "links.check-missing-targets=true"]) == 1
     assert "MDR004" in capsys.readouterr().out
 
+
 def test_reference_definition_is_fixed_once(
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.chdir(tmp_path)
     (tmp_path / "docs").mkdir()

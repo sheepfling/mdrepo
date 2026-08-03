@@ -9,6 +9,7 @@ from tempfile import TemporaryDirectory
 
 ROOT = Path(__file__).resolve().parents[1]
 
+
 def main() -> int:
     """Verify both wheel and source-distribution packaging."""
 
@@ -34,6 +35,7 @@ def main() -> int:
             cwd=ROOT,
             check=False,
         ).returncode
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

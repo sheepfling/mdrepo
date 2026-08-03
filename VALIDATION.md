@@ -5,12 +5,13 @@ Validated on 2026-08-03 with CPython 3.14.6 on Windows.
 ## Completed
 
 - `python -m compileall -q src scripts tests`
-- 92 pytest tests passing
+- 94 pytest tests passing
 - 89% branch-aware coverage reported during the validation run
 - Pyright strict-mode check: zero errors and zero warnings
 - Ruff lint check: clean
 - Marker-free Ruff formatting compatibility check: clean
-- Scope Markers check: 38 files clean
+- Ruff lint and formatting checks run directly on the repository sources
+- Provider-neutral release metadata, build, and twine validation tests: clean
 - rumdl check: clean
 - Pre-commit configuration and published hook manifest validation: clean
 - Pre-commit hook execution against `README.md`: clean
@@ -31,7 +32,7 @@ Validated on 2026-08-03 with CPython 3.14.6 on Windows.
 
 ## Not completed in this environment
 
-- The full GitHub Actions matrix has not been observed from this workspace: Ubuntu and CPython 3.12
-  and 3.13 still require the hosted CI run.
-- A real TestPyPI publication has not been attempted. The release workflow still requires the
-  configured PyPI trusted publisher and protected environment.
+- The full GitLab CI matrix has not been observed from this workspace: the hosted Linux runners
+  still need to execute the Python 3.12, 3.13, and 3.14 jobs.
+- A real TestPyPI or PyPI publication has not been attempted. `scripts/release.py build` validates
+  the distributions, while the final `twine upload` remains an intentional manual step.

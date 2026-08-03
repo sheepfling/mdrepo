@@ -69,7 +69,7 @@ mdrepo check .
 
 ## Development and CI
 
-Install the complete development environment and run exactly the checks used by GitHub Actions:
+Install the complete development environment and run exactly the checks used by hosted CI:
 
 ```bash
 python -m pip install -e ".[dev]"
@@ -77,25 +77,29 @@ python scripts/ci.py
 ```
 
 The runner is read-only by default. For local cleanup, `python scripts/ci.py --fix` runs Ruff,
-Ruff formatting, Scope Markers, rumdl, and `mdrepo fix` in their safe-fix modes before repeating
-the checks against the resulting checkout.
-Scope Markers runs after ordinary Python formatting; `scripts/check_format.py` verifies Ruff on
-temporary marker-free copies so the two tools remain independently replaceable.
+Ruff formatting, rumdl, and `mdrepo fix` in their safe-fix modes before repeating the checks
+against the resulting checkout.
 
 The CI matrix covers Ubuntu and Windows on Python 3.12, 3.13, and 3.14. It checks compilation,
-Ruff, formatting compatibility, tests with branch coverage reporting, isolated sdist/wheel builds
-with `twine check`, strict Pyright, Scope Markers, rumdl, pre-commit configuration and hook
-execution, and an `mdrepo` self-check with orphan analysis enabled.
+Ruff, formatting, tests with branch coverage reporting, isolated sdist/wheel builds with `twine
+check`, strict Pyright, rumdl, pre-commit configuration and hook execution, and an `mdrepo`
+self-check with orphan analysis enabled.
 
 For local enforcement, install the hook with `pre-commit install`. After publishing, other
 repositories can use the `.pre-commit-hooks.yaml` definition.
 
 ### Release process
 
-Update the version and changelog, run `python scripts/ci.py`, then push a matching `vX.Y.Z` tag.
-The release workflow builds the sdist and wheel in a separate job and publishes them through the
-`pypi` GitHub environment using PyPI trusted publishing. Configure that trusted publisher and add
-required reviewers to the environment before enabling releases.
+Releases are published manually. Update the version and changelog, run `python scripts/ci.py`, and
+build the tagged distributions with the tested release helper:
+
+```bash
+RELEASE_TAG=vX.Y.Z python scripts/release.py build
+python -m twine upload dist/*
+```
+
+On PowerShell, use `$env:RELEASE_TAG = "vX.Y.Z"` instead. Configure PyPI credentials through a
+trusted local credential store or a PyPI API token before running `twine upload`.
 
 ## Normal workflow with rumdl
 
@@ -265,4 +269,4 @@ plugin-specific configuration merging.
 See [the responsibility boundary](docs/responsibility-boundary.md),
 [design notes](docs/design.md), [configuration reference](docs/configuration.md),
 [migration notes from the 0.1 prototype](docs/migration-from-0.1.md),
-[validation record](VALIDATION.md), and [project changelog](CHANGELOG.md).
+[validation record](./VALIDATION.md), and [project changelog](./CHANGELOG.md).

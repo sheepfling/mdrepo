@@ -1,4 +1,4 @@
-"""Run the repository's CI checks locally and in GitHub Actions."""
+"""Run the repository's CI checks locally and in hosted CI."""
 
 from __future__ import annotations
 
@@ -11,16 +11,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
+
 def ci_commands(
-        python: str = sys.executable,
-        *,
-        fix: bool = False,
+    python: str = sys.executable,
+    *,
+    fix: bool = False,
 ) -> tuple[tuple[str, ...], ...]:
     """Return the ordered, platform-independent commands used by CI."""
 
     ruff_check = (python, "-m", "ruff", "check")
     ruff_format = (python, "-m", "ruff", "format")
-    scope_markers = (python, "-m", "scope_markers")
     rumdl = (python, "scripts/check_rumdl.py")
     mdrepo_fix = (python, "-m", "mdrepo", "fix", ".")
 
@@ -33,7 +33,6 @@ def ci_commands(
             [
                 (*ruff_check, "--fix", *python_paths),
                 ruff_format + python_paths,
-                (*scope_markers, "--fix", *python_paths),
                 (*rumdl, "--fix"),
                 mdrepo_fix,
             ]
@@ -51,7 +50,6 @@ def ci_commands(
             ),
             (python, "scripts/check_build.py"),
             (python, "scripts/check_pre_commit.py"),
-            scope_markers + python_paths,
             (python, "-m", "pyright", "--pythonpath", python),
             rumdl,
             (python, "-m", "pre_commit", "run", "--all-files"),
@@ -59,6 +57,7 @@ def ci_commands(
         ]
     )
     return tuple(commands)
+
 
 def run_command(command: Sequence[str]) -> int:
     """Run one CI command from the repository root and return its exit code."""
@@ -83,14 +82,15 @@ def run_command(command: Sequence[str]) -> int:
         return 1
     return completed.returncode
 
+
 def main(argv: Sequence[str] = ()) -> int:
     """Run each CI command in order, stopping at the first failure."""
 
     parser = argparse.ArgumentParser(
         description="Run the repository's checks in the same order as CI.",
         epilog=(
-            "By default every check is read-only. With --fix, Ruff, Scope Markers, "
-            "and rumdl may update files."
+            "By default every check is read-only. With --fix, Ruff, rumdl, "
+            "and mdrepo may update files."
         ),
     )
     parser.add_argument(
@@ -105,6 +105,7 @@ def main(argv: Sequence[str] = ()) -> int:
         if return_code:
             return return_code
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv[1:]))

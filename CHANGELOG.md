@@ -13,8 +13,8 @@
 - Documented independent configuration, suppression, diagnostics, and exit-status ownership.
 - Added a feature-admission and capability-retirement rule so `mdrepo` stays narrow as primary tools
   evolve.
-- Added a repository-local CI runner covering compilation, Ruff, marker-compatible formatting,
-  coverage tests, isolated sdist/wheel builds, Pyright, Scope Markers, rumdl, and the `mdrepo`
+- Added a repository-local CI runner covering compilation, Ruff, formatting, coverage tests,
+  isolated sdist/wheel builds, Pyright, rumdl, and the `mdrepo`
   self-check.
 - Added cross-platform CI coverage for Windows and Ubuntu on Python 3.12, 3.13, and 3.14.
 - Added strict Pyright checking, branch coverage reporting, `twine check` packaging validation,
@@ -28,6 +28,12 @@
 - Added reusable pseudo-repository test fixtures and expanded scenario coverage across Markdown
   parsing, filesystem resolution, repository URL identity, graph reachability, rule toggles,
   exception suppression, CLI output modes, and dry-run versus applied fixes.
+- Removed Scope Markers integration so Ruff, tests, and repository checks operate directly on the
+  source tree without generated marker comments.
+- Resolved PyCharm-reported API, typing, shadowing, and expression issues, and tightened direct
+  Ruff lint and formatting validation.
+- Moved release tag verification, distribution building, and twine validation into a tested Python
+  helper; GitLab CI delegates to the repository runner, while the final PyPI upload remains manual.
 
 ## 0.2.0
 

@@ -18,10 +18,11 @@ from mdrepo.rules import (
 )
 from tests.support import RepositoryBuilder
 
+
 def _context(
-        repository: RepositoryBuilder,
-        text: str,
-        config_data: dict[str, object],
+    repository: RepositoryBuilder,
+    text: str,
+    config_data: dict[str, object],
 ) -> RuleContext:
     source = repository.markdown("README.md", text)
     document = MarkdownParser().parse(
@@ -52,6 +53,7 @@ def _context(
         graph=None,
     )
 
+
 def test_link_rules_respect_portability_toggles(repository: RepositoryBuilder) -> None:
     context = _context(
         repository,
@@ -79,8 +81,9 @@ def test_link_rules_respect_portability_toggles(repository: RepositoryBuilder) -
     assert RepositoryEscapeRule().check(relaxed) == ()
     assert NonPosixLocalLinkRule().check(relaxed) == ()
 
+
 def test_missing_target_rule_distinguishes_images_and_absolute_routes(
-        repository: RepositoryBuilder,
+    repository: RepositoryBuilder,
 ) -> None:
     context = _context(
         repository,
@@ -93,6 +96,7 @@ def test_missing_target_rule_distinguishes_images_and_absolute_routes(
         "local image target does not exist: assets/nope.png",
         "local link target does not exist: /missing.md",
     ]
+
 
 def test_case_rule_and_missing_graph_root_are_guarded(repository: RepositoryBuilder) -> None:
     repository.markdown("README.md", "# Root\n")
@@ -111,8 +115,9 @@ def test_case_rule_and_missing_graph_root_are_guarded(repository: RepositoryBuil
     )
     assert MissingGraphRootRule().check(no_root)[0].rule_id == "MDR100"
 
+
 def test_same_repository_rule_requires_identity_and_existing_target(
-        repository: RepositoryBuilder,
+    repository: RepositoryBuilder,
 ) -> None:
     document = repository.markdown("README.md", "# Root\n")
     parsed = MarkdownParser().parse(

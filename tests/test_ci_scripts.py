@@ -6,6 +6,7 @@ import pytest
 
 from scripts import check_build, ci
 
+
 def test_ci_command_sets_keep_read_only_and_fix_modes_distinct() -> None:
     readonly = ci.ci_commands("python", fix=False)
     fixing = ci.ci_commands("python", fix=True)
@@ -13,11 +14,14 @@ def test_ci_command_sets_keep_read_only_and_fix_modes_distinct() -> None:
     assert ("python", "-m", "pytest", "--cov=mdrepo", "--cov-report=term-missing") in readonly
     assert all("--cov-fail-under" not in command for command in readonly)
     assert ("python", "-m", "mdrepo", "fix", ".") not in readonly
+    assert ("python", "scripts/check_format.py") in readonly
+    assert ("python", "-m", "ruff", "check", "src", "scripts", "tests") in readonly
     assert ("python", "-m", "mdrepo", "fix", ".") in fixing
     assert len(fixing) > len(readonly)
 
+
 def test_ci_runner_maps_unstartable_commands_to_failure(
-        monkeypatch: pytest.MonkeyPatch,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     def raise_os_error(*_args: object, **_kwargs: object) -> subprocess.CompletedProcess[str]:
         raise OSError("missing executable")
@@ -26,14 +30,15 @@ def test_ci_runner_maps_unstartable_commands_to_failure(
 
     assert ci.run_command(("missing-python", "-m", "pytest")) == 1
 
+
 def test_build_check_runs_sdist_wheel_then_twine(
-        monkeypatch: pytest.MonkeyPatch,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     commands: list[list[str]] = []
 
     def fake_run(
-            command: list[str],
-            **_kwargs: object,
+        command: list[str],
+        **_kwargs: object,
     ) -> subprocess.CompletedProcess[str]:
         commands.append(command)
         return subprocess.CompletedProcess(command, 0)

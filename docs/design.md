@@ -116,6 +116,7 @@ rumdl or handled through rumdl configuration instead.
 
 ## Capability retirement
 
-When rumdl or a documentation generator fully assumes one of mdrepo's responsibilities, the
-corresponding mdrepo rule should be deprecated rather than maintained as a competing implementation.
+When rumdl or a documentation generator fully assumes one of the `mdrepo` tool's responsibilities,
+the corresponding `mdrepo` rule should be deprecated rather than maintained as a competing
+implementation.
 The package remains valuable by staying narrow, not by accumulating every Markdown-related check.

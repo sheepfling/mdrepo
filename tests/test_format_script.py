@@ -6,6 +6,7 @@ import pytest
 
 from scripts import check_format
 
+
 def test_format_check_does_not_rewrite_before_checking(monkeypatch: pytest.MonkeyPatch) -> None:
     commands: list[list[str]] = []
 
