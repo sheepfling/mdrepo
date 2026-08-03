@@ -5,6 +5,7 @@ from __future__ import annotations
 import subprocess
 import sys
 from pathlib import Path
+from shutil import copytree, ignore_patterns
 from tempfile import TemporaryDirectory
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -13,7 +14,29 @@ ROOT = Path(__file__).resolve().parents[1]
 def main() -> int:
     """Verify both wheel and source-distribution packaging."""
 
-    with TemporaryDirectory(prefix="mdrepo-build-") as output:
+    ignored = ignore_patterns(
+        ".git",
+        ".venv*",
+        ".codex_pydeps",
+        ".pip-cache",
+        ".pre-commit-cache",
+        ".pytest_cache",
+        ".ruff_cache",
+        ".rumdl_cache",
+        ".tmp",
+        "__pycache__",
+        "build",
+        "dist",
+        "*.egg-info",
+        ".coverage",
+        ".idea",
+        "inbox",
+    )
+    with TemporaryDirectory(prefix="mdrepo-build-") as temporary:
+        temporary_root = Path(temporary)
+        source = temporary_root / "source"
+        output = temporary_root / "dist"
+        copytree(ROOT, source, ignore=ignored)
         build_result = subprocess.run(
             [
                 sys.executable,
@@ -24,7 +47,7 @@ def main() -> int:
                 "--outdir",
                 output,
             ],
-            cwd=ROOT,
+            cwd=source,
             check=False,
         )
         if build_result.returncode:
