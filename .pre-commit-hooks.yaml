@@ -1,0 +1,7 @@
+- id: mdrepo
+  name: mdrepo repository policy
+  description: Check Markdown repository portability, identity, and reachability policy
+  entry: mdrepo check
+  language: python
+  types: [markdown]
+  pass_filenames: false

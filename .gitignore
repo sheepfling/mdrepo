@@ -1,0 +1,16 @@
+.venv/
+.venv_ci/
+.codex_pydeps/
+.pip-cache/
+.pre-commit-cache/
+.pytest_cache/
+.rumdl_cache/
+.ruff_cache/
+.tmp/
+__pycache__/
+*.py[cod]
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/

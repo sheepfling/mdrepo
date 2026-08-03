@@ -1,0 +1,36 @@
+# Changelog
+
+## 0.2.1
+
+- Added an explicit responsibility contract defining the boundary between rumdl, `mdrepo`, network
+  checking, and documentation-site builds.
+- Documented one authoritative owner for missing targets, fragments, path portability, hosted
+  repository URLs, document reachability, and exception governance.
+- Documented the canonical local-cleanup and CI workflows with rumdl.
+- Reframed `MDR004` as a disabled standalone fallback rather than a normal paired rule.
+- Clarified the difference between MkDocs navigation membership (`MD074`) and generic Markdown graph
+  reachability (`MDR101`).
+- Documented independent configuration, suppression, diagnostics, and exit-status ownership.
+- Added a feature-admission and capability-retirement rule so `mdrepo` stays narrow as primary tools
+  evolve.
+- Added a repository-local CI runner covering compilation, Ruff, marker-compatible formatting,
+  coverage tests, isolated sdist/wheel builds, Pyright, Scope Markers, rumdl, and the `mdrepo`
+  self-check.
+- Added cross-platform CI coverage for Windows and Ubuntu on Python 3.12, 3.13, and 3.14.
+- Added strict Pyright checking, branch coverage reporting, `twine check` packaging validation,
+  and pre-commit configuration and hook validation.
+- Added direct Bitbucket `src` route coverage and made the repository's default orphan policy part
+  of CI self-checks.
+- Added regression coverage for stale exception reporting, malformed and non-default repository
+  ports, home-relative destinations, and the interconnected repository scenario.
+- Made the marker-compatible Ruff formatting check read-only and kept the standard CI coverage
+  report informational rather than coupling it to a hardcoded threshold.
+
+## 0.2.0
+
+- Reset the project around repository-aware policy instead of general Markdown linting.
+- Removed Pluggy, entry-point discovery, external command orchestration, rumdl adapters, and Lychee
+  integration.
+- Added exact-case path checks, same-repository mutable-link conversion, rooted document graphs,
+  structured exception health, CRLF-preserving atomic fixes, and text/JSON/GitHub output.
+- Made missing-target checking opt-in so rumdl can remain authoritative for ordinary Markdown lint.
