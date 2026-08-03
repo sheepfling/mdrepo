@@ -1,0 +1,120 @@
+[build-system]
+requires = ["setuptools>=77", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mdrepo"
+dynamic = ["version"]
+description = "Repository-aware Markdown policy checks for portable links, reachable docs, and governed exceptions."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.12"
+authors = [
+]
+keywords = [
+    "markdown",
+    "markdown-hygiene",
+    "documentation",
+    "docs-as-code",
+    "repository-policy",
+    "link-checker",
+    "pre-commit",
+    "static-analysis",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Documentation",
+    "Topic :: Software Development :: Quality Assurance",
+]
+dependencies = [
+    "markdown-it-py>=3.0,<5.0",
+    "pathspec>=0.12,<2.0",
+    "pydantic>=2.8,<3.0",
+]
+
+[project.scripts]
+mdrepo = "mdrepo.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "build>=1.2",
+    "pyright>=1.1.390",
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "pre-commit>=4.0",
+    "rumdl>=0.2.49,<0.3",
+    "ruff>=0.9",
+    "setuptools-scm>=8",
+    "twine>=6.1",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools_scm]
+version_scheme = "no-guess-dev"
+
+[tool.pytest.ini_options]
+addopts = ["-ra", "--strict-config", "--strict-markers"]
+pythonpath = [".", "src"]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["mdrepo"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["B", "E", "F", "I", "RUF", "SIM", "UP"]
+ignore = [
+    "RUF012", # Pydantic models declare fields through class attributes.
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["mdrepo"]
+
+[tool.pyright]
+include = ["src", "scripts", "tests"]
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
+
+[tool.mdrepo]
+include = ["*.md", "**/*.md"]
+exclude = [
+    ".git/**",
+    ".venv*/**",
+    ".codex_pydeps/**",
+    ".pip-cache/**",
+    ".pre-commit-cache/**",
+    ".pytest_cache/**",
+    ".ruff_cache/**",
+    ".rumdl_cache/**",
+    ".tmp/**",
+    "**/__pycache__/**",
+    "build/**",
+    "dist/**",
+]
+
+[tool.mdrepo.links]
+check-missing-targets = false
+check-case = true
+
+[tool.mdrepo.orphans]
+enabled = true
+roots = ["README.md"]
