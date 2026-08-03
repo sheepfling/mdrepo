@@ -11,6 +11,7 @@ from mdrepo.config import ApplicationConfig
 from mdrepo.models import Document, LinkKind, LinkOccurrence
 from mdrepo.resolution import canonicalize_case, resolve_graph_document, resolve_local_target
 
+
 @dataclass(frozen=True, slots=True)
 class DocumentGraph:
     """Directed graph of Markdown documents linked from other Markdown documents."""
@@ -19,11 +20,12 @@ class DocumentGraph:
     roots: tuple[Path, ...]
     reachable: frozenset[Path]
 
+
 def build_document_graph(
-        *,
-        root: Path,
-        documents: dict[Path, Document],
-        config: ApplicationConfig,
+    *,
+    root: Path,
+    documents: dict[Path, Document],
+    config: ApplicationConfig,
 ) -> DocumentGraph:
     """Build local Markdown-link edges, then walk configured roots."""
 
@@ -62,13 +64,14 @@ def build_document_graph(
         reachable=frozenset(reachable),
     )
 
+
 def _link_document_target(
-        *,
-        root: Path,
-        document: Document,
-        occurrence: LinkOccurrence,
-        documents: dict[Path, Document],
-        config: ApplicationConfig,
+    *,
+    root: Path,
+    document: Document,
+    occurrence: LinkOccurrence,
+    documents: dict[Path, Document],
+    config: ApplicationConfig,
 ) -> Path | None:
     local = resolve_local_target(
         root=root,
@@ -82,12 +85,14 @@ def _link_document_target(
             documents=documents,
             config=config.orphans,
         )
+    return None
+
 
 def _resolve_roots(
-        *,
-        root: Path,
-        configured: list[str],
-        documents: dict[Path, Document],
+    *,
+    root: Path,
+    configured: list[str],
+    documents: dict[Path, Document],
 ) -> tuple[Path, ...]:
     roots: list[Path] = []
     for configured_root in configured:
@@ -97,10 +102,11 @@ def _resolve_roots(
             roots.append(canonical.resolve())
     return tuple(dict.fromkeys(roots))
 
+
 def _walk(
-        *,
-        edges: dict[Path, frozenset[Path]],
-        roots: tuple[Path, ...],
+    *,
+    edges: dict[Path, frozenset[Path]],
+    roots: tuple[Path, ...],
 ) -> set[Path]:
     reachable: set[Path] = set()
     queue: deque[Path] = deque(roots)
