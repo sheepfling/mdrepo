@@ -75,7 +75,7 @@ def test_application_config_normalizes_rules_extensions_and_exceptions() -> None
             "exceptions": [
                 {
                     "id": " temporary ",
-                    "rule": "MDR101",
+                    "rule": " mdr101 ",
                     "reason": "Documented temporary exception.",
                     "expires": date(2027, 1, 1),
                 }
@@ -87,6 +87,7 @@ def test_application_config_normalizes_rules_extensions_and_exceptions() -> None
     assert config.rules.severity == {"MDR001": Severity.WARNING}
     assert config.orphans.markdown_extensions == [".md", ".markdown"]
     assert config.exceptions[0].id == "temporary"
+    assert config.exceptions[0].rule == "MDR101"
 
 
 @pytest.mark.parametrize(

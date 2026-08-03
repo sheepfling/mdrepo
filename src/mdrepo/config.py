@@ -117,7 +117,7 @@ class ExceptionConfig(ConfigModel):
             raise ValueError("value must not be blank")
         return normalized
 
-    @field_validator("rule")
+    @field_validator("rule", mode="before")
     @classmethod
     def _normalize_rule(cls, value: str) -> str:
         normalized = value.strip().upper()
