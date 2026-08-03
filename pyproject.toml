@@ -38,12 +38,6 @@ dependencies = [
     "pydantic>=2.8,<3.0",
 ]
 
-[project.urls]
-Homepage = "https://github.com/sheepfling/mdrepo"
-Repository = "https://github.com/sheepfling/mdrepo"
-Issues = "https://github.com/sheepfling/mdrepo/issues"
-Changelog = "https://github.com/sheepfling/mdrepo/blob/main/CHANGELOG.md"
-
 [project.scripts]
 mdrepo = "mdrepo.cli:main"
 
