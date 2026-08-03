@@ -7,11 +7,10 @@ import pytest
 
 from mdrepo.cli import main
 
-
 def test_orphan_graph_follows_reference_and_extensionless_links(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
     (tmp_path / "docs").mkdir()
@@ -34,11 +33,10 @@ roots = ["README.md"]
     assert "docs/guide.md" not in output
     assert "docs/more.md" not in output
 
-
 def test_orphan_can_be_governed_by_structured_exception(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
     (tmp_path / "pyproject.toml").write_text(
@@ -62,11 +60,10 @@ reason = "The changelog is discovered by package tooling instead."
     output = capsys.readouterr().out
     assert "suppressed by: standalone-changelog" in output
 
-
 def test_graph_command_emits_dot(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
     (tmp_path / "README.md").write_text("[Guide](guide.md)\n", encoding="utf-8")
@@ -76,11 +73,10 @@ def test_graph_command_emits_dot(
     output = capsys.readouterr().out
     assert '"README.md" -> "guide.md";' in output
 
-
 def test_graph_resolves_directory_indexes_and_cycles_without_orphans(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
     (tmp_path / "docs").mkdir()
@@ -98,11 +94,10 @@ def test_graph_resolves_directory_indexes_and_cycles_without_orphans(
     assert payload["edges"]["docs/index.md"] == ["README.md"]
     assert payload["unreachable"] == []
 
-
 def test_enabled_orphan_check_reports_missing_configured_root(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
     (tmp_path / "pyproject.toml").write_text(

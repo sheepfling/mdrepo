@@ -16,7 +16,6 @@ _SCP_REMOTE: Final[re.Pattern[str]] = re.compile(
 )
 _LINE_FRAGMENT: Final[re.Pattern[str]] = re.compile(r"^L\d+(?:-L?\d+)?$", re.IGNORECASE)
 
-
 @dataclass(frozen=True, slots=True)
 class RepositoryIdentity:
     """Normalized web identity for the checked Git repository."""
@@ -29,7 +28,6 @@ class RepositoryIdentity:
     source: str
     port: int | None = None
 
-
 @dataclass(frozen=True, slots=True)
 class RemoteRepositoryTarget:
     """A web URL that maps to a file in the current repository."""
@@ -40,11 +38,10 @@ class RemoteRepositoryTarget:
     fragment: str
     line_fragment: bool
 
-
 def discover_repository_identity(
-    *,
-    root: Path,
-    config: RepositoryConfig,
+        *,
+        root: Path,
+        config: RepositoryConfig,
 ) -> RepositoryIdentity | None:
     """Build repository identity from explicit config or local Git metadata."""
 
@@ -99,7 +96,6 @@ def discover_repository_identity(
         port=_effective_web_port(parsed),
     )
 
-
 def normalize_repository_url(raw_url: str) -> str | None:
     """Normalize common HTTPS, SSH, and SCP-like Git remotes to an HTTPS web URL."""
 
@@ -129,8 +125,8 @@ def normalize_repository_url(raw_url: str) -> str | None:
         raise ConfigurationError(f"invalid repository URL {raw_url!r}: {error}") from error
     netloc = hostname.lower()
     if port is not None and not (
-        (parsed.scheme.lower() == "http" and port == 80)
-        or (parsed.scheme.lower() in {"https", "ssh", "git"} and port in {22, 443})
+            (parsed.scheme.lower() == "http" and port == 80)
+            or (parsed.scheme.lower() in {"https", "ssh", "git"} and port in {22, 443})
     ):
         netloc = f"{netloc}:{port}"
 
@@ -141,11 +137,10 @@ def normalize_repository_url(raw_url: str) -> str | None:
         return None
     return urlunsplit(("https", netloc, path, "", ""))
 
-
 def parse_same_repository_url(
-    *,
-    target: str,
-    identity: RepositoryIdentity,
+        *,
+        target: str,
+        identity: RepositoryIdentity,
 ) -> RemoteRepositoryTarget | None:
     """Map a supported provider file URL back to a repository-relative path."""
 
@@ -179,7 +174,7 @@ def parse_same_repository_url(
     prefix = f"{identity.base_path}{route}"
     if not decoded_path.startswith(prefix):
         return None
-    remainder = decoded_path[len(prefix) :].lstrip("/")
+    remainder = decoded_path[len(prefix):].lstrip("/")
     matched = _match_ref_and_path(remainder=remainder, refs=identity.refs)
     if matched is None:
         return None
@@ -192,17 +187,16 @@ def parse_same_repository_url(
         line_fragment=bool(_LINE_FRAGMENT.fullmatch(parsed.fragment)),
     )
 
-
 def _parse_github_raw(
-    *,
-    parsed: SplitResult,
-    identity: RepositoryIdentity,
-    target_port: int | None,
+        *,
+        parsed: SplitResult,
+        identity: RepositoryIdentity,
+        target_port: int | None,
 ) -> RemoteRepositoryTarget | None:
     if (
-        identity.host != "github.com"
-        or (parsed.hostname or "").lower() != "raw.githubusercontent.com"
-        or target_port != identity.port
+            identity.host != "github.com"
+            or (parsed.hostname or "").lower() != "raw.githubusercontent.com"
+            or target_port != identity.port
     ):
         return None
 
@@ -223,7 +217,6 @@ def _parse_github_raw(
         line_fragment=bool(_LINE_FRAGMENT.fullmatch(parsed.fragment)),
     )
 
-
 def _provider_route(provider: str) -> str | None:
     if provider == RepositoryProvider.GITHUB:
         return "/blob/"
@@ -233,7 +226,6 @@ def _provider_route(provider: str) -> str | None:
         return "/src/"
     return None
 
-
 def _effective_web_port(parsed: SplitResult) -> int | None:
     """Return a URL port while treating standard HTTP(S) ports as implicit."""
 
@@ -242,11 +234,10 @@ def _effective_web_port(parsed: SplitResult) -> int | None:
         return None
     return port
 
-
 def _match_ref_and_path(
-    *,
-    remainder: str,
-    refs: tuple[str, ...],
+        *,
+        remainder: str,
+        refs: tuple[str, ...],
 ) -> tuple[str, PurePosixPath] | None:
     for ref in refs:
         prefix = f"{ref}/"
@@ -258,7 +249,6 @@ def _match_ref_and_path(
             return None
         return ref, path
     return None
-
 
 def _resolve_provider(configured: str, hostname: str) -> str | None:
     if configured != RepositoryProvider.AUTO:
@@ -272,7 +262,6 @@ def _resolve_provider(configured: str, hostname: str) -> str | None:
     if "bitbucket" in normalized:
         return RepositoryProvider.BITBUCKET
     return None
-
 
 def _git_output(root: Path, *arguments: str) -> str | None:
     try:

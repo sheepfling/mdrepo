@@ -6,11 +6,10 @@ import pytest
 
 from mdrepo.cli import main
 
-
 def test_interconnected_repository_reports_distinct_policy_issues(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
     (tmp_path / "docs").mkdir()

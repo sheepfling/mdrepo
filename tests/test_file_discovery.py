@@ -6,9 +6,8 @@ from mdrepo.config import ApplicationConfig
 from mdrepo.files import FileDiscoveryError, collect_project_markdown, select_requested_markdown
 from tests.support import RepositoryBuilder
 
-
 def test_project_discovery_applies_include_exclude_and_ignores_symlinks(
-    repository: RepositoryBuilder,
+        repository: RepositoryBuilder,
 ) -> None:
     repository.markdown("README.md", "# Root\n")
     repository.markdown("docs/guide.md", "# Guide\n")
@@ -20,13 +19,12 @@ def test_project_discovery_applies_include_exclude_and_ignores_symlinks(
     )
 
     assert [
-        path.relative_to(repository.root).as_posix()
-        for path in collect_project_markdown(root=repository.root, config=config)
-    ] == ["README.md", "docs/guide.md"]
-
+               path.relative_to(repository.root).as_posix()
+               for path in collect_project_markdown(root=repository.root, config=config)
+           ] == ["README.md", "docs/guide.md"]
 
 def test_requested_selection_deduplicates_files_and_rejects_invalid_inputs(
-    repository: RepositoryBuilder,
+        repository: RepositoryBuilder,
 ) -> None:
     repository.markdown("README.md", "# Root\n")
     repository.markdown("docs/guide.md", "# Guide\n")
@@ -61,9 +59,8 @@ def test_requested_selection_deduplicates_files_and_rejects_invalid_inputs(
             project_paths=project,
         )
 
-
 def test_requested_non_markdown_file_is_rejected_by_include_policy(
-    repository: RepositoryBuilder,
+        repository: RepositoryBuilder,
 ) -> None:
     repository.markdown("README.md", "# Root\n")
     repository.write_text("notes.txt", "notes\n")

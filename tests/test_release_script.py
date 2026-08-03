@@ -7,7 +7,6 @@ import pytest
 
 from scripts import release
 
-
 def test_release_version_and_tag_validation() -> None:
     assert release.project_version() == "0.2.1"
     release.verify_tag("v0.2.1")
@@ -16,10 +15,9 @@ def test_release_version_and_tag_validation() -> None:
     with pytest.raises(release.ReleaseError, match="does not match"):
         release.verify_tag("v9.9.9")
 
-
 def test_release_build_runs_build_and_twine_checks(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     commands: list[list[str]] = []
 

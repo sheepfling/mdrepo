@@ -13,7 +13,6 @@ from mdrepo.repository import (
     parse_same_repository_url,
 )
 
-
 def test_git_remote_normalization() -> None:
     assert normalize_repository_url("git@github.com:acme/demo.git") == (
         "https://github.com/acme/demo"
@@ -30,7 +29,6 @@ def test_git_remote_normalization() -> None:
     assert normalize_repository_url("not-a-url") is None
     assert normalize_repository_url("https://github.com") is None
 
-
 def test_repository_identity_discovers_provider_and_sorts_refs(tmp_path: Path) -> None:
     identity = discover_repository_identity(
         root=tmp_path,
@@ -46,11 +44,10 @@ def test_repository_identity_discovers_provider_and_sorts_refs(tmp_path: Path) -
     assert identity.refs == ("feature/docs", "main")
     assert identity.source == "configuration"
 
-
 def test_invalid_repository_port_is_a_cli_configuration_error(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
     (tmp_path / "pyproject.toml").write_text(
@@ -65,7 +62,6 @@ discover-from-git = false
 
     assert main(["check", "."]) == 2
     assert "invalid repository URL" in capsys.readouterr().err
-
 
 def test_github_and_gitlab_blob_routes() -> None:
     github = RepositoryIdentity(
@@ -101,7 +97,6 @@ def test_github_and_gitlab_blob_routes() -> None:
     assert target.query == ""
     assert target.fragment == ""
 
-
 def test_bitbucket_src_route() -> None:
     identity = RepositoryIdentity(
         web_url="https://bitbucket.org/acme/demo",
@@ -121,7 +116,6 @@ def test_bitbucket_src_route() -> None:
     assert target.ref == "main"
     assert target.repository_path.as_posix() == "docs/guide.md"
 
-
 def test_repository_port_is_part_of_same_repository_identity() -> None:
     identity = RepositoryIdentity(
         web_url="https://github.com:8443/acme/demo",
@@ -134,20 +128,19 @@ def test_repository_port_is_part_of_same_repository_identity() -> None:
     )
 
     assert (
-        parse_same_repository_url(
-            target="https://github.com/acme/demo/blob/main/docs/guide.md",
-            identity=identity,
-        )
-        is None
+            parse_same_repository_url(
+                target="https://github.com/acme/demo/blob/main/docs/guide.md",
+                identity=identity,
+            )
+            is None
     )
     assert (
-        parse_same_repository_url(
-            target="https://github.com:8443/acme/demo/blob/main/docs/guide.md",
-            identity=identity,
-        )
-        is not None
+            parse_same_repository_url(
+                target="https://github.com:8443/acme/demo/blob/main/docs/guide.md",
+                identity=identity,
+            )
+            is not None
     )
-
 
 def test_repository_url_preserves_query_fragments_and_supports_github_raw() -> None:
     identity = RepositoryIdentity(
@@ -176,7 +169,6 @@ def test_repository_url_preserves_query_fragments_and_supports_github_raw() -> N
     assert raw is not None
     assert raw.repository_path.as_posix() == "docs/guide.md"
 
-
 def test_repository_url_rejects_wrong_refs_and_escaping_paths() -> None:
     identity = RepositoryIdentity(
         web_url="https://github.com/acme/demo",
@@ -188,17 +180,16 @@ def test_repository_url_rejects_wrong_refs_and_escaping_paths() -> None:
     )
 
     for target in (
-        "https://github.com/acme/demo/blob/other/docs/guide.md",
-        "https://github.com/acme/demo/blob/main/../secret.md",
-        "https://gitlab.com/acme/demo/-/blob/main/docs/guide.md",
+            "https://github.com/acme/demo/blob/other/docs/guide.md",
+            "https://github.com/acme/demo/blob/main/../secret.md",
+            "https://gitlab.com/acme/demo/-/blob/main/docs/guide.md",
     ):
         assert parse_same_repository_url(target=target, identity=identity) is None
 
-
 def test_mutable_same_repository_link_is_fixed_but_commit_and_line_links_remain(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
     (tmp_path / "docs").mkdir()

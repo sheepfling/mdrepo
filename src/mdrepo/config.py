@@ -16,14 +16,11 @@ from mdrepo.models import OutputFormat, Severity
 _CONFIG_FILENAMES = ("pyproject.toml", "mdrepo.toml", ".mdrepo.toml")
 _EXCEPTION_HEALTH_RULES = {"MDR201", "MDR202"}
 
-
 class ConfigurationError(RuntimeError):
     """Raised when configuration cannot be discovered, decoded, or validated."""
 
-
 def _to_kebab(value: str) -> str:
     return value.replace("_", "-")
-
 
 class ConfigModel(BaseModel):
     """Strict base model with human-friendly kebab-case TOML aliases."""
@@ -35,7 +32,6 @@ class ConfigModel(BaseModel):
         validate_assignment=True,
     )
 
-
 class RepositoryProvider(str):
     """String constants accepted for repository web URL parsing."""
 
@@ -43,7 +39,6 @@ class RepositoryProvider(str):
     GITHUB = "github"
     GITLAB = "gitlab"
     BITBUCKET = "bitbucket"
-
 
 class RuleSelectionConfig(ConfigModel):
     """Rule selection and severity overrides."""
@@ -62,7 +57,6 @@ class RuleSelectionConfig(ConfigModel):
     def _normalize_severity_keys(cls, values: dict[str, Severity]) -> dict[str, Severity]:
         return {key.strip().upper(): value for key, value in values.items()}
 
-
 class LinkConfig(ConfigModel):
     """Portable local-link behavior not owned by a formatter."""
 
@@ -71,7 +65,6 @@ class LinkConfig(ConfigModel):
     allow_outside_root: bool = False
     check_missing_targets: bool = False
     check_case: bool = True
-
 
 class RepositoryConfig(ConfigModel):
     """Same-repository web-link detection."""
@@ -109,7 +102,6 @@ class RepositoryConfig(ConfigModel):
                 normalized.append(item)
         return normalized
 
-
 class OrphanConfig(ConfigModel):
     """Rooted documentation-graph behavior."""
 
@@ -135,7 +127,6 @@ class OrphanConfig(ConfigModel):
             raise ValueError("at least one Markdown extension is required")
         return normalized
 
-
 class ExceptionPolicyConfig(ConfigModel):
     """Health reporting for structured exceptions."""
 
@@ -143,7 +134,6 @@ class ExceptionPolicyConfig(ConfigModel):
     report_unused: bool = True
     expired_severity: Severity = Severity.WARNING
     unused_severity: Severity = Severity.WARNING
-
 
 class ExceptionConfig(ConfigModel):
     """One documented, narrow policy exception."""
@@ -178,7 +168,6 @@ class ExceptionConfig(ConfigModel):
             return None
         normalized = value.strip()
         return normalized or None
-
 
 class ApplicationConfig(ConfigModel):
     """Complete configuration for one repository run."""
@@ -216,7 +205,6 @@ class ApplicationConfig(ConfigModel):
             raise ValueError(f"exception IDs must be unique; duplicates: {joined}")
         return self
 
-
 @dataclass(frozen=True, slots=True)
 class LoadedConfig:
     """Validated configuration plus discovery provenance."""
@@ -226,13 +214,12 @@ class LoadedConfig:
     raw: dict[str, Any]
     sources: tuple[Path, ...]
 
-
 def load_configuration(
-    *,
-    cwd: Path,
-    root_override: Path | None,
-    config_paths: list[Path],
-    overrides: list[str],
+        *,
+        cwd: Path,
+        root_override: Path | None,
+        config_paths: list[Path],
+        overrides: list[str],
 ) -> LoadedConfig:
     """Discover, merge, override, and validate repository configuration."""
 
@@ -277,7 +264,6 @@ def load_configuration(
         sources=tuple(loaded_sources),
     )
 
-
 def deep_merge(base: dict[str, Any], overlay: dict[str, Any]) -> dict[str, Any]:
     """Recursively merge tables; lists and scalar values replace earlier values."""
 
@@ -292,7 +278,6 @@ def deep_merge(base: dict[str, Any], overlay: dict[str, Any]) -> dict[str, Any]:
         else:
             merged[key] = copy.deepcopy(value)
     return merged
-
 
 def parse_override(expression: str) -> tuple[str, Any]:
     """Parse ``dotted.key=TOML_VALUE`` with a string fallback."""
@@ -314,7 +299,6 @@ def parse_override(expression: str) -> tuple[str, Any]:
         value = normalized_value
     return normalized_key, value
 
-
 def set_dotted_value(target: dict[str, Any], dotted_key: str, value: Any) -> None:
     """Set a nested mapping value, creating intermediate tables as needed."""
 
@@ -332,7 +316,6 @@ def set_dotted_value(target: dict[str, Any], dotted_key: str, value: Any) -> Non
         current = cast(dict[str, Any], child)
     current[parts[-1]] = value
 
-
 def _validate_known_rule_ids(config: ApplicationConfig) -> None:
     from mdrepo.rules import RULES_BY_ID
 
@@ -347,7 +330,6 @@ def _validate_known_rule_ids(config: ApplicationConfig) -> None:
     if unknown:
         raise ConfigurationError(f"unknown mdrepo rule ID(s): {', '.join(unknown)}")
 
-
 def _normalize_rule_ids(values: list[str]) -> list[str]:
     normalized: list[str] = []
     for value in values:
@@ -357,12 +339,11 @@ def _normalize_rule_ids(values: list[str]) -> list[str]:
                 normalized.append(rule_id)
     return normalized
 
-
 def _resolve_root(
-    *,
-    cwd: Path,
-    root_override: Path | None,
-    explicit_paths: tuple[Path, ...],
+        *,
+        cwd: Path,
+        root_override: Path | None,
+        explicit_paths: tuple[Path, ...],
 ) -> Path:
     if root_override is not None:
         root = root_override.expanduser().resolve()
@@ -375,7 +356,6 @@ def _resolve_root(
 
     discovered = _discover_root(cwd)
     return discovered or cwd
-
 
 def _discover_root(start: Path) -> Path | None:
     git_fallback: Path | None = None
@@ -391,7 +371,6 @@ def _discover_root(start: Path) -> Path | None:
             return directory
     return git_fallback
 
-
 def _config_paths_at_root(root: Path) -> tuple[Path, ...]:
     paths: list[Path] = []
     for filename in _CONFIG_FILENAMES:
@@ -403,7 +382,6 @@ def _config_paths_at_root(root: Path) -> tuple[Path, ...]:
         paths.append(path)
     return tuple(paths)
 
-
 def _pyproject_has_section(path: Path) -> bool:
     try:
         parsed = tomllib.loads(path.read_text(encoding="utf-8"))
@@ -411,7 +389,6 @@ def _pyproject_has_section(path: Path) -> bool:
         return False
     tool = parsed.get("tool")
     return isinstance(tool, dict) and isinstance(cast(dict[str, Any], tool).get("mdrepo"), dict)
-
 
 def _read_config_section(path: Path) -> dict[str, Any] | None:
     try:

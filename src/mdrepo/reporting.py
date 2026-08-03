@@ -13,7 +13,6 @@ _SEVERITY_RANK = {
     Severity.ERROR: 2,
 }
 
-
 class TextWriter(Protocol):
     """Minimal structural interface required by diagnostic renderers."""
 
@@ -22,12 +21,11 @@ class TextWriter(Protocol):
 
         ...
 
-
 def write_diagnostics(
-    *,
-    diagnostics: tuple[Diagnostic, ...],
-    output_format: OutputFormat,
-    stream: TextWriter,
+        *,
+        diagnostics: tuple[Diagnostic, ...],
+        output_format: OutputFormat,
+        stream: TextWriter,
 ) -> None:
     """Render diagnostics in one deterministic output format."""
 
@@ -55,20 +53,17 @@ def write_diagnostics(
         if diagnostic.suppressed_by is not None:
             stream.write(f"  suppressed by: {diagnostic.suppressed_by}\n")
 
-
 def should_fail(*, diagnostics: tuple[Diagnostic, ...], threshold: Severity) -> bool:
     """Return whether any visible diagnostic meets the configured failure threshold."""
 
     minimum = _SEVERITY_RANK[threshold]
     return any(_SEVERITY_RANK[diagnostic.severity] >= minimum for diagnostic in diagnostics)
 
-
 def _text_line(diagnostic: Diagnostic) -> str:
     return (
         f"{_location(diagnostic)}: {diagnostic.severity.value} "
         f"{diagnostic.rule_id} {diagnostic.message}"
     )
-
 
 def _location(diagnostic: Diagnostic) -> str:
     rendered = diagnostic.path.as_posix() if diagnostic.path is not None else "<project>"
@@ -77,7 +72,6 @@ def _location(diagnostic: Diagnostic) -> str:
     if diagnostic.column is not None:
         rendered += f":{diagnostic.column}"
     return rendered
-
 
 def _json_record(diagnostic: Diagnostic) -> dict[str, object]:
     fix: dict[str, object] | None = None
@@ -103,7 +97,6 @@ def _json_record(diagnostic: Diagnostic) -> dict[str, object]:
         "target": diagnostic.target,
     }
 
-
 def _github_line(diagnostic: Diagnostic) -> str:
     command = {
         Severity.ERROR: "error",
@@ -122,10 +115,8 @@ def _github_line(diagnostic: Diagnostic) -> str:
     message = _github_escape_data(diagnostic.message)
     return f"::{command} {properties}::{message}"
 
-
 def _github_escape_data(value: str) -> str:
     return value.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-
 
 def _github_escape_property(value: str) -> str:
     return _github_escape_data(value).replace(":", "%3A").replace(",", "%2C")

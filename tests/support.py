@@ -9,7 +9,6 @@ import pytest
 
 from mdrepo.cli import main
 
-
 @dataclass(frozen=True, slots=True)
 class RepositoryBuilder:
     """Create and invoke mdrepo against one isolated repository root."""
@@ -25,11 +24,11 @@ class RepositoryBuilder:
         return candidate
 
     def write_text(
-        self,
-        relative: str | Path,
-        text: str,
-        *,
-        encoding: str = "utf-8",
+            self,
+            relative: str | Path,
+            text: str,
+            *,
+            encoding: str = "utf-8",
     ) -> Path:
         """Write text beneath the repository root and return its path."""
 
