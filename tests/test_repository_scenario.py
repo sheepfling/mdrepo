@@ -56,10 +56,14 @@ roots = ["README.md"]
         encoding="utf-8",
     )
     (tmp_path / "README.md").write_text("# Root\n", encoding="utf-8")
-    (tmp_path / "orphan.md").write_text("# Orphan\n", encoding="utf-8")
+    (tmp_path / "orphan.md").write_text("[Bad](docs\\guide.md)\n", encoding="utf-8")
 
     assert main(["check", "README.md"]) == 0
-    assert "MDR101" not in capsys.readouterr().out
+    filtered_output = capsys.readouterr().out
+    assert "MDR001" not in filtered_output
+    assert "MDR101" not in filtered_output
 
     assert main(["check", "."]) == 1
-    assert "MDR101" in capsys.readouterr().out
+    full_output = capsys.readouterr().out
+    assert "MDR001" in full_output
+    assert "MDR101" in full_output

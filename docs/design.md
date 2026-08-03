@@ -95,10 +95,19 @@ does not reflow, restyle, or otherwise format Markdown; that remains rumdl's res
 
 ## Graph scope
 
-The document graph is repository-wide even when `check` receives path filters. Link diagnostics are
-limited to selected files, but an enabled orphan rule remains a repository property. Unused
-exceptions are reported only during a full, unfiltered check so partial runs do not create false
-staleness findings.
+The document graph is repository-wide even when `check` receives path filters. File-level
+diagnostics and fixes are limited to selected files: link rules consume `selected_documents` via
+`policy_links`, and orphan diagnostics consume `selected_documents` while testing reachability
+against the complete graph. Configuration-level diagnostics may still apply to the repository as
+a whole. Unused exceptions are reported only during a full, unfiltered check so partial runs do
+not create false staleness findings.
+
+This is the scope invariant for built-in rules:
+
+- `documents` is the complete parsed repository and is reserved for graph-wide context;
+- `selected_documents` is the invocation's diagnostic scope;
+- `policy_links` contains only destinations from selected documents;
+- `graph` is built from all documents so links crossing a path filter remain resolvable.
 
 The graph is generic Markdown reachability. It is not a replacement for a documentation generator's
 navigation model. In a MkDocs project, rumdl `MD074` can validate `mkdocs.yml` membership while

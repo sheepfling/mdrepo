@@ -104,9 +104,13 @@ class RuleContext:
 
     root: Path
     config: ApplicationConfig
+    # The complete parsed repository; use this for repository-wide graph context only.
     documents: dict[Path, Document]
+    # The files selected by the current check/fix invocation; scope file diagnostics to this set.
     selected_documents: tuple[Document, ...]
+    # Resolved destinations belonging only to selected documents.
     policy_links: tuple[PolicyLink, ...]
+    # Reachability is intentionally computed over the complete document set.
     graph: DocumentGraph | None
 
 
