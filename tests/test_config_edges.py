@@ -102,3 +102,23 @@ def test_application_config_normalizes_rules_extensions_and_exceptions() -> None
 def test_application_config_rejects_invalid_policy_values(payload: dict[str, object]) -> None:
     with pytest.raises(ValidationError):
         ApplicationConfig.model_validate(payload)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [("id", 123), ("rule", 101), ("path", ["**"]), ("reason", None)],
+)
+def test_exception_fields_preserve_type_validation(
+    field: str,
+    value: object,
+) -> None:
+    payload: dict[str, object] = {
+        "id": "exception",
+        "rule": "MDR101",
+        "path": "**",
+        "reason": "A sufficiently documented reason.",
+    }
+    payload[field] = value
+
+    with pytest.raises(ValidationError):
+        ApplicationConfig.model_validate({"exceptions": [payload]})

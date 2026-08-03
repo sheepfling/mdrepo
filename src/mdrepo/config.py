@@ -111,7 +111,9 @@ class ExceptionConfig(ConfigModel):
 
     @field_validator("id", "path", "reason", mode="before")
     @classmethod
-    def _strip_required_text(cls, value: str) -> str:
+    def _strip_required_text(cls, value: object) -> object:
+        if not isinstance(value, str):
+            return value
         normalized = value.strip()
         if not normalized:
             raise ValueError("value must not be blank")
@@ -119,7 +121,9 @@ class ExceptionConfig(ConfigModel):
 
     @field_validator("rule", mode="before")
     @classmethod
-    def _normalize_rule(cls, value: str) -> str:
+    def _normalize_rule(cls, value: object) -> object:
+        if not isinstance(value, str):
+            return value
         normalized = value.strip().upper()
         if normalized in _EXCEPTION_HEALTH_RULES:
             raise ValueError("exception-health diagnostics cannot themselves be excepted")
