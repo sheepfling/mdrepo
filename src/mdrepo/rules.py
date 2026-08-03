@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Protocol
 
 from mdrepo.config import ApplicationConfig
-from mdrepo.files import TargetDurabilityPolicy
+from mdrepo.gitignore import TargetDurabilityPolicy
 from mdrepo.graph import DocumentGraph
 from mdrepo.models import (
     Diagnostic,
