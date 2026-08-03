@@ -13,8 +13,8 @@ from shutil import copytree, ignore_patterns
 from tempfile import TemporaryDirectory
 
 ROOT = Path(__file__).resolve().parents[1]
-PACKAGE_NAME = "markdown-repo-policy"
-SCM_VERSION_ENV = "SETUPTOOLS_SCM_PRETEND_VERSION_FOR_MARKDOWN_REPO_POLICY"
+PACKAGE_NAME = "mdrepo"
+SCM_VERSION_ENV = "SETUPTOOLS_SCM_PRETEND_VERSION_FOR_MDREPO"
 
 
 def main() -> int:

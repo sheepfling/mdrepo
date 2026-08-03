@@ -32,7 +32,7 @@ def test_release_build_runs_build_and_twine_checks(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     version = release.project_version()
-    stale = tmp_path / "markdown_repo_policy-0.1.0-py3-none-any.whl"
+    stale = tmp_path / "mdrepo-0.1.0-py3-none-any.whl"
     stale.write_bytes(b"stale wheel")
     unrelated = tmp_path / "release-notes.txt"
     unrelated.write_text("keep", encoding="utf-8")
@@ -41,8 +41,8 @@ def test_release_build_runs_build_and_twine_checks(
     def fake_run(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
         commands.append(command)
         if "build" in command:
-            (tmp_path / f"markdown_repo_policy-{version}.tar.gz").write_bytes(b"sdist")
-            (tmp_path / f"markdown_repo_policy-{version}-py3-none-any.whl").write_bytes(b"wheel")
+            (tmp_path / f"mdrepo-{version}.tar.gz").write_bytes(b"sdist")
+            (tmp_path / f"mdrepo-{version}-py3-none-any.whl").write_bytes(b"wheel")
         return subprocess.CompletedProcess(command, 0)
 
     monkeypatch.setattr(release.subprocess, "run", fake_run)

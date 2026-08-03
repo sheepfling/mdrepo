@@ -3,16 +3,25 @@ requires = ["setuptools>=77", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "markdown-repo-policy"
+name = "mdrepo"
 dynamic = ["version"]
-description = "Repository-aware Markdown link policy and document-graph checks designed to complement rumdl."
+description = "Repository-aware Markdown policy checks for portable links, reachable docs, and governed exceptions."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.12"
 authors = [
 ]
-keywords = ["markdown", "links", "documentation", "repository", "lint"]
+keywords = [
+    "markdown",
+    "markdown-hygiene",
+    "documentation",
+    "docs-as-code",
+    "repository-policy",
+    "link-checker",
+    "pre-commit",
+    "static-analysis",
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Environment :: Console",
@@ -33,6 +42,7 @@ dependencies = [
 Homepage = "https://github.com/sheepfling/mdrepo"
 Repository = "https://github.com/sheepfling/mdrepo"
 Issues = "https://github.com/sheepfling/mdrepo/issues"
+Changelog = "https://github.com/sheepfling/mdrepo/blob/main/CHANGELOG.md"
 
 [project.scripts]
 mdrepo = "mdrepo.cli:main"

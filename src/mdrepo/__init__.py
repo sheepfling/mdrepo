@@ -12,6 +12,6 @@ __all__ = ["__version__"]
 
 
 try:
-    __version__ = package_version("markdown-repo-policy")
+    __version__ = package_version("mdrepo")
 except PackageNotFoundError:
     __version__ = "0+unknown"
