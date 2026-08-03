@@ -122,3 +122,21 @@ def test_exception_fields_preserve_type_validation(
 
     with pytest.raises(ValidationError):
         ApplicationConfig.model_validate({"exceptions": [payload]})
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"rules": {"select": [123]}},
+        {"rules": {"ignore": [None]}},
+        {"rules": {"severity": {123: "warning"}}},
+        {"orphans": {"markdown_extensions": [123]}},
+        {"exceptions": [{"id": "id", "rule": "MDR101", "path": 123}]},
+        {"exceptions": [{"id": "id", "rule": "MDR101", "target": ["path"]}]},
+    ],
+)
+def test_all_normalizers_preserve_non_string_type_validation(
+    payload: dict[str, object],
+) -> None:
+    with pytest.raises(ValidationError):
+        ApplicationConfig.model_validate(payload)
