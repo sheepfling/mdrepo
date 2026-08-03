@@ -125,7 +125,7 @@ def test_requested_symlinked_markdown_file_is_rejected(
     link = repository.root / "linked.md"
     try:
         link.symlink_to(repository.root / "README.md")
-    except OSError as error:
+    except OSError:
         original_is_symlink = Path.is_symlink
 
         def simulated_is_symlink(path: Path) -> bool:
