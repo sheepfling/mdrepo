@@ -5,5 +5,5 @@ repos:
         name: mdrepo repository policy
         entry: mdrepo check .
         language: system
-        types: [markdown]
+        types: [ markdown ]
         pass_filenames: false

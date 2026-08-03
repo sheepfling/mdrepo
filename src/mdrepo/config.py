@@ -16,20 +16,11 @@ from mdrepo.models import OutputFormat, Severity
 _CONFIG_FILENAMES = ("pyproject.toml", "mdrepo.toml", ".mdrepo.toml")
 _EXCEPTION_HEALTH_RULES = {"MDR201", "MDR202"}
 
-
 class ConfigurationError(RuntimeError):
     """Raised when configuration cannot be discovered, decoded, or validated."""
-####
-
-
-
 
 def _to_kebab(value: str) -> str:
     return value.replace("_", "-")
-####
-
-
-
 
 class ConfigModel(BaseModel):
     """Strict base model with human-friendly kebab-case TOML aliases."""
@@ -40,10 +31,6 @@ class ConfigModel(BaseModel):
         populate_by_name=True,
         validate_assignment=True,
     )
-####
-
-
-
 
 class RepositoryProvider(str):
     """String constants accepted for repository web URL parsing."""
@@ -52,10 +39,6 @@ class RepositoryProvider(str):
     GITHUB = "github"
     GITLAB = "gitlab"
     BITBUCKET = "bitbucket"
-####
-
-
-
 
 class RuleSelectionConfig(ConfigModel):
     """Rule selection and severity overrides."""
@@ -68,19 +51,11 @@ class RuleSelectionConfig(ConfigModel):
     @classmethod
     def _normalize_rule_lists(cls, values: list[str]) -> list[str]:
         return _normalize_rule_ids(values)
-    ####
-
 
     @field_validator("severity")
     @classmethod
     def _normalize_severity_keys(cls, values: dict[str, Severity]) -> dict[str, Severity]:
         return {key.strip().upper(): value for key, value in values.items()}
-    ####
-####
-
-
-
-
 
 class LinkConfig(ConfigModel):
     """Portable local-link behavior not owned by a formatter."""
@@ -90,10 +65,6 @@ class LinkConfig(ConfigModel):
     allow_outside_root: bool = False
     check_missing_targets: bool = False
     check_case: bool = True
-####
-
-
-
 
 class RepositoryConfig(ConfigModel):
     """Same-repository web-link detection."""
@@ -119,10 +90,7 @@ class RepositoryConfig(ConfigModel):
         }
         if normalized not in allowed:
             raise ValueError(f"provider must be one of {sorted(allowed)}")
-        ####
         return normalized
-    ####
-
 
     @field_validator("relative_refs")
     @classmethod
@@ -132,15 +100,7 @@ class RepositoryConfig(ConfigModel):
             item = value.strip().strip("/")
             if item and item not in normalized:
                 normalized.append(item)
-            ####
-        ####
         return normalized
-    ####
-####
-
-
-
-
 
 class OrphanConfig(ConfigModel):
     """Rooted documentation-graph behavior."""
@@ -159,24 +119,13 @@ class OrphanConfig(ConfigModel):
             item = value.strip().lower()
             if not item:
                 continue
-            ####
             if not item.startswith("."):
                 item = f".{item}"
-            ####
             if item not in normalized:
                 normalized.append(item)
-            ####
-        ####
         if not normalized:
             raise ValueError("at least one Markdown extension is required")
-        ####
         return normalized
-    ####
-####
-
-
-
-
 
 class ExceptionPolicyConfig(ConfigModel):
     """Health reporting for structured exceptions."""
@@ -185,10 +134,6 @@ class ExceptionPolicyConfig(ConfigModel):
     report_unused: bool = True
     expired_severity: Severity = Severity.WARNING
     unused_severity: Severity = Severity.WARNING
-####
-
-
-
 
 class ExceptionConfig(ConfigModel):
     """One documented, narrow policy exception."""
@@ -206,10 +151,7 @@ class ExceptionConfig(ConfigModel):
         normalized = value.strip()
         if not normalized:
             raise ValueError("value must not be blank")
-        ####
         return normalized
-    ####
-
 
     @field_validator("rule")
     @classmethod
@@ -217,25 +159,15 @@ class ExceptionConfig(ConfigModel):
         normalized = value.strip().upper()
         if normalized in _EXCEPTION_HEALTH_RULES:
             raise ValueError("exception-health diagnostics cannot themselves be excepted")
-        ####
         return normalized
-    ####
-
 
     @field_validator("target")
     @classmethod
     def _strip_optional_target(cls, value: str | None) -> str | None:
         if value is None:
             return None
-        ####
         normalized = value.strip()
         return normalized or None
-    ####
-####
-
-
-
-
 
 class ApplicationConfig(ConfigModel):
     """Complete configuration for one repository run."""
@@ -267,20 +199,11 @@ class ApplicationConfig(ConfigModel):
         for exception in self.exceptions:
             if exception.id in seen:
                 duplicates.add(exception.id)
-            ####
             seen.add(exception.id)
-        ####
         if duplicates:
             joined = ", ".join(sorted(duplicates))
             raise ValueError(f"exception IDs must be unique; duplicates: {joined}")
-        ####
         return self
-    ####
-####
-
-
-
-
 
 @dataclass(frozen=True, slots=True)
 class LoadedConfig:
@@ -290,17 +213,13 @@ class LoadedConfig:
     model: ApplicationConfig
     raw: dict[str, Any]
     sources: tuple[Path, ...]
-####
-
-
-
 
 def load_configuration(
-    *,
-    cwd: Path,
-    root_override: Path | None,
-    config_paths: list[Path],
-    overrides: list[str],
+        *,
+        cwd: Path,
+        root_override: Path | None,
+        config_paths: list[Path],
+        overrides: list[str],
 ) -> LoadedConfig:
     """Discover, merge, override, and validate repository configuration."""
 
@@ -316,33 +235,26 @@ def load_configuration(
     for path in (*discovered_paths, *explicit_paths):
         if path not in ordered_paths:
             ordered_paths.append(path)
-        ####
-    ####
 
     merged: dict[str, Any] = {}
     loaded_sources: list[Path] = []
     for path in ordered_paths:
         if not path.exists():
             raise ConfigurationError(f"configuration file does not exist: {path}")
-        ####
         section = _read_config_section(path)
         if section is None:
             continue
-        ####
         merged = deep_merge(merged, section)
         loaded_sources.append(path)
-    ####
 
     for expression in overrides:
         key, value = parse_override(expression)
         set_dotted_value(merged, key, value)
-    ####
 
     try:
         model = ApplicationConfig.model_validate(merged)
     except ValidationError as error:
         raise ConfigurationError(f"invalid mdrepo configuration:\n{error}") from error
-    ####
     _validate_known_rule_ids(model)
 
     return LoadedConfig(
@@ -351,10 +263,6 @@ def load_configuration(
         raw=copy.deepcopy(merged),
         sources=tuple(loaded_sources),
     )
-####
-
-
-
 
 def deep_merge(base: dict[str, Any], overlay: dict[str, Any]) -> dict[str, Any]:
     """Recursively merge tables; lists and scalar values replace earlier values."""
@@ -369,13 +277,7 @@ def deep_merge(base: dict[str, Any], overlay: dict[str, Any]) -> dict[str, Any]:
             )
         else:
             merged[key] = copy.deepcopy(value)
-        ####
-    ####
     return merged
-####
-
-
-
 
 def parse_override(expression: str) -> tuple[str, Any]:
     """Parse ``dotted.key=TOML_VALUE`` with a string fallback."""
@@ -385,24 +287,17 @@ def parse_override(expression: str) -> tuple[str, Any]:
         raise ConfigurationError(
             f"configuration override must have the form KEY=VALUE: {expression!r}"
         )
-    ####
 
     normalized_key = key.strip()
     normalized_value = raw_value.strip()
     if not normalized_value:
         return normalized_key, ""
-    ####
 
     try:
         value = tomllib.loads(f"value = {normalized_value}\n")["value"]
     except tomllib.TOMLDecodeError:
         value = normalized_value
-    ####
     return normalized_key, value
-####
-
-
-
 
 def set_dotted_value(target: dict[str, Any], dotted_key: str, value: Any) -> None:
     """Set a nested mapping value, creating intermediate tables as needed."""
@@ -410,7 +305,6 @@ def set_dotted_value(target: dict[str, Any], dotted_key: str, value: Any) -> Non
     parts = [part.strip().replace("_", "-") for part in dotted_key.split(".")]
     if any(not part for part in parts):
         raise ConfigurationError(f"invalid dotted configuration key: {dotted_key!r}")
-    ####
 
     current = target
     for part in parts[:-1]:
@@ -419,14 +313,8 @@ def set_dotted_value(target: dict[str, Any], dotted_key: str, value: Any) -> Non
             raise ConfigurationError(
                 f"cannot set {dotted_key!r}: {part!r} is not a configuration table"
             )
-        ####
         current = cast(dict[str, Any], child)
-    ####
     current[parts[-1]] = value
-####
-
-
-
 
 def _validate_known_rule_ids(config: ApplicationConfig) -> None:
     from mdrepo.rules import RULES_BY_ID
@@ -441,11 +329,6 @@ def _validate_known_rule_ids(config: ApplicationConfig) -> None:
     unknown = sorted(configured - known)
     if unknown:
         raise ConfigurationError(f"unknown mdrepo rule ID(s): {', '.join(unknown)}")
-    ####
-####
-
-
-
 
 def _normalize_rule_ids(values: list[str]) -> list[str]:
     normalized: list[str] = []
@@ -454,61 +337,39 @@ def _normalize_rule_ids(values: list[str]) -> list[str]:
             rule_id = item.strip().upper()
             if rule_id and rule_id not in normalized:
                 normalized.append(rule_id)
-            ####
-        ####
-    ####
     return normalized
-####
-
-
-
 
 def _resolve_root(
-    *,
-    cwd: Path,
-    root_override: Path | None,
-    explicit_paths: tuple[Path, ...],
+        *,
+        cwd: Path,
+        root_override: Path | None,
+        explicit_paths: tuple[Path, ...],
 ) -> Path:
     if root_override is not None:
         root = root_override.expanduser().resolve()
         if not root.is_dir():
             raise ConfigurationError(f"project root is not a directory: {root}")
-        ####
         return root
-    ####
 
     if explicit_paths:
         return explicit_paths[0].parent
-    ####
 
     discovered = _discover_root(cwd)
     return discovered or cwd
-####
-
-
-
 
 def _discover_root(start: Path) -> Path | None:
     git_fallback: Path | None = None
     for directory in (start, *start.parents):
         if git_fallback is None and (directory / ".git").exists():
             git_fallback = directory
-        ####
 
         if (directory / "mdrepo.toml").is_file() or (directory / ".mdrepo.toml").is_file():
             return directory
-        ####
 
         pyproject = directory / "pyproject.toml"
         if pyproject.is_file() and _pyproject_has_section(pyproject):
             return directory
-        ####
-    ####
     return git_fallback
-####
-
-
-
 
 def _config_paths_at_root(root: Path) -> tuple[Path, ...]:
     paths: list[Path] = []
@@ -516,30 +377,18 @@ def _config_paths_at_root(root: Path) -> tuple[Path, ...]:
         path = root / filename
         if not path.is_file():
             continue
-        ####
         if filename == "pyproject.toml" and not _pyproject_has_section(path):
             continue
-        ####
         paths.append(path)
-    ####
     return tuple(paths)
-####
-
-
-
 
 def _pyproject_has_section(path: Path) -> bool:
     try:
         parsed = tomllib.loads(path.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, tomllib.TOMLDecodeError):
         return False
-    ####
     tool = parsed.get("tool")
     return isinstance(tool, dict) and isinstance(cast(dict[str, Any], tool).get("mdrepo"), dict)
-####
-
-
-
 
 def _read_config_section(path: Path) -> dict[str, Any] | None:
     try:
@@ -550,29 +399,20 @@ def _read_config_section(path: Path) -> dict[str, Any] | None:
         raise ConfigurationError(f"configuration is not UTF-8 text: {path}: {error}") from error
     except tomllib.TOMLDecodeError as error:
         raise ConfigurationError(f"invalid TOML in {path}: {error}") from error
-    ####
 
     tool = parsed.get("tool")
     if isinstance(tool, dict) and "mdrepo" in tool:
         section = cast(dict[str, Any], tool)["mdrepo"]
         if not isinstance(section, dict):
             raise ConfigurationError(f"[tool.mdrepo] must be a table in {path}")
-        ####
         return copy.deepcopy(cast(dict[str, Any], section))
-    ####
 
     if "mdrepo" in parsed:
         section = parsed["mdrepo"]
         if not isinstance(section, dict):
             raise ConfigurationError(f"[mdrepo] must be a table in {path}")
-        ####
         return copy.deepcopy(cast(dict[str, Any], section))
-    ####
 
     if path.name == "pyproject.toml":
         return None
-    ####
     return copy.deepcopy(parsed)
-####
-
-

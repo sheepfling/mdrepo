@@ -25,6 +25,9 @@
   ports, home-relative destinations, and the interconnected repository scenario.
 - Made the marker-compatible Ruff formatting check read-only and kept the standard CI coverage
   report informational rather than coupling it to a hardcoded threshold.
+- Added reusable pseudo-repository test fixtures and expanded scenario coverage across Markdown
+  parsing, filesystem resolution, repository URL identity, graph reachability, rule toggles,
+  exception suppression, CLI output modes, and dry-run versus applied fixes.
 
 ## 0.2.0
 

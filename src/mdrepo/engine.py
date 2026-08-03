@@ -23,13 +23,8 @@ from mdrepo.rules import (
     rule_enabled,
 )
 
-
 class EngineError(RuntimeError):
     """Raised when repository files cannot be read or checked safely."""
-####
-
-
-
 
 @dataclass(frozen=True, slots=True)
 class RunResult:
@@ -42,17 +37,13 @@ class RunResult:
     graph: DocumentGraph | None
     diagnostics: tuple[Diagnostic, ...]
     suppressed: tuple[Diagnostic, ...]
-####
-
-
-
 
 def run_repository(
-    *,
-    loaded_config: LoadedConfig,
-    requested_paths: list[str],
-    force_graph: bool = False,
-    today: date | None = None,
+        *,
+        loaded_config: LoadedConfig,
+        requested_paths: list[str],
+        force_graph: bool = False,
+        today: date | None = None,
 ) -> RunResult:
     """Parse the repository and evaluate every enabled focused rule."""
 
@@ -71,10 +62,8 @@ def run_repository(
             text = path.read_bytes().decode(loaded_config.model.encoding)
         except (OSError, UnicodeError) as error:
             raise EngineError(f"unable to read Markdown document {path}: {error}") from error
-        ####
         document = parser.parse(path=path, root=root, text=text)
         documents[document.path] = document
-    ####
 
     selected_documents = tuple(documents[path] for path in selected_paths)
     identity = discover_repository_identity(
@@ -97,8 +86,6 @@ def run_repository(
                     ),
                 )
             )
-        ####
-    ####
 
     graph: DocumentGraph | None = None
     if force_graph or loaded_config.model.orphans.enabled:
@@ -108,7 +95,6 @@ def run_repository(
             config=loaded_config.model,
             identity=identity,
         )
-    ####
 
     context = RuleContext(
         root=root,
@@ -123,9 +109,7 @@ def run_repository(
     for rule in BUILTIN_RULES:
         if not rule_enabled(config=loaded_config.model, rule_id=rule.metadata.rule_id):
             continue
-        ####
         raw_diagnostics.extend(rule.check(context))
-    ####
 
     configured = tuple(
         diagnostic.with_severity(
@@ -163,10 +147,6 @@ def run_repository(
         diagnostics=visible,
         suppressed=suppressed,
     )
-####
-
-
-
 
 def _deduplicate(diagnostics: list[Diagnostic]) -> tuple[Diagnostic, ...]:
     unique: dict[tuple[object, ...], Diagnostic] = {}
@@ -180,12 +160,7 @@ def _deduplicate(diagnostics: list[Diagnostic]) -> tuple[Diagnostic, ...]:
             diagnostic.message,
         )
         unique.setdefault(key, diagnostic)
-    ####
     return tuple(unique.values())
-####
-
-
-
 
 def _sort_diagnostics(diagnostics: tuple[Diagnostic, ...]) -> tuple[Diagnostic, ...]:
     return tuple(
@@ -200,6 +175,3 @@ def _sort_diagnostics(diagnostics: tuple[Diagnostic, ...]) -> tuple[Diagnostic, 
             ),
         )
     )
-####
-
-

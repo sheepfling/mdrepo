@@ -100,7 +100,6 @@ RULE_METADATA: tuple[RuleMetadata, ...] = (
 )
 RULES_BY_ID: dict[str, RuleMetadata] = {metadata.rule_id: metadata for metadata in RULE_METADATA}
 
-
 @dataclass(frozen=True, slots=True)
 class PolicyLink:
     """One editable policy destination with its local interpretation, when applicable."""
@@ -108,10 +107,6 @@ class PolicyLink:
     document: Document
     occurrence: LinkOccurrence
     local: LocalTargetResolution | None
-####
-
-
-
 
 @dataclass(frozen=True, slots=True)
 class RuleContext:
@@ -124,10 +119,6 @@ class RuleContext:
     policy_links: tuple[PolicyLink, ...]
     identity: RepositoryIdentity | None
     graph: DocumentGraph | None
-####
-
-
-
 
 class Rule(Protocol):
     """Small future-compatible seam for repository rules."""
@@ -138,10 +129,6 @@ class Rule(Protocol):
         """Evaluate this rule for one repository context."""
 
         ...
-####
-
-
-
 
 class NonPosixLocalLinkRule:
     """MDR001 implementation."""
@@ -151,12 +138,10 @@ class NonPosixLocalLinkRule:
     def check(self, context: RuleContext) -> tuple[Diagnostic, ...]:
         if not context.config.links.require_posix:
             return ()
-        ####
         diagnostics: list[Diagnostic] = []
         for link in context.policy_links:
             if link.local is None or not link.local.has_backslashes:
                 continue
-            ####
             diagnostics.append(
                 _link_diagnostic(
                     metadata=self.metadata,
@@ -166,14 +151,7 @@ class NonPosixLocalLinkRule:
                     fix_description="normalize the local destination to a POSIX relative path",
                 )
             )
-        ####
         return tuple(diagnostics)
-    ####
-####
-
-
-
-
 
 class AbsoluteLocalLinkRule:
     """MDR002 implementation."""
@@ -186,10 +164,8 @@ class AbsoluteLocalLinkRule:
             local = link.local
             if local is None or not local.absolute:
                 continue
-            ####
             if local.root_relative and context.config.links.allow_root_relative:
                 continue
-            ####
 
             if local.protocol_relative:
                 message = "protocol-relative URL is neither fully qualified nor repository-relative"
@@ -201,7 +177,6 @@ class AbsoluteLocalLinkRule:
                 message = "home-relative destination is machine-local and not portable"
             else:
                 message = "repository-root-absolute destination should be relative to this document"
-            ####
             replacement = local.suggested_target if local.root_relative and local.exists else None
             diagnostics.append(
                 _link_diagnostic(
@@ -214,14 +189,7 @@ class AbsoluteLocalLinkRule:
                     ),
                 )
             )
-        ####
         return tuple(diagnostics)
-    ####
-####
-
-
-
-
 
 class RepositoryEscapeRule:
     """MDR003 implementation."""
@@ -231,7 +199,6 @@ class RepositoryEscapeRule:
     def check(self, context: RuleContext) -> tuple[Diagnostic, ...]:
         if context.config.links.allow_outside_root:
             return ()
-        ####
         return tuple(
             _link_diagnostic(
                 metadata=self.metadata,
@@ -241,12 +208,6 @@ class RepositoryEscapeRule:
             for link in context.policy_links
             if link.local is not None and link.local.outside_root
         )
-    ####
-####
-
-
-
-
 
 class MissingLocalTargetRule:
     """MDR004 implementation, disabled by default because rumdl already covers this area."""
@@ -256,22 +217,18 @@ class MissingLocalTargetRule:
     def check(self, context: RuleContext) -> tuple[Diagnostic, ...]:
         if not context.config.links.check_missing_targets:
             return ()
-        ####
 
         diagnostics: list[Diagnostic] = []
         for link in context.policy_links:
             local = link.local
             if local is None or local.candidate_path is None or local.outside_root:
                 continue
-            ####
             if local.absolute and not (
-                local.root_relative and context.config.links.allow_root_relative
+                    local.root_relative and context.config.links.allow_root_relative
             ):
                 continue
-            ####
             if local.exists:
                 continue
-            ####
             noun = "image" if link.occurrence.kind is LinkKind.IMAGE else "link"
             diagnostics.append(
                 _link_diagnostic(
@@ -280,14 +237,7 @@ class MissingLocalTargetRule:
                     message=f"local {noun} target does not exist: {local.decoded_path}",
                 )
             )
-        ####
         return tuple(diagnostics)
-    ####
-####
-
-
-
-
 
 class LocalTargetCaseRule:
     """MDR005 implementation."""
@@ -297,14 +247,12 @@ class LocalTargetCaseRule:
     def check(self, context: RuleContext) -> tuple[Diagnostic, ...]:
         if not context.config.links.check_case:
             return ()
-        ####
 
         diagnostics: list[Diagnostic] = []
         for link in context.policy_links:
             local = link.local
             if local is None or not local.case_mismatch or local.canonical_path is None:
                 continue
-            ####
             canonical = local.canonical_path.relative_to(context.root).as_posix()
             diagnostics.append(
                 _link_diagnostic(
@@ -315,14 +263,7 @@ class LocalTargetCaseRule:
                     fix_description="rewrite the destination with exact on-disk path case",
                 )
             )
-        ####
         return tuple(diagnostics)
-    ####
-####
-
-
-
-
 
 class SameRepositoryWebLinkRule:
     """MDR006 implementation."""
@@ -332,7 +273,6 @@ class SameRepositoryWebLinkRule:
     def check(self, context: RuleContext) -> tuple[Diagnostic, ...]:
         if context.identity is None:
             return ()
-        ####
 
         diagnostics: list[Diagnostic] = []
         for link in context.policy_links:
@@ -342,7 +282,6 @@ class SameRepositoryWebLinkRule:
             )
             if remote is None or remote.query or remote.line_fragment:
                 continue
-            ####
 
             target_path, replacement = make_repository_target(
                 root=context.root,
@@ -353,7 +292,6 @@ class SameRepositoryWebLinkRule:
             canonical, exists, _ = canonicalize_case(root=context.root, candidate=target_path)
             if context.config.repository.require_existing_target and not exists:
                 continue
-            ####
             if canonical is not None:
                 _, replacement = make_repository_target(
                     root=context.root,
@@ -361,7 +299,6 @@ class SameRepositoryWebLinkRule:
                     repository_path=PurePosixPath(canonical.relative_to(context.root).as_posix()),
                     fragment=remote.fragment,
                 )
-            ####
 
             diagnostics.append(
                 _link_diagnostic(
@@ -375,14 +312,7 @@ class SameRepositoryWebLinkRule:
                     fix_description="replace the provider-specific web URL with a relative path",
                 )
             )
-        ####
         return tuple(diagnostics)
-    ####
-####
-
-
-
-
 
 class MissingGraphRootRule:
     """MDR100 implementation."""
@@ -392,7 +322,6 @@ class MissingGraphRootRule:
     def check(self, context: RuleContext) -> tuple[Diagnostic, ...]:
         if not context.config.orphans.enabled or context.graph is None or context.graph.roots:
             return ()
-        ####
         return (
             Diagnostic(
                 rule_id=self.metadata.rule_id,
@@ -401,12 +330,6 @@ class MissingGraphRootRule:
                 hint=f"Configured roots: {', '.join(context.config.orphans.roots)}",
             ),
         )
-    ####
-####
-
-
-
-
 
 class OrphanDocumentRule:
     """MDR101 implementation."""
@@ -416,16 +339,14 @@ class OrphanDocumentRule:
     def check(self, context: RuleContext) -> tuple[Diagnostic, ...]:
         if not context.config.orphans.enabled or context.graph is None or not context.graph.roots:
             return ()
-        ####
 
         diagnostics: list[Diagnostic] = []
         for document in sorted(
-            context.documents.values(),
-            key=lambda item: item.relative_path.as_posix(),
+                context.documents.values(),
+                key=lambda item: item.relative_path.as_posix(),
         ):
             if document.path in context.graph.reachable:
                 continue
-            ####
             diagnostics.append(
                 Diagnostic(
                     rule_id=self.metadata.rule_id,
@@ -437,14 +358,7 @@ class OrphanDocumentRule:
                     hint="Link the document into the graph or add a narrow structured exception.",
                 )
             )
-        ####
         return tuple(diagnostics)
-    ####
-####
-
-
-
-
 
 BUILTIN_RULES: tuple[Rule, ...] = (
     NonPosixLocalLinkRule(),
@@ -457,7 +371,6 @@ BUILTIN_RULES: tuple[Rule, ...] = (
     OrphanDocumentRule(),
 )
 
-
 def rule_enabled(*, config: ApplicationConfig, rule_id: str) -> bool:
     """Apply stable select/ignore semantics to one rule ID."""
 
@@ -465,29 +378,20 @@ def rule_enabled(*, config: ApplicationConfig, rule_id: str) -> bool:
     ignored = set(config.rules.ignore)
     if selected and rule_id not in selected:
         return False
-    ####
     return rule_id not in ignored
-####
-
-
-
 
 def configured_severity(*, config: ApplicationConfig, diagnostic: Diagnostic) -> Severity:
     """Return a rule-specific severity override or the emitted default."""
 
     return config.rules.severity.get(diagnostic.rule_id, diagnostic.severity)
-####
-
-
-
 
 def _link_diagnostic(
-    *,
-    metadata: RuleMetadata,
-    link: PolicyLink,
-    message: str,
-    replacement: str | None = None,
-    fix_description: str = "",
+        *,
+        metadata: RuleMetadata,
+        link: PolicyLink,
+        message: str,
+        replacement: str | None = None,
+        fix_description: str = "",
 ) -> Diagnostic:
     fix: Fix | None = None
     span = link.occurrence.span
@@ -499,7 +403,6 @@ def _link_diagnostic(
             replacement=replacement,
             description=fix_description,
         )
-    ####
     return Diagnostic(
         rule_id=metadata.rule_id,
         message=message,
@@ -510,6 +413,3 @@ def _link_diagnostic(
         target=link.occurrence.target,
         fix=fix,
     )
-####
-
-

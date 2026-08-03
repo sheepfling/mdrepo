@@ -9,7 +9,6 @@ from tempfile import TemporaryDirectory
 
 ROOT = Path(__file__).resolve().parents[1]
 
-
 def main() -> int:
     """Verify both wheel and source-distribution packaging."""
 
@@ -29,19 +28,12 @@ def main() -> int:
         )
         if build_result.returncode:
             return build_result.returncode
-        ####
         distributions = sorted(Path(output).glob("*"))
         return subprocess.run(
             [sys.executable, "-m", "twine", "check", *(str(path) for path in distributions)],
             cwd=ROOT,
             check=False,
         ).returncode
-    ####
-####
-
-
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
-####

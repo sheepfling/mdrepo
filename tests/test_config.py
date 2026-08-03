@@ -7,7 +7,6 @@ import pytest
 from mdrepo.config import ConfigurationError, load_configuration
 from mdrepo.models import OutputFormat, Severity
 
-
 def test_pyproject_and_dedicated_overlay_merge(tmp_path: Path) -> None:
     (tmp_path / "pyproject.toml").write_text(
         """
@@ -43,10 +42,6 @@ check-case = false
         tmp_path / "pyproject.toml",
         tmp_path / ".mdrepo.toml",
     )
-####
-
-
-
 
 def test_unknown_configuration_is_rejected(tmp_path: Path) -> None:
     (tmp_path / "pyproject.toml").write_text(
@@ -61,11 +56,6 @@ def test_unknown_configuration_is_rejected(tmp_path: Path) -> None:
             config_paths=[],
             overrides=[],
         )
-    ####
-####
-
-
-
 
 def test_duplicate_exception_ids_are_rejected(tmp_path: Path) -> None:
     (tmp_path / "pyproject.toml").write_text(
@@ -90,11 +80,6 @@ reason = "Second documented exception."
             config_paths=[],
             overrides=[],
         )
-    ####
-####
-
-
-
 
 def test_unknown_rule_id_is_rejected(tmp_path: Path) -> None:
     (tmp_path / "pyproject.toml").write_text(
@@ -109,7 +94,3 @@ def test_unknown_rule_id_is_rejected(tmp_path: Path) -> None:
             config_paths=[],
             overrides=[],
         )
-    ####
-####
-
-

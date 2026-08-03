@@ -17,17 +17,17 @@ The runtime dependencies are `markdown-it-py`, `pathspec`, and Pydantic.
 
 ## Responsibility split
 
-| Concern | Authority |
-|---|---|
-| Markdown syntax, flavor, headings, lists, tables, fences, whitespace, and style | rumdl |
-| Relative target existence and heading fragments | rumdl `MD057` and `MD051` |
-| MkDocs navigation validation | rumdl `MD074` |
-| POSIX local paths, repository boundaries, and exact on-disk case | `mdrepo` |
-| Mutable provider URLs that point back into the same repository | `mdrepo` |
-| Generic document reachability from configured roots | `mdrepo` |
-| Reasoned, expiring, and stale-exception governance | `mdrepo` |
-| Live external URL availability | Neither tool |
-| Generated-site routes and renderer-specific semantics | The documentation build |
+| Concern                                                                         | Authority                 |
+|---------------------------------------------------------------------------------|---------------------------|
+| Markdown syntax, flavor, headings, lists, tables, fences, whitespace, and style | rumdl                     |
+| Relative target existence and heading fragments                                 | rumdl `MD057` and `MD051` |
+| MkDocs navigation validation                                                    | rumdl `MD074`             |
+| POSIX local paths, repository boundaries, and exact on-disk case                | `mdrepo`                  |
+| Mutable provider URLs that point back into the same repository                  | `mdrepo`                  |
+| Generic document reachability from configured roots                             | `mdrepo`                  |
+| Reasoned, expiring, and stale-exception governance                              | `mdrepo`                  |
+| Live external URL availability                                                  | Neither tool              |
+| Generated-site routes and renderer-specific semantics                           | The documentation build   |
 
 The tools are independent. `mdrepo` does not invoke rumdl, consume rumdl diagnostics, interpret rumdl
 inline suppression comments, or forward rumdl configuration. Each command keeps its own
@@ -238,18 +238,18 @@ Exit statuses are stable:
 
 ## Built-in rules
 
-| Rule | Purpose | Safe fix |
-|---|---|---:|
-| `MDR001` | Backslash in a local destination | Yes |
+| Rule     | Purpose                                                      |           Safe fix |
+|----------|--------------------------------------------------------------|-------------------:|
+| `MDR001` | Backslash in a local destination                             |                Yes |
 | `MDR002` | Machine-, protocol-, or repository-root-absolute destination | Root-relative only |
-| `MDR003` | Local destination escapes the repository root | No |
-| `MDR004` | Standalone missing-target fallback; disabled with rumdl | No |
-| `MDR005` | Path spelling differs from exact on-disk case | Yes |
-| `MDR006` | Mutable web URL points back into this repository | Yes |
-| `MDR100` | No configured orphan-graph root exists | No |
-| `MDR101` | Markdown document is unreachable from all roots | No |
-| `MDR201` | Structured exception is expired | No |
-| `MDR202` | Structured exception is unused | No |
+| `MDR003` | Local destination escapes the repository root                |                 No |
+| `MDR004` | Standalone missing-target fallback; disabled with rumdl      |                 No |
+| `MDR005` | Path spelling differs from exact on-disk case                |                Yes |
+| `MDR006` | Mutable web URL points back into this repository             |                Yes |
+| `MDR100` | No configured orphan-graph root exists                       |                 No |
+| `MDR101` | Markdown document is unreachable from all roots              |                 No |
+| `MDR201` | Structured exception is expired                              |                 No |
+| `MDR202` | Structured exception is unused                               |                 No |
 
 ## Deliberate boundaries
 

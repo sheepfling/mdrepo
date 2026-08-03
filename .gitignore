@@ -1,8 +1,12 @@
-.venv/
-.venv_ci/
+# Local Python environments and dependency caches
+.venv*/
 .codex_pydeps/
 .pip-cache/
 .pre-commit-cache/
+
+# Python caches and test/type-checking output
+.mypy_cache/
+.pyright/
 .pytest_cache/
 .rumdl_cache/
 .ruff_cache/
@@ -11,6 +15,25 @@ __pycache__/
 *.py[cod]
 .coverage
 htmlcov/
+
+# Packaging and build output
 build/
 dist/
 *.egg-info/
+pip-wheel-metadata/
+
+# IDE and editor metadata
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local secrets and logs
+.env
+.env.*
+!.env.example
+*.log
+
+# Operating-system metadata
+.DS_Store
+Thumbs.db

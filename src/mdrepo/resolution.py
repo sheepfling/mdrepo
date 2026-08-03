@@ -14,7 +14,6 @@ from mdrepo.models import Document, LinkOccurrence
 
 _WINDOWS_ABSOLUTE: Final[re.Pattern[str]] = re.compile(r"^(?:[A-Za-z]:[\\/]|\\{2})")
 
-
 @dataclass(frozen=True, slots=True)
 class LocalTargetResolution:
     """Filesystem interpretation of one local Markdown destination."""
@@ -40,32 +39,25 @@ class LocalTargetResolution:
         """Return whether the destination is machine- or root-absolute."""
 
         return (
-            self.windows_absolute
-            or self.root_relative
-            or self.protocol_relative
-            or self.file_uri
-            or self.home_relative
+                self.windows_absolute
+                or self.root_relative
+                or self.protocol_relative
+                or self.file_uri
+                or self.home_relative
         )
-    ####
-####
-
-
-
-
 
 def resolve_local_target(
-    *,
-    root: Path,
-    document: Document,
-    occurrence: LinkOccurrence,
-    config: LinkConfig,
+        *,
+        root: Path,
+        document: Document,
+        occurrence: LinkOccurrence,
+        _config: LinkConfig,
 ) -> LocalTargetResolution | None:
     """Resolve a destination when it represents a local repository path."""
 
     target = occurrence.target.strip()
     if not target or target.startswith("#") or target.startswith("?"):
         return None
-    ####
 
     decoded_whole = unquote(target)
     windows_absolute = bool(_WINDOWS_ABSOLUTE.match(decoded_whole))
@@ -76,15 +68,12 @@ def resolve_local_target(
         parsed = urlsplit(target)
     except ValueError:
         return None
-    ####
     scheme = parsed.scheme.lower()
     file_uri = scheme == "file"
     if scheme and not windows_absolute and not file_uri:
         return None
-    ####
     if parsed.netloc and not protocol_relative and not file_uri:
         return None
-    ####
 
     decoded_path = unquote(parsed.path)
     has_backslashes = "\\" in decoded_path
@@ -98,11 +87,11 @@ def resolve_local_target(
     outside_root = False
 
     if (
-        not windows_absolute
-        and not protocol_relative
-        and not file_uri
-        and not home_relative
-        and normalized_path
+            not windows_absolute
+            and not protocol_relative
+            and not file_uri
+            and not home_relative
+            and normalized_path
     ):
         base = root if root_relative else document.path.parent
         path_text = normalized_path.lstrip("/") if root_relative else normalized_path
@@ -117,9 +106,6 @@ def resolve_local_target(
             resolved_candidate = (canonical_path or candidate_path).resolve(strict=False)
             if not resolved_candidate.is_relative_to(root):
                 outside_root = True
-            ####
-        ####
-    ####
 
     suggested_target: str | None = None
     if candidate_path is not None and not outside_root:
@@ -130,7 +116,6 @@ def resolve_local_target(
             query=parsed.query,
             fragment=parsed.fragment,
         )
-    ####
 
     return LocalTargetResolution(
         occurrence=occurrence,
@@ -149,15 +134,11 @@ def resolve_local_target(
         case_mismatch=case_mismatch,
         suggested_target=suggested_target,
     )
-####
-
-
-
 
 def canonicalize_case(
-    *,
-    root: Path,
-    candidate: Path,
+        *,
+        root: Path,
+        candidate: Path,
 ) -> tuple[Path | None, bool, bool]:
     """Find the exact on-disk path spelling independent of host case sensitivity."""
 
@@ -165,62 +146,48 @@ def canonicalize_case(
         relative = candidate.relative_to(root)
     except ValueError:
         return None, False, False
-    ####
 
     current = root
     mismatch = False
     for part in relative.parts:
         if not current.is_dir():
             return None, False, mismatch
-        ####
         try:
             children = tuple(current.iterdir())
         except OSError:
             return None, False, mismatch
-        ####
 
         exact = next((child for child in children if child.name == part), None)
         if exact is not None:
             current = exact
             continue
-        ####
 
         folded = [child for child in children if child.name.casefold() == part.casefold()]
         if len(folded) != 1:
             return None, False, mismatch
-        ####
         current = folded[0]
         mismatch = True
-    ####
     return current, current.exists(), mismatch
-####
-
-
-
 
 def make_relative_target(
-    *,
-    source: Path,
-    target: Path,
-    query: str = "",
-    fragment: str = "",
+        *,
+        source: Path,
+        target: Path,
+        query: str = "",
+        fragment: str = "",
 ) -> str:
     """Create a POSIX, percent-encoded destination relative to a source document."""
 
     relative = os.path.relpath(target, start=source.parent).replace(os.sep, "/")
     encoded = quote(relative, safe="/.-_~")
     return urlunsplit(("", "", encoded, query, fragment))
-####
-
-
-
 
 def make_repository_target(
-    *,
-    root: Path,
-    source: Path,
-    repository_path: PurePosixPath,
-    fragment: str = "",
+        *,
+        root: Path,
+        source: Path,
+        repository_path: PurePosixPath,
+        fragment: str = "",
 ) -> tuple[Path, str]:
     """Resolve and render a repository-relative web target as a local destination."""
 
@@ -231,27 +198,21 @@ def make_repository_target(
         fragment=fragment,
     )
     return target_path, replacement
-####
-
-
-
 
 def resolve_graph_document(
-    *,
-    root: Path,
-    resolution: LocalTargetResolution,
-    documents: dict[Path, Document],
-    config: OrphanConfig,
+        *,
+        root: Path,
+        resolution: LocalTargetResolution,
+        documents: dict[Path, Document],
+        config: OrphanConfig,
 ) -> Path | None:
     """Resolve local paths, extensionless routes, and directory indexes to Markdown documents."""
 
     if resolution.outside_root or (resolution.absolute and resolution.candidate_path is None):
         return None
-    ####
     base_candidate = resolution.canonical_path or resolution.candidate_path
     if base_candidate is None:
         return None
-    ####
 
     candidate = _document_candidate(
         root=root,
@@ -260,7 +221,6 @@ def resolve_graph_document(
     )
     if candidate is not None:
         return candidate
-    ####
 
     if base_candidate.is_dir():
         for index_name in config.directory_indexes:
@@ -271,9 +231,6 @@ def resolve_graph_document(
             )
             if indexed is not None:
                 return indexed
-            ####
-        ####
-    ####
 
     if config.extensionless_links and not base_candidate.suffix:
         for extension in config.markdown_extensions:
@@ -284,27 +241,16 @@ def resolve_graph_document(
             )
             if extended is not None:
                 return extended
-            ####
-        ####
-    ####
     return None
-####
-
-
-
 
 def _document_candidate(
-    *,
-    root: Path,
-    candidate: Path,
-    documents: dict[Path, Document],
+        *,
+        root: Path,
+        candidate: Path,
+        documents: dict[Path, Document],
 ) -> Path | None:
     canonical, exists, _ = canonicalize_case(root=root, candidate=candidate)
     if not exists or canonical is None:
         return None
-    ####
     resolved = canonical.resolve()
     return resolved if resolved in documents else None
-####
-
-

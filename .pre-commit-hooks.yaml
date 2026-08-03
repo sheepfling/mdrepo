@@ -3,5 +3,5 @@
   description: Check Markdown repository portability, identity, and reachability policy
   entry: mdrepo check
   language: python
-  types: [markdown]
+  types: [ markdown ]
   pass_filenames: false

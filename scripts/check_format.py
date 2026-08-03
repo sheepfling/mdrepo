@@ -13,7 +13,6 @@ ROOT = Path(__file__).resolve().parents[1]
 PYTHON_ROOTS = (ROOT / "src", ROOT / "scripts", ROOT / "tests")
 MARKERS = {"##", "####"}
 
-
 def _without_standalone_markers(source: str) -> str:
     """Remove marker comments and their formatter-only padding."""
 
@@ -22,16 +21,12 @@ def _without_standalone_markers(source: str) -> str:
     for token in tokenize.generate_tokens(StringIO(source).readline):
         if token.type != tokenize.COMMENT or token.string.strip() not in MARKERS:
             continue
-        ####
         row, column = token.start
         line = lines[row - 1]
-        if not line[:column].strip() and not line[token.end[1] :].strip():
+        if not line[:column].strip() and not line[token.end[1]:].strip():
             marker_rows.add(row - 1)
-        ####
-    ####
     if not marker_rows:
         return source
-    ####
 
     padding_rows: set[int] = set()
     for marker_row in marker_rows:
@@ -40,9 +35,6 @@ def _without_standalone_markers(source: str) -> str:
             while 0 <= row < len(lines) and not lines[row].strip():
                 padding_rows.add(row)
                 row += direction
-            ####
-        ####
-    ####
 
     unmarked = [(index, line) for index, line in enumerate(lines) if index not in marker_rows]
     newline = "\r\n" if "\r\n" in source else "\n"
@@ -53,11 +45,9 @@ def _without_standalone_markers(source: str) -> str:
             output.append(unmarked[index][1])
             index += 1
             continue
-        ####
         end = index
         while end < len(unmarked) and not unmarked[end][1].strip():
             end += 1
-        ####
         blank_rows = unmarked[index:end]
         if not any(row in padding_rows for row, _ in blank_rows):
             output.extend(line for _, line in blank_rows)
@@ -70,14 +60,8 @@ def _without_standalone_markers(source: str) -> str:
                 (" ", "\t")
             )
             output.extend([newline] * (2 if top_level_boundary else 1))
-        ####
         index = end
-    ####
     return "".join(output)
-####
-
-
-
 
 def _copy_unmarked_sources(destination: Path) -> None:
     """Copy source trees while removing Scope Marker comments."""
@@ -90,14 +74,7 @@ def _copy_unmarked_sources(destination: Path) -> None:
             with tokenize.open(source) as stream:
                 contents = _without_standalone_markers(stream.read())
                 encoding = stream.encoding
-            ####
             target.write_text(contents, encoding=encoding, newline="")
-        ####
-    ####
-####
-
-
-
 
 def main() -> int:
     """Verify Ruff formatting remains clean when markers are ignored."""
@@ -118,12 +95,6 @@ def main() -> int:
             str(destination / "tests"),
         ]
         return subprocess.run(check_command, cwd=ROOT, check=False).returncode
-    ####
-####
-
-
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
-####

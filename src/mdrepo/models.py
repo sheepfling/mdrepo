@@ -6,17 +6,12 @@ from dataclasses import dataclass, replace
 from enum import StrEnum
 from pathlib import Path
 
-
 class Severity(StrEnum):
     """Diagnostic severity."""
 
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
-####
-
-
-
 
 class OutputFormat(StrEnum):
     """Supported diagnostic output formats."""
@@ -24,10 +19,6 @@ class OutputFormat(StrEnum):
     TEXT = "text"
     JSON = "json"
     GITHUB = "github"
-####
-
-
-
 
 class LinkKind(StrEnum):
     """Markdown construct that uses a destination."""
@@ -35,10 +26,6 @@ class LinkKind(StrEnum):
     LINK = "link"
     IMAGE = "image"
     REFERENCE_DEFINITION = "reference-definition"
-####
-
-
-
 
 class LinkSourceKind(StrEnum):
     """How a parsed destination is represented in source Markdown."""
@@ -47,10 +34,6 @@ class LinkSourceKind(StrEnum):
     AUTOLINK = "autolink"
     REFERENCE_USE = "reference-use"
     REFERENCE_DEFINITION = "reference-definition"
-####
-
-
-
 
 @dataclass(frozen=True, slots=True)
 class TextSpan:
@@ -64,16 +47,8 @@ class TextSpan:
     def __post_init__(self) -> None:
         if self.start < 0 or self.end < self.start:
             raise ValueError(f"invalid text span: {self.start}:{self.end}")
-        ####
         if self.line < 1 or self.column < 1:
             raise ValueError("line and column must be one-based positive integers")
-        ####
-    ####
-####
-
-
-
-
 
 @dataclass(frozen=True, slots=True)
 class Fix:
@@ -84,10 +59,6 @@ class Fix:
     expected: str
     replacement: str
     description: str
-####
-
-
-
 
 @dataclass(frozen=True, slots=True)
 class Diagnostic:
@@ -108,19 +79,11 @@ class Diagnostic:
         """Return a copy with a configured severity override."""
 
         return replace(self, severity=severity)
-    ####
-
 
     def suppressed(self, exception_id: str) -> Diagnostic:
         """Return a copy marked as suppressed by one named exception."""
 
         return replace(self, suppressed_by=exception_id, fix=None)
-    ####
-####
-
-
-
-
 
 @dataclass(frozen=True, slots=True)
 class RuleMetadata:
@@ -131,10 +94,6 @@ class RuleMetadata:
     description: str
     default_severity: Severity
     fixable: bool
-####
-
-
-
 
 @dataclass(frozen=True, slots=True)
 class LinkOccurrence:
@@ -154,12 +113,6 @@ class LinkOccurrence:
         """Return whether the destination has an exact source span."""
 
         return self.span is not None
-    ####
-####
-
-
-
-
 
 @dataclass(frozen=True, slots=True)
 class Document:
@@ -185,8 +138,3 @@ class Document:
             if occurrence.source_kind is not LinkSourceKind.REFERENCE_USE
         )
         return direct + self.reference_definitions
-    ####
-####
-
-
-

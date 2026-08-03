@@ -12,7 +12,6 @@ from mdrepo.models import Document, LinkKind, LinkOccurrence
 from mdrepo.repository import RepositoryIdentity, parse_same_repository_url
 from mdrepo.resolution import canonicalize_case, resolve_graph_document, resolve_local_target
 
-
 @dataclass(frozen=True, slots=True)
 class DocumentGraph:
     """Directed graph of Markdown documents linked from other Markdown documents."""
@@ -20,17 +19,13 @@ class DocumentGraph:
     edges: dict[Path, frozenset[Path]]
     roots: tuple[Path, ...]
     reachable: frozenset[Path]
-####
-
-
-
 
 def build_document_graph(
-    *,
-    root: Path,
-    documents: dict[Path, Document],
-    config: ApplicationConfig,
-    identity: RepositoryIdentity | None,
+        *,
+        root: Path,
+        documents: dict[Path, Document],
+        config: ApplicationConfig,
+        identity: RepositoryIdentity | None,
 ) -> DocumentGraph:
     """Build local and same-repository web edges, then walk configured roots."""
 
@@ -39,7 +34,6 @@ def build_document_graph(
         for occurrence in document.links:
             if occurrence.kind is LinkKind.IMAGE:
                 continue
-            ####
 
             target_document = _link_document_target(
                 root=root,
@@ -51,9 +45,6 @@ def build_document_graph(
             )
             if target_document is not None:
                 mutable_edges[document.path].add(target_document)
-            ####
-        ####
-    ####
 
     roots = _resolve_roots(
         root=root,
@@ -73,19 +64,15 @@ def build_document_graph(
         roots=roots,
         reachable=frozenset(reachable),
     )
-####
-
-
-
 
 def _link_document_target(
-    *,
-    root: Path,
-    document: Document,
-    occurrence: LinkOccurrence,
-    documents: dict[Path, Document],
-    config: ApplicationConfig,
-    identity: RepositoryIdentity | None,
+        *,
+        root: Path,
+        document: Document,
+        occurrence: LinkOccurrence,
+        documents: dict[Path, Document],
+        config: ApplicationConfig,
+        identity: RepositoryIdentity | None,
 ) -> Path | None:
     local = resolve_local_target(
         root=root,
@@ -100,32 +87,24 @@ def _link_document_target(
             documents=documents,
             config=config.orphans,
         )
-    ####
 
     if identity is None:
         return None
-    ####
     remote = parse_same_repository_url(target=occurrence.target, identity=identity)
     if remote is None:
         return None
-    ####
     candidate = Path(os.path.abspath(os.path.join(root, remote.repository_path.as_posix())))
     canonical, exists, _ = canonicalize_case(root=root, candidate=candidate)
     if not exists or canonical is None:
         return None
-    ####
     resolved = canonical.resolve()
     return resolved if resolved in documents else None
-####
-
-
-
 
 def _resolve_roots(
-    *,
-    root: Path,
-    configured: list[str],
-    documents: dict[Path, Document],
+        *,
+        root: Path,
+        configured: list[str],
+        documents: dict[Path, Document],
 ) -> tuple[Path, ...]:
     roots: list[Path] = []
     for configured_root in configured:
@@ -133,18 +112,12 @@ def _resolve_roots(
         canonical, exists, _ = canonicalize_case(root=root, candidate=candidate)
         if exists and canonical is not None and canonical.resolve() in documents:
             roots.append(canonical.resolve())
-        ####
-    ####
     return tuple(dict.fromkeys(roots))
-####
-
-
-
 
 def _walk(
-    *,
-    edges: dict[Path, frozenset[Path]],
-    roots: tuple[Path, ...],
+        *,
+        edges: dict[Path, frozenset[Path]],
+        roots: tuple[Path, ...],
 ) -> set[Path]:
     reachable: set[Path] = set()
     queue: deque[Path] = deque(roots)
@@ -152,11 +125,6 @@ def _walk(
         current = queue.popleft()
         if current in reachable:
             continue
-        ####
         reachable.add(current)
         queue.extend(sorted(edges.get(current, ())))
-    ####
     return reachable
-####
-
-

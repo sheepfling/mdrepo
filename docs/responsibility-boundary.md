@@ -42,25 +42,25 @@ policy, retry policy, or interpretation of a remote server response.
 
 ## Responsibility matrix
 
-| Concern | Owner | Reason |
-|---|---|---|
-| Heading, list, table, fence, and whitespace formatting | `rumdl` | General Markdown formatting does not require repository semantics. |
-| Markdown syntax and structural linting | `rumdl` | These are document-level rules. |
-| Heading hierarchy, alt text, empty links, and similar lint rules | `rumdl` | These are ordinary Markdown quality checks. |
-| Markdown flavor behavior such as GFM, MkDocs, MDX, Obsidian, or Quarto | `rumdl` | Dialect parsing and flavor-aware linting are formatter/linter concerns. |
-| Relative target exists | `rumdl` | `MD057` already owns ordinary local target validation. |
-| Same-file or cross-file heading fragment exists | `rumdl` | `MD051` already owns anchor validation. |
-| MkDocs `nav` entries and omitted files | `rumdl` when the MkDocs nav is authoritative | `MD074` understands the site generator's navigation model. |
-| Local Markdown destinations use `/`, not `\\` | `mdrepo` | This is a portability policy across operating systems. |
-| No drive path, UNC path, home-relative path, or `file:` URL | `mdrepo` | These destinations embed one machine's filesystem assumptions. |
-| A local destination must not escape the repository root | `mdrepo` | The repository root is required to decide the rule. |
-| Destination spelling matches exact on-disk case | `mdrepo` | This protects Windows-authored links from failing on case-sensitive systems. |
-| Mutable hosted URL points back into this repository | `mdrepo` | The decision requires Git remote identity and provider URL semantics. |
-| Markdown page is reachable from configured documentation roots | `mdrepo` | This is a generic repository-wide graph property. |
-| Exception has a reason, is unexpired, and still suppresses something | `mdrepo` | This is repository-policy governance rather than Markdown linting. |
-| External website currently responds | Neither | The focused toolchain intentionally performs no network crawl. |
-| Arbitrary raw HTML `href` or `src` semantics | Neither in the current release | `mdrepo` limits itself to parsed Markdown destinations. |
-| Generated site routes and runtime-generated pages | Site generator or project-specific validation | Source-tree existence is not enough to prove generated-site validity. |
+| Concern                                                                | Owner                                         | Reason                                                                       |
+|------------------------------------------------------------------------|-----------------------------------------------|------------------------------------------------------------------------------|
+| Heading, list, table, fence, and whitespace formatting                 | `rumdl`                                       | General Markdown formatting does not require repository semantics.           |
+| Markdown syntax and structural linting                                 | `rumdl`                                       | These are document-level rules.                                              |
+| Heading hierarchy, alt text, empty links, and similar lint rules       | `rumdl`                                       | These are ordinary Markdown quality checks.                                  |
+| Markdown flavor behavior such as GFM, MkDocs, MDX, Obsidian, or Quarto | `rumdl`                                       | Dialect parsing and flavor-aware linting are formatter/linter concerns.      |
+| Relative target exists                                                 | `rumdl`                                       | `MD057` already owns ordinary local target validation.                       |
+| Same-file or cross-file heading fragment exists                        | `rumdl`                                       | `MD051` already owns anchor validation.                                      |
+| MkDocs `nav` entries and omitted files                                 | `rumdl` when the MkDocs nav is authoritative  | `MD074` understands the site generator's navigation model.                   |
+| Local Markdown destinations use `/`, not `\\`                          | `mdrepo`                                      | This is a portability policy across operating systems.                       |
+| No drive path, UNC path, home-relative path, or `file:` URL            | `mdrepo`                                      | These destinations embed one machine's filesystem assumptions.               |
+| A local destination must not escape the repository root                | `mdrepo`                                      | The repository root is required to decide the rule.                          |
+| Destination spelling matches exact on-disk case                        | `mdrepo`                                      | This protects Windows-authored links from failing on case-sensitive systems. |
+| Mutable hosted URL points back into this repository                    | `mdrepo`                                      | The decision requires Git remote identity and provider URL semantics.        |
+| Markdown page is reachable from configured documentation roots         | `mdrepo`                                      | This is a generic repository-wide graph property.                            |
+| Exception has a reason, is unexpired, and still suppresses something   | `mdrepo`                                      | This is repository-policy governance rather than Markdown linting.           |
+| External website currently responds                                    | Neither                                       | The focused toolchain intentionally performs no network crawl.               |
+| Arbitrary raw HTML `href` or `src` semantics                           | Neither in the current release                | `mdrepo` limits itself to parsed Markdown destinations.                      |
+| Generated site routes and runtime-generated pages                      | Site generator or project-specific validation | Source-tree existence is not enough to prove generated-site validity.        |
 
 ## Intentional overlap controls
 

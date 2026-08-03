@@ -11,7 +11,6 @@ from pathspec import GitIgnoreSpec
 from mdrepo.config import ApplicationConfig, ExceptionConfig
 from mdrepo.models import Diagnostic
 
-
 @dataclass(frozen=True, slots=True)
 class ExceptionResult:
     """Visible, suppressed, and exception-health findings."""
@@ -19,18 +18,14 @@ class ExceptionResult:
     visible: tuple[Diagnostic, ...]
     suppressed: tuple[Diagnostic, ...]
     health: tuple[Diagnostic, ...]
-####
-
-
-
 
 def apply_exceptions(
-    *,
-    diagnostics: tuple[Diagnostic, ...],
-    config: ApplicationConfig,
-    today: date | None = None,
-    report_unused: bool = True,
-    enabled_rules: set[str] | None = None,
+        *,
+        diagnostics: tuple[Diagnostic, ...],
+        config: ApplicationConfig,
+        today: date | None = None,
+        report_unused: bool = True,
+        enabled_rules: set[str] | None = None,
 ) -> ExceptionResult:
     """Suppress matching diagnostics and report expired or stale exception records."""
 
@@ -42,8 +37,6 @@ def apply_exceptions(
             expired.append(exception)
         else:
             active.append(exception)
-        ####
-    ####
 
     used: set[str] = set()
     visible: list[Diagnostic] = []
@@ -60,10 +53,8 @@ def apply_exceptions(
         if matched is None:
             visible.append(diagnostic)
             continue
-        ####
         used.add(matched.id)
         suppressed.append(diagnostic.suppressed(matched.id))
-    ####
 
     health: list[Diagnostic] = []
     if config.exception_policy.report_expired:
@@ -77,17 +68,13 @@ def apply_exceptions(
                     hint=f"Remove or renew it deliberately. Recorded reason: {exception.reason}",
                 )
             )
-        ####
-    ####
 
     if config.exception_policy.report_unused and report_unused:
         for exception in active:
             if exception.id in used:
                 continue
-            ####
             if enabled_rules is not None and exception.rule not in enabled_rules:
                 continue
-            ####
             health.append(
                 Diagnostic(
                     rule_id="MDR202",
@@ -97,49 +84,30 @@ def apply_exceptions(
                     hint=f"Remove the stale exception. Recorded reason: {exception.reason}",
                 )
             )
-        ####
-    ####
 
     return ExceptionResult(
         visible=tuple(visible),
         suppressed=tuple(suppressed),
         health=tuple(health),
     )
-####
-
-
-
 
 def _expiry_text(exception: ExceptionConfig) -> str:
     if exception.expires is None:
         return "an unknown date"
-    ####
     return exception.expires.isoformat()
-####
-
-
-
 
 def _matches(*, exception: ExceptionConfig, diagnostic: Diagnostic) -> bool:
     if exception.rule != diagnostic.rule_id:
         return False
-    ####
 
     path_value = diagnostic.path.as_posix() if diagnostic.path is not None else "<project>"
     path_spec = GitIgnoreSpec.from_lines([exception.path])
     if not path_spec.match_file(path_value):
         return False
-    ####
 
     if exception.target is not None:
         if diagnostic.target is None:
             return False
-        ####
         if not fnmatch.fnmatchcase(diagnostic.target, exception.target):
             return False
-        ####
-    ####
     return True
-####
-
-

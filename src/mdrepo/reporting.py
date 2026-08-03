@@ -13,12 +13,11 @@ _SEVERITY_RANK = {
     Severity.ERROR: 2,
 }
 
-
 def write_diagnostics(
-    *,
-    diagnostics: tuple[Diagnostic, ...],
-    output_format: OutputFormat,
-    stream: TextIO,
+        *,
+        diagnostics: tuple[Diagnostic, ...],
+        output_format: OutputFormat,
+        stream: TextIO,
 ) -> None:
     """Render diagnostics in one deterministic output format."""
 
@@ -31,65 +30,40 @@ def write_diagnostics(
         )
         stream.write("\n")
         return
-    ####
 
     if output_format is OutputFormat.GITHUB:
         for diagnostic in diagnostics:
             stream.write(_github_line(diagnostic) + "\n")
-        ####
         return
-    ####
 
     for diagnostic in diagnostics:
         stream.write(_text_line(diagnostic) + "\n")
         if diagnostic.hint:
             stream.write(f"  hint: {diagnostic.hint}\n")
-        ####
         if diagnostic.fix is not None:
             stream.write(f"  fix: {diagnostic.fix.description}\n")
-        ####
         if diagnostic.suppressed_by is not None:
             stream.write(f"  suppressed by: {diagnostic.suppressed_by}\n")
-        ####
-    ####
-####
-
-
-
 
 def should_fail(*, diagnostics: tuple[Diagnostic, ...], threshold: Severity) -> bool:
     """Return whether any visible diagnostic meets the configured failure threshold."""
 
     minimum = _SEVERITY_RANK[threshold]
     return any(_SEVERITY_RANK[diagnostic.severity] >= minimum for diagnostic in diagnostics)
-####
-
-
-
 
 def _text_line(diagnostic: Diagnostic) -> str:
     return (
         f"{_location(diagnostic)}: {diagnostic.severity.value} "
         f"{diagnostic.rule_id} {diagnostic.message}"
     )
-####
-
-
-
 
 def _location(diagnostic: Diagnostic) -> str:
     rendered = diagnostic.path.as_posix() if diagnostic.path is not None else "<project>"
     if diagnostic.line is not None:
         rendered += f":{diagnostic.line}"
-    ####
     if diagnostic.column is not None:
         rendered += f":{diagnostic.column}"
-    ####
     return rendered
-####
-
-
-
 
 def _json_record(diagnostic: Diagnostic) -> dict[str, object]:
     fix: dict[str, object] | None = None
@@ -101,7 +75,6 @@ def _json_record(diagnostic: Diagnostic) -> dict[str, object]:
             "replacement": diagnostic.fix.replacement,
             "start": diagnostic.fix.span.start,
         }
-    ####
     return {
         "column": diagnostic.column,
         "fix": fix,
@@ -114,10 +87,6 @@ def _json_record(diagnostic: Diagnostic) -> dict[str, object]:
         "suppressed_by": diagnostic.suppressed_by,
         "target": diagnostic.target,
     }
-####
-
-
-
 
 def _github_line(diagnostic: Diagnostic) -> str:
     command = {
@@ -128,31 +97,17 @@ def _github_line(diagnostic: Diagnostic) -> str:
     fields: list[str] = []
     if diagnostic.path is not None:
         fields.append(f"file={_github_escape_property(diagnostic.path.as_posix())}")
-    ####
     if diagnostic.line is not None:
         fields.append(f"line={diagnostic.line}")
-    ####
     if diagnostic.column is not None:
         fields.append(f"col={diagnostic.column}")
-    ####
     fields.append(f"title={_github_escape_property(diagnostic.rule_id)}")
     properties = ",".join(fields)
     message = _github_escape_data(diagnostic.message)
     return f"::{command} {properties}::{message}"
-####
-
-
-
 
 def _github_escape_data(value: str) -> str:
     return value.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-####
-
-
-
 
 def _github_escape_property(value: str) -> str:
     return _github_escape_data(value).replace(":", "%3A").replace(",", "%2C")
-####
-
-

@@ -11,24 +11,24 @@ license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.12"
 authors = [
-  { name = "Ninja Rick" },
+    { name = "Ninja Rick" },
 ]
 keywords = ["markdown", "links", "documentation", "repository", "lint"]
 classifiers = [
-  "Development Status :: 3 - Alpha",
-  "Environment :: Console",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13",
-  "Programming Language :: Python :: 3.14",
-  "Typing :: Typed",
-  "Topic :: Documentation",
-  "Topic :: Software Development :: Quality Assurance",
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Typing :: Typed",
+    "Topic :: Documentation",
+    "Topic :: Software Development :: Quality Assurance",
 ]
 dependencies = [
-  "markdown-it-py>=3.0,<5.0",
-  "pathspec>=0.12,<2.0",
-  "pydantic>=2.8,<3.0",
+    "markdown-it-py>=3.0,<5.0",
+    "pathspec>=0.12,<2.0",
+    "pydantic>=2.8,<3.0",
 ]
 
 [project.urls]
@@ -41,15 +41,15 @@ mdrepo = "mdrepo.cli:main"
 
 [project.optional-dependencies]
 dev = [
-  "build>=1.2",
-  "pyright>=1.1.390",
-  "pytest>=8.3",
-  "pytest-cov>=6.0",
-  "pre-commit>=4.0",
-  "rumdl>=0.2.49,<0.3",
-  "ruff>=0.9",
-  "scope-markers @ git+https://github.com/sheepfling/Python-Scope-Markers.git@f0fb3ee06ca15f4ca457fb3fba5c5f2531ab3d28",
-  "twine>=6.1",
+    "build>=1.2",
+    "pyright>=1.1.390",
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "pre-commit>=4.0",
+    "rumdl>=0.2.49,<0.3",
+    "ruff>=0.9",
+    "scope-markers @ git+https://github.com/sheepfling/Python-Scope-Markers.git@f0fb3ee06ca15f4ca457fb3fba5c5f2531ab3d28",
+    "twine>=6.1",
 ]
 
 [tool.setuptools.packages.find]
@@ -78,7 +78,7 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["B", "E", "F", "I", "RUF", "SIM", "UP"]
 ignore = [
-  "RUF012", # Pydantic models declare fields through class attributes.
+    "RUF012", # Pydantic models declare fields through class attributes.
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -95,18 +95,18 @@ typeCheckingMode = "strict"
 [tool.mdrepo]
 include = ["*.md", "**/*.md"]
 exclude = [
-  ".git/**",
-  ".venv*/**",
-  ".codex_pydeps/**",
-  ".pip-cache/**",
-  ".pre-commit-cache/**",
-  ".pytest_cache/**",
-  ".ruff_cache/**",
-  ".rumdl_cache/**",
-  ".tmp/**",
-  "**/__pycache__/**",
-  "build/**",
-  "dist/**",
+    ".git/**",
+    ".venv*/**",
+    ".codex_pydeps/**",
+    ".pip-cache/**",
+    ".pre-commit-cache/**",
+    ".pytest_cache/**",
+    ".ruff_cache/**",
+    ".rumdl_cache/**",
+    ".tmp/**",
+    "**/__pycache__/**",
+    "build/**",
+    "dist/**",
 ]
 
 [tool.mdrepo.links]

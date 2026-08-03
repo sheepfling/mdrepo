@@ -31,13 +31,13 @@ recorded through `[[tool.mdrepo.exceptions]]` with an ID and reason. See
 
 ## Top-level keys
 
-| Key | Default | Meaning |
-|---|---|---|
-| `include` | `*.md`, `**/*.md` | Gitignore-style inclusion patterns |
-| `exclude` | common build and VCS directories | Gitignore-style exclusion patterns |
-| `encoding` | `utf-8` | Markdown source encoding |
-| `output` | `text` | `text`, `json`, or `github` |
-| `fail-on` | `error` | `info`, `warning`, or `error` |
+| Key        | Default                          | Meaning                            |
+|------------|----------------------------------|------------------------------------|
+| `include`  | `*.md`, `**/*.md`                | Gitignore-style inclusion patterns |
+| `exclude`  | common build and VCS directories | Gitignore-style exclusion patterns |
+| `encoding` | `utf-8`                          | Markdown source encoding           |
+| `output`   | `text`                           | `text`, `json`, or `github`        |
+| `fail-on`  | `error`                          | `info`, `warning`, or `error`      |
 
 ## `[links]`
 
