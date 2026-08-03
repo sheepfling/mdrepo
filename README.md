@@ -39,7 +39,7 @@ For development inside this repository:
 
 ```bash
 uv sync --extra dev
-uv run mdrepo check .
+uv run python -m mdrepo check .
 ```
 
 Preview the deliberately narrow safe-fix set before changing files:
@@ -155,18 +155,24 @@ Run document formatting first, then repository-policy fixes, and finish with rea
 uvx rumdl check --fix .
 mdrepo fix .
 uvx rumdl check .
-mdrepo check .
+python -m mdrepo check .
 ```
 
 In CI, keep the two authorities visible and independent:
 
 ```bash
 rumdl check .
-mdrepo check . --format github
+python -m mdrepo check . --format github
 ```
 
 A green run means the Markdown layer and repository-policy layer are clean. It does not claim that
 remote websites respond or that a documentation generator can build the published site.
+
+## CI integration
+
+See the [CI integration guide](docs/ci-integration.md) for `mdrepo`'s standalone installation,
+root and configuration contract, mutation ordering, exclusions, platform commands, exit codes,
+and a minimal GitHub Actions job.
 
 `MDR004` is available as a standalone missing-target fallback, but it remains disabled in the normal
 rumdl workflow to avoid duplicate ownership and duplicate diagnostics.
@@ -216,6 +222,10 @@ Exit statuses are stable:
 Rule IDs use the `MDR` namespace so they remain distinct from rumdl's `MD` rules.
 
 ## Automation
+
+See the [CI integration guide](docs/ci-integration.md) for the installation pin, execution
+directory, discovery and exclusion rules, mutation order, platform examples, exit codes, and a
+minimal GitHub Actions job.
 
 Use GitHub output to create native annotations. Until a package release is published, pin the
 repository to a commit or tag:
@@ -271,6 +281,7 @@ Pyright, rumdl, pre-commit validation, and an `mdrepo` self-check.
 
 - [Responsibility boundary](docs/responsibility-boundary.md)
 - [Configuration reference](docs/configuration.md)
+- [CI integration](docs/ci-integration.md)
 - [Design notes](docs/design.md)
 - [Changelog](CHANGELOG.md)
 
