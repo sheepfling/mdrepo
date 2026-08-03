@@ -297,7 +297,7 @@ class OrphanDocumentRule:
 
         diagnostics: list[Diagnostic] = []
         for document in sorted(
-            context.documents.values(),
+            context.selected_documents,
             key=lambda item: item.relative_path.as_posix(),
         ):
             if document.path in context.graph.reachable:
