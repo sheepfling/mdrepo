@@ -48,6 +48,17 @@ def test_repeated_destinations_receive_distinct_source_spans(tmp_path: Path) -> 
     assert [span.column for span in spans if span is not None] == [5, 24]
 
 
+def test_link_span_ignores_same_target_in_prose_parentheses(tmp_path: Path) -> None:
+    text = "Mention (docs\\guide.md), then [Guide](docs\\guide.md)\n"
+    path = tmp_path / "README.md"
+    document = MarkdownParser().parse(path=path, root=tmp_path, text=text)
+
+    occurrence = document.links[0]
+    assert occurrence.span is not None
+    assert text[occurrence.span.start : occurrence.span.end] == "docs\\guide.md"
+    assert occurrence.span.start == text.rindex("docs\\guide.md")
+
+
 def test_crlf_offsets_are_preserved(tmp_path: Path) -> None:
     text = "# Demo\r\n\r\n[Guide](docs\\guide.md)\r\n"
     path = tmp_path / "README.md"

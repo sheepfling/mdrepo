@@ -30,7 +30,8 @@ class _ScannedDestination:
     normalized_target: str
     kind: LinkKind
     source_kind: LinkSourceKind
-    angle_wrapped: bool
+    raw_start: int
+    raw_end: int
 
 
 class _SourceMap:
@@ -128,8 +129,8 @@ class MarkdownParser:
         end_line = int(line_map[1])
         region_start, region_end = source_map.line_range(start_line, end_line)
         scanned = _scan_inline_destinations(token.content, self._parser)
+        content_start = source_map.text.find(token.content, region_start, region_end)
         scanned_index = 0
-        search_offset = region_start
         occurrences: list[LinkOccurrence] = []
 
         for child in token.children or []:
@@ -177,16 +178,13 @@ class MarkdownParser:
                 )
                 continue
 
-            span = _locate_raw_destination(
+            span = _span_for_scanned_destination(
                 source_map=source_map,
-                raw_target=matched.raw_target,
-                start=search_offset,
-                region_start=region_start,
+                content_start=content_start,
                 region_end=region_end,
-                angle_wrapped=matched.angle_wrapped,
+                candidate=matched,
             )
             if span is not None:
-                search_offset = span.end
                 line = span.line
                 column = span.column
             else:
@@ -338,7 +336,8 @@ def _scan_inline_destinations(
                             normalized_target=parser.normalizeLink(raw_target),
                             kind=LinkKind.LINK,
                             source_kind=LinkSourceKind.AUTOLINK,
-                            angle_wrapped=True,
+                            raw_start=position + 1,
+                            raw_end=close,
                         )
                     )
                     position = close + 1
@@ -377,18 +376,15 @@ def _parse_direct_destination(
         if source[destination_start] == "<":
             raw_start = destination_start + 1
             raw_end = max(raw_start, result.pos - 1)
-            angle_wrapped = True
         else:
             raw_start = destination_start
             raw_end = result.pos
-            angle_wrapped = False
         raw_target = source[raw_start:raw_end]
     elif source[position] == ")":
         normalized = ""
         raw_target = ""
         raw_start = position
         raw_end = position
-        angle_wrapped = False
     else:
         return None
 
@@ -412,7 +408,8 @@ def _parse_direct_destination(
             normalized_target=normalized,
             kind=kind,
             source_kind=LinkSourceKind.DIRECT,
-            angle_wrapped=angle_wrapped,
+            raw_start=raw_start,
+            raw_end=raw_end,
         ),
         position + 1,
     )
@@ -427,66 +424,23 @@ def _skip_code_span(source: str, start: int) -> int:
     return close + run_length if close >= 0 else start + run_length
 
 
-def _locate_raw_destination(
+def _span_for_scanned_destination(
     *,
     source_map: _SourceMap,
-    raw_target: str,
-    start: int,
-    region_start: int,
+    content_start: int,
     region_end: int,
-    angle_wrapped: bool,
+    candidate: _ScannedDestination,
 ) -> TextSpan | None:
-    if not raw_target:
+    if content_start < 0 or not candidate.raw_target:
         return None
 
-    safe_start = max(start, region_start)
-    candidates: list[int] = []
-    position = source_map.text.find(raw_target, safe_start, region_end)
-    while position >= 0:
-        candidates.append(position)
-        position = source_map.text.find(raw_target, position + 1, region_end)
-    if not candidates:
+    absolute_start = content_start + candidate.raw_start
+    absolute_end = content_start + candidate.raw_end
+    if absolute_end > region_end:
         return None
-
-    contextual = [
-        position
-        for position in candidates
-        if _has_destination_context(
-            text=source_map.text,
-            position=position,
-            raw_target=raw_target,
-            angle_wrapped=angle_wrapped,
-        )
-    ]
-    chosen: int | None
-    if contextual:
-        chosen = contextual[0]
-    elif len(candidates) == 1:
-        chosen = candidates[0]
-    else:
-        chosen = None
-    if chosen is None:
+    if source_map.text[absolute_start:absolute_end] != candidate.raw_target:
         return None
-    return source_map.span(chosen, chosen + len(raw_target))
-
-
-def _has_destination_context(
-    *,
-    text: str,
-    position: int,
-    raw_target: str,
-    angle_wrapped: bool,
-) -> bool:
-    if angle_wrapped:
-        before = text[position - 1] if position > 0 else ""
-        after_index = position + len(raw_target)
-        after = text[after_index] if after_index < len(text) else ""
-        return before == "<" and after == ">"
-
-    cursor = position - 1
-    while cursor >= 0 and text[cursor].isspace():
-        cursor -= 1
-    return cursor >= 0 and text[cursor] == "("
+    return source_map.span(absolute_start, absolute_end)
 
 
 def _locate_reference_destination(

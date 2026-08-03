@@ -40,6 +40,22 @@ def test_root_relative_link_is_fixed_when_target_exists(
     assert (tmp_path / "README.md").read_text(encoding="utf-8") == "[Guide](docs/guide.md)\n"
 
 
+def test_fix_does_not_rewrite_prose_before_the_actual_link(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "guide.md").write_text("# Guide\n", encoding="utf-8")
+    original = "Mention (docs\\guide.md), then [Guide](docs\\guide.md)\n"
+    (tmp_path / "README.md").write_text(original, encoding="utf-8")
+
+    assert main(["fix", "."]) == 0
+    assert (tmp_path / "README.md").read_text(encoding="utf-8") == (
+        "Mention (docs\\guide.md), then [Guide](docs/guide.md)\n"
+    )
+
+
 def test_windows_absolute_and_repository_escape_are_reported(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
