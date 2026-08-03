@@ -113,6 +113,14 @@ The graph is generic Markdown reachability. It is not a replacement for a docume
 navigation model. In a MkDocs project, rumdl `MD074` can validate `mkdocs.yml` membership while
 `MDR101` independently checks prose-link reachability; enable both only when both properties matter.
 
+## Public import boundary
+
+The supported consumer interface is the `mdrepo` console command and its `python -m mdrepo`
+equivalent. The package root intentionally exports only `__version__`; modules such as `config`,
+`engine`, `markdown`, `resolution`, and `rules` are implementation modules rather than a stable
+programmatic API. A supported Python API can be introduced later behind an explicit facade once a
+real consumer use case exists.
+
 ## Extension seam
 
 The package has a typed `Rule` protocol and a deterministic built-in rule tuple. It deliberately has

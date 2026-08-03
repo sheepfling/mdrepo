@@ -53,9 +53,6 @@ dev = [
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.setuptools.package-data]
-mdrepo = ["py.typed"]
-
 [tool.pytest.ini_options]
 addopts = ["-ra", "--strict-config", "--strict-markers"]
 pythonpath = [".", "src"]

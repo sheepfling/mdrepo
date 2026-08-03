@@ -1,7 +1,10 @@
-"""Repository-aware Markdown policy checks."""
+"""Repository-aware Markdown policy CLI.
 
-from mdrepo.models import Diagnostic, Fix, RuleMetadata, Severity
+The supported consumer interface is the ``mdrepo`` command and its
+``python -m mdrepo`` equivalent. Internal modules are intentionally not
+exported as a stable programmatic API yet.
+"""
 
-__all__ = ["Diagnostic", "Fix", "RuleMetadata", "Severity", "__version__"]
+__all__ = ["__version__"]
 
 __version__ = "0.2.1"
