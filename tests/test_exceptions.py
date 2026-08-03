@@ -10,7 +10,6 @@ from mdrepo.config import ApplicationConfig
 from mdrepo.exceptions import apply_exceptions
 from mdrepo.models import Diagnostic, Severity
 
-
 def test_expired_exception_does_not_suppress() -> None:
     config = ApplicationConfig.model_validate(
         {
@@ -42,7 +41,6 @@ def test_expired_exception_does_not_suppress() -> None:
     assert result.suppressed == ()
     assert [item.rule_id for item in result.health] == ["MDR201"]
 
-
 def test_unused_exception_is_not_reported_during_partial_run() -> None:
     config = ApplicationConfig.model_validate(
         {
@@ -66,11 +64,10 @@ def test_unused_exception_is_not_reported_during_partial_run() -> None:
 
     assert result.health == ()
 
-
 def test_full_directory_check_reports_unused_exception(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
     (tmp_path / "docs").mkdir()

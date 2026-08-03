@@ -12,7 +12,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 MARKDOWN_ROOTS = ("README.md", "CHANGELOG.md", "docs")
 
-
 def _rumdl_command() -> str:
     """Find rumdl in the active environment, including Windows Scripts."""
 
@@ -30,7 +29,6 @@ def _rumdl_command() -> str:
         '`python -m pip install -e ".[dev]"`'
     )
 
-
 def main(argv: Sequence[str] = ()) -> int:
     """Check Markdown, optionally applying rumdl's safe fixes."""
 
@@ -42,7 +40,6 @@ def main(argv: Sequence[str] = ()) -> int:
         command.append("--fix")
     command.extend(MARKDOWN_ROOTS)
     return subprocess.run(command, cwd=ROOT, check=False).returncode
-
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv[1:]))

@@ -7,16 +7,14 @@ import pytest
 
 from tests.support import RepositoryBuilder
 
-
 def test_repository_builder_rejects_paths_outside_root(repository: RepositoryBuilder) -> None:
     with pytest.raises(ValueError, match="escapes repository root"):
         repository.path(Path("..") / "outside.md")
 
-
 def test_rules_command_supports_text_and_json_output(
-    repository: RepositoryBuilder,
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
+        repository: RepositoryBuilder,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
 ) -> None:
     assert repository.run(monkeypatch, "rules") == 0
     text_output = capsys.readouterr().out
@@ -30,11 +28,10 @@ def test_rules_command_supports_text_and_json_output(
     assert {record["rule_id"] for record in records} >= {"MDR001", "MDR202"}
     assert "MDR006" not in {record["rule_id"] for record in records}
 
-
 def test_config_command_reports_layered_sources(
-    repository: RepositoryBuilder,
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
+        repository: RepositoryBuilder,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
 ) -> None:
     repository.configure(
         """
@@ -58,11 +55,10 @@ check-case = false
     assert payload["config"]["links"]["check-case"] is False
     assert payload["config"]["links"]["require-posix"] is False
 
-
 def test_graph_json_and_path_filter_error(
-    repository: RepositoryBuilder,
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
+        repository: RepositoryBuilder,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
 ) -> None:
     repository.markdown("README.md", "[Guide](docs/guide.md)\n")
     repository.markdown("docs/guide.md", "# Guide\n")
@@ -76,11 +72,10 @@ def test_graph_json_and_path_filter_error(
     assert repository.run(monkeypatch, "graph", "README.md") == 2
     assert "does not accept path filters" in capsys.readouterr().err
 
-
 def test_github_output_is_emitted_for_policy_diagnostics(
-    repository: RepositoryBuilder,
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
+        repository: RepositoryBuilder,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
 ) -> None:
     repository.markdown("README.md", "[Root](/README.md)\n")
 
@@ -89,11 +84,10 @@ def test_github_output_is_emitted_for_policy_diagnostics(
     assert "::error file=README.md" in output
     assert "title=MDR002" in output
 
-
 def test_graph_text_and_dot_serializations_cover_empty_and_edge_nodes(
-    repository: RepositoryBuilder,
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
+        repository: RepositoryBuilder,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
 ) -> None:
     repository.markdown("README.md", "[Guide](docs/guide.md)\n")
     repository.markdown("docs/guide.md", "# Guide\n")
@@ -109,11 +103,10 @@ def test_graph_text_and_dot_serializations_cover_empty_and_edge_nodes(
     assert '"README.md" [shape=doublecircle]' in dot_output
     assert '"README.md" -> "docs/guide.md"' in dot_output
 
-
 def test_check_summary_and_suppressed_diagnostics_are_explicit(
-    repository: RepositoryBuilder,
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
+        repository: RepositoryBuilder,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
 ) -> None:
     repository.markdown("README.md", "[Root](/README.md)\n")
     repository.configure(
@@ -137,11 +130,10 @@ reason = "The published route is intentionally root-relative."
     assert repository.run(monkeypatch, "check", ".", "--show-suppressed") == 0
     assert "suppressed by: root-route" in capsys.readouterr().out
 
-
 def test_fix_dry_run_and_diff_have_distinct_write_behavior(
-    repository: RepositoryBuilder,
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
+        repository: RepositoryBuilder,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
 ) -> None:
     repository.markdown("docs/guide.md", "# Guide\n")
     repository.markdown("README.md", "[Guide](/docs/guide.md)\n")

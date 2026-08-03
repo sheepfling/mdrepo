@@ -19,11 +19,10 @@ from mdrepo.rules import (
 )
 from tests.support import RepositoryBuilder
 
-
 def _context(
-    repository: RepositoryBuilder,
-    text: str,
-    config_data: dict[str, object],
+        repository: RepositoryBuilder,
+        text: str,
+        config_data: dict[str, object],
 ) -> RuleContext:
     source = repository.markdown("README.md", text)
     document = MarkdownParser().parse(
@@ -52,7 +51,6 @@ def _context(
         graph=None,
     )
 
-
 def test_link_rules_respect_portability_toggles(repository: RepositoryBuilder) -> None:
     context = _context(
         repository,
@@ -80,14 +78,13 @@ def test_link_rules_respect_portability_toggles(repository: RepositoryBuilder) -
     assert RepositoryEscapeRule().check(relaxed) == ()
     assert NonPosixLocalLinkRule().check(relaxed) == ()
 
-
 @pytest.mark.parametrize(
     "target",
     ("C:/temp/file.md", r"\\server\share\file.md", "file:///temp/file.md"),
 )
 def test_root_relative_allowance_does_not_allow_machine_absolute_links(
-    repository: RepositoryBuilder,
-    target: str,
+        repository: RepositoryBuilder,
+        target: str,
 ) -> None:
     source = repository.markdown("README.md", "")
     document = MarkdownParser().parse(path=source, root=repository.root, text="")
@@ -123,9 +120,8 @@ def test_root_relative_allowance_does_not_allow_machine_absolute_links(
     assert len(diagnostics) == 1
     assert diagnostics[0].rule_id == "MDR002"
 
-
 def test_missing_target_rule_distinguishes_images_and_absolute_routes(
-    repository: RepositoryBuilder,
+        repository: RepositoryBuilder,
 ) -> None:
     context = _context(
         repository,
@@ -138,7 +134,6 @@ def test_missing_target_rule_distinguishes_images_and_absolute_routes(
         "local image target does not exist: assets/nope.png",
         "local link target does not exist: /missing.md",
     ]
-
 
 def test_case_rule_and_missing_graph_root_are_guarded(repository: RepositoryBuilder) -> None:
     repository.markdown("README.md", "# Root\n")

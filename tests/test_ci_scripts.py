@@ -7,7 +7,6 @@ import pytest
 
 from scripts import check_build, ci
 
-
 def test_ci_command_sets_keep_read_only_and_fix_modes_distinct() -> None:
     readonly = ci.ci_commands("python", fix=False)
     fixing = ci.ci_commands("python", fix=True)
@@ -20,9 +19,8 @@ def test_ci_command_sets_keep_read_only_and_fix_modes_distinct() -> None:
     assert ("python", "-m", "mdrepo", "fix", ".") in fixing
     assert len(fixing) > len(readonly)
 
-
 def test_ci_runner_maps_unstartable_commands_to_failure(
-    monkeypatch: pytest.MonkeyPatch,
+        monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     def raise_os_error(*_args: object, **_kwargs: object) -> subprocess.CompletedProcess[str]:
         raise OSError("missing executable")
@@ -31,15 +29,13 @@ def test_ci_runner_maps_unstartable_commands_to_failure(
 
     assert ci.run_command(("missing-python", "-m", "pytest")) == 1
 
-
 def test_ci_runner_executes_every_command_until_failure(
-    monkeypatch: pytest.MonkeyPatch,
+        monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     commands = (("python", "first"), ("python", "second"), ("python", "third"))
     executed: list[tuple[str, ...]] = []
 
-    def fake_commands(*, fix: bool = False) -> tuple[tuple[str, ...], ...]:
-        del fix
+    def fake_commands(*, _fix: bool = False) -> tuple[tuple[str, ...], ...]:
         return commands
 
     def fake_run_command(command: Sequence[str]) -> int:
@@ -52,15 +48,14 @@ def test_ci_runner_executes_every_command_until_failure(
     assert ci.main(()) == 0
     assert executed == list(commands)
 
-
 def test_build_check_runs_sdist_wheel_then_twine(
-    monkeypatch: pytest.MonkeyPatch,
+        monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     commands: list[list[str]] = []
 
     def fake_run(
-        command: list[str],
-        **_kwargs: object,
+            command: list[str],
+            **_kwargs: object,
     ) -> subprocess.CompletedProcess[str]:
         commands.append(command)
         return subprocess.CompletedProcess(command, 0)

@@ -12,10 +12,8 @@ from typing import Any, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 
-
 class ReleaseError(RuntimeError):
     """Raised when release metadata or artifacts are invalid."""
-
 
 def project_version() -> str:
     """Read the package version from the authoritative project metadata."""
@@ -34,7 +32,6 @@ def project_version() -> str:
         raise ReleaseError("pyproject.toml does not define project.version")
     return version
 
-
 def verify_tag(tag: str | None) -> None:
     """Require a release tag to match the project version."""
 
@@ -45,7 +42,6 @@ def verify_tag(tag: str | None) -> None:
         raise ReleaseError(
             f"release tag {release_tag!r} does not match project version {project_version()!r}"
         )
-
 
 def build_release(*, output: Path, tag: str | None = None) -> tuple[Path, ...]:
     """Build sdist and wheel, validate them with twine, and return their paths."""
@@ -80,7 +76,6 @@ def build_release(*, output: Path, tag: str | None = None) -> tuple[Path, ...]:
         raise ReleaseError(f"twine validation failed with status {result.returncode}")
     return distributions
 
-
 def _clean_distribution_artifacts(output: Path) -> None:
     """Remove prior wheel and source-distribution artifacts from the output directory."""
 
@@ -88,7 +83,6 @@ def _clean_distribution_artifacts(output: Path) -> None:
     for artifact in artifacts:
         if artifact.is_file() or artifact.is_symlink():
             artifact.unlink()
-
 
 def main(argv: tuple[str, ...] = ()) -> int:
     """Run one provider-neutral release operation."""
@@ -106,7 +100,6 @@ def main(argv: tuple[str, ...] = ()) -> int:
         print(f"release: error: {error}", file=sys.stderr)
         return 1
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main(tuple(sys.argv[1:])))

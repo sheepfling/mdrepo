@@ -7,7 +7,6 @@ import pytest
 from mdrepo.fixes import FixError, apply_fixes, collect_fixes
 from mdrepo.models import Diagnostic, Fix, Severity, TextSpan
 
-
 def test_crlf_is_preserved_by_fix(tmp_path: Path) -> None:
     path = tmp_path / "README.md"
     original = "# Demo\r\n\r\n[Guide](docs\\guide.md)\r\n"
@@ -32,7 +31,6 @@ def test_crlf_is_preserved_by_fix(tmp_path: Path) -> None:
     assert path.read_bytes() == original.replace("docs\\guide.md", "docs/guide.md").encode()
     assert b"\r\n" in path.read_bytes()
 
-
 def test_stale_source_is_rejected(tmp_path: Path) -> None:
     path = tmp_path / "README.md"
     path.write_text("changed", encoding="utf-8")
@@ -52,9 +50,8 @@ def test_stale_source_is_rejected(tmp_path: Path) -> None:
             dry_run=False,
         )
 
-
 def test_collect_fixes_deduplicates_identical_spans_and_rejects_conflicts(
-    tmp_path: Path,
+        tmp_path: Path,
 ) -> None:
     path = tmp_path / "README.md"
     span = TextSpan(start=0, end=4, line=1, column=1)
@@ -95,7 +92,6 @@ def test_collect_fixes_deduplicates_identical_spans_and_rejects_conflicts(
             )
         )
 
-
 def test_collect_fixes_rejects_overlapping_spans(tmp_path: Path) -> None:
     path = tmp_path / "README.md"
     first = Fix(
@@ -125,7 +121,6 @@ def test_collect_fixes_rejects_overlapping_spans(tmp_path: Path) -> None:
                 ),
             )
         )
-
 
 def test_dry_run_returns_diff_without_writing(tmp_path: Path) -> None:
     path = tmp_path / "README.md"
