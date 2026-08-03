@@ -52,6 +52,7 @@ def build_release(*, output: Path, tag: str | None = None) -> tuple[Path, ...]:
 
     verify_tag(tag)
     output.mkdir(parents=True, exist_ok=True)
+    _clean_distribution_artifacts(output)
     build_command = [
         sys.executable,
         "-m",
@@ -78,6 +79,15 @@ def build_release(*, output: Path, tag: str | None = None) -> tuple[Path, ...]:
     if result.returncode:
         raise ReleaseError(f"twine validation failed with status {result.returncode}")
     return distributions
+
+
+def _clean_distribution_artifacts(output: Path) -> None:
+    """Remove prior wheel and source-distribution artifacts from the output directory."""
+
+    artifacts = {*output.glob("*.whl"), *output.glob("*.tar.gz")}
+    for artifact in artifacts:
+        if artifact.is_file() or artifact.is_symlink():
+            artifact.unlink()
 
 
 def main(argv: tuple[str, ...] = ()) -> int:

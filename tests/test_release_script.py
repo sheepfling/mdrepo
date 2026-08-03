@@ -21,6 +21,10 @@ def test_release_build_runs_build_and_twine_checks(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    stale = tmp_path / "markdown_repo_policy-0.1.0-py3-none-any.whl"
+    stale.write_bytes(b"stale wheel")
+    unrelated = tmp_path / "release-notes.txt"
+    unrelated.write_text("keep", encoding="utf-8")
     commands: list[list[str]] = []
 
     def fake_run(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
@@ -35,5 +39,8 @@ def test_release_build_runs_build_and_twine_checks(
     distributions = release.build_release(output=tmp_path, tag="v0.2.1")
 
     assert [path.suffix for path in distributions] == [".whl", ".gz"]
+    assert not stale.exists()
+    assert unrelated.exists()
+    assert all("0.1.0" not in argument for argument in commands[1])
     assert commands[0][1:5] == ["-m", "build", "--sdist", "--wheel"]
     assert commands[1][1:4] == ["-m", "twine", "check"]
