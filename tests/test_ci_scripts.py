@@ -2,6 +2,7 @@
 
 import subprocess
 from collections.abc import Sequence
+from typing import cast
 
 import pytest
 
@@ -67,7 +68,7 @@ def test_build_check_runs_sdist_wheel_then_twine(
         environment = kwargs.get("env")
         if environment is not None:
             assert isinstance(environment, dict)
-            environments.append(environment)
+            environments.append(cast(dict[str, str], environment))
         return subprocess.CompletedProcess(command, 0)
 
     monkeypatch.setattr(check_build.subprocess, "run", fake_run)
