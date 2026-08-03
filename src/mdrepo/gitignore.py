@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from functools import lru_cache
 from pathlib import Path
 
 from pathspec import GitIgnoreSpec
@@ -109,7 +108,6 @@ def _gitignore_decision(*, roots: Sequence[Path], path: Path) -> bool | None:
     return decision
 
 
-@lru_cache(maxsize=256)
 def _load_gitignore(path: Path) -> GitIgnoreSpec | None:
     """Load one non-symlink ``.gitignore`` file, if present."""
 

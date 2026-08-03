@@ -98,6 +98,24 @@ def test_nested_gitignore_is_applied_to_target(
     assert policy.classify(target).gitignored is True
 
 
+def test_repeated_classification_uses_current_gitignore_contents(
+    repository: RepositoryBuilder,
+) -> None:
+    ignore = repository.root / ".gitignore"
+    target = repository.write_text("scratch/guide.md", "target\n")
+    ignore.write_text("scratch/\n", encoding="utf-8")
+    policy = TargetDurabilityPolicy.from_repository(
+        root=repository.root,
+        exclude_patterns=(),
+    )
+
+    assert policy.classify(target).gitignored is True
+
+    ignore.write_text("other-directory/\n", encoding="utf-8")
+
+    assert policy.classify(target).gitignored is False
+
+
 def test_durability_policy_does_not_require_git_executable(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

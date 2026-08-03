@@ -19,7 +19,7 @@
 - Added a repository-local CI runner covering compilation, Ruff, formatting, coverage tests,
   isolated sdist/wheel builds, Pyright, rumdl, and the `mdrepo`
   self-check.
-- Added cross-platform CI coverage for Windows and Ubuntu on Python 3.12, 3.13, and 3.14.
+- Added cross-platform CI coverage for Windows and Ubuntu on Python 3.11, 3.12, 3.13, and 3.14.
 - Added strict Pyright checking, branch coverage reporting, `twine check` packaging validation,
   and pre-commit configuration and hook validation.
 - Made the repository's default orphan policy part of CI self-checks.

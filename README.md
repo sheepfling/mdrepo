@@ -3,7 +3,7 @@
 > **Portable links. Reachable docs. Exceptions that do not quietly live forever.**
 
 [![CI][ci-badge]][ci]
-[![Python 3.12+][python-badge]][python]
+[![Python 3.11+][python-badge]][python]
 [![License: MIT][license-badge]][license]
 [![Typing: strict Pyright][typing-badge]][typing]
 [![Lint: Ruff][ruff-badge]][ruff]
@@ -11,7 +11,7 @@
 
 Most Markdown linters stop at the file boundary. `mdrepo` starts at the repository boundary.
 
-`mdrepo` is a focused Python 3.12+ CLI for policies that require cross-platform filesystem
+`mdrepo` is a focused Python 3.11+ CLI for policies that require cross-platform filesystem
 semantics or a view of the complete documentation set. It complements [rumdl][rumdl] rather than
 replacing it.
 
@@ -276,7 +276,7 @@ uv run python -m scripts.ci --fix
 uv run python -m scripts.ci
 ```
 
-Hosted CI covers Ubuntu and Windows on Python 3.12, 3.13, and 3.14. The gate includes compilation,
+Hosted CI covers Ubuntu and Windows on Python 3.11, 3.12, 3.13, and 3.14. The gate includes compilation,
 Ruff lint and formatting, branch-coverage tests, isolated sdist and wheel validation, strict
 Pyright, rumdl, pre-commit validation, and an `mdrepo` self-check.
 
@@ -296,7 +296,7 @@ Pyright, rumdl, pre-commit validation, and an `mdrepo` self-check.
 [license]: LICENSE
 [pre-commit-badge]: https://img.shields.io/badge/pre--commit-enabled-FAB040?logo=pre-commit
 [pre-commit]: .pre-commit-config.yaml
-[python-badge]: https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white
+[python-badge]: https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white
 [python]: https://www.python.org/downloads/
 [ruff-badge]: https://img.shields.io/badge/lint-Ruff-D7FF64?logo=ruff&logoColor=261230
 [ruff]: https://docs.astral.sh/ruff/
