@@ -2,13 +2,19 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
+from contextlib import suppress
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as package_version
 from pathlib import Path
 from shutil import copytree, ignore_patterns
 from tempfile import TemporaryDirectory
 
 ROOT = Path(__file__).resolve().parents[1]
+PACKAGE_NAME = "markdown-repo-policy"
+SCM_VERSION_ENV = "SETUPTOOLS_SCM_PRETEND_VERSION_FOR_MARKDOWN_REPO_POLICY"
 
 
 def main() -> int:
@@ -48,6 +54,7 @@ def main() -> int:
                 output,
             ],
             cwd=source,
+            env=_build_environment(),
             check=False,
         )
         if build_result.returncode:
@@ -62,6 +69,15 @@ def main() -> int:
             cwd=ROOT,
             check=False,
         ).returncode
+
+
+def _build_environment() -> dict[str, str]:
+    """Pass the installed SCM-resolved version into a metadata-free source copy."""
+
+    environment = os.environ.copy()
+    with suppress(PackageNotFoundError):
+        environment[SCM_VERSION_ENV] = package_version(PACKAGE_NAME)
+    return environment
 
 
 if __name__ == "__main__":

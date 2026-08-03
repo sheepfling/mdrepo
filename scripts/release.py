@@ -6,11 +6,13 @@ import argparse
 import os
 import subprocess
 import sys
-import tomllib
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as package_version
 from pathlib import Path
-from typing import Any, cast
 
 ROOT = Path(__file__).resolve().parents[1]
+PACKAGE_NAME = "markdown-repo-policy"
+SCM_VERSION_ENV = "SETUPTOOLS_SCM_PRETEND_VERSION_FOR_MARKDOWN_REPO_POLICY"
 
 
 class ReleaseError(RuntimeError):
@@ -18,21 +20,14 @@ class ReleaseError(RuntimeError):
 
 
 def project_version() -> str:
-    """Read the package version from the authoritative project metadata."""
+    """Read the dynamically resolved version from installed package metadata."""
 
-    metadata_path = ROOT / "pyproject.toml"
-    if not metadata_path.is_file() or metadata_path.is_symlink():
-        raise ReleaseError("pyproject.toml is not a regular file")
-    with metadata_path.open("rb") as stream:
-        document: dict[str, Any] = tomllib.load(stream)
-    project = document.get("project")
-    if not isinstance(project, dict):
-        raise ReleaseError("pyproject.toml does not define project.version")
-    project_data = cast(dict[str, Any], project)
-    version = project_data.get("version")
-    if not isinstance(version, str):
-        raise ReleaseError("pyproject.toml does not define project.version")
-    return version
+    try:
+        return package_version(PACKAGE_NAME)
+    except PackageNotFoundError as error:
+        raise ReleaseError(
+            "package metadata is unavailable; install the project before building a release"
+        ) from error
 
 
 def verify_tag(tag: str | None) -> None:
@@ -62,7 +57,7 @@ def build_release(*, output: Path, tag: str | None = None) -> tuple[Path, ...]:
         "--outdir",
         str(output),
     ]
-    result = subprocess.run(build_command, cwd=ROOT, check=False)
+    result = subprocess.run(build_command, cwd=ROOT, env=_build_environment(), check=False)
     if result.returncode:
         raise ReleaseError(f"distribution build failed with status {result.returncode}")
 
@@ -88,6 +83,14 @@ def _clean_distribution_artifacts(output: Path) -> None:
     for artifact in artifacts:
         if artifact.is_file() or artifact.is_symlink():
             artifact.unlink()
+
+
+def _build_environment() -> dict[str, str]:
+    """Pass the resolved version explicitly for builds without usable Git metadata."""
+
+    environment = os.environ.copy()
+    environment[SCM_VERSION_ENV] = project_version()
+    return environment
 
 
 def main(argv: tuple[str, ...] = ()) -> int:

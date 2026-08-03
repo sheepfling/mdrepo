@@ -127,6 +127,24 @@ The package has a typed `Rule` protocol and a deterministic built-in rule tuple.
 no entry-point loading or lifecycle hooks. A plugin system should be added only after at least two
 independently distributed rule packages establish the required API from real use.
 
+## Versioning and release artifacts
+
+The package version is derived by `setuptools-scm` from Git tags. `pyproject.toml` deliberately does
+not contain a manually maintained `project.version`, and runtime `mdrepo.__version__` reads the
+installed distribution metadata. Release tags use the `vX.Y.Z` form.
+
+Before building a release, install the development environment and verify the tag through the
+provider-neutral release helper:
+
+```bash
+RELEASE_TAG=vX.Y.Z python -m scripts.release build
+python -m twine upload dist/*
+```
+
+On PowerShell, use `$env:RELEASE_TAG = "vX.Y.Z"` instead. The build helper clears stale wheel and
+sdist artifacts, builds both products through the PEP 517 backend, validates them with `twine`, and
+returns only the artifacts produced by the current build.
+
 A proposed rule belongs here only when it requires repository context. A rule about Markdown style,
 syntax, flavor behavior, headings, fragments, or ordinary target existence should be proposed to
 rumdl or handled through rumdl configuration instead.

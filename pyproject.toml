@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=75"]
+requires = ["setuptools>=77", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "markdown-repo-policy"
-version = "0.2.1"
+dynamic = ["version"]
 description = "Repository-aware Markdown link policy and document-graph checks designed to complement rumdl."
 readme = "README.md"
 license = "MIT"
@@ -47,11 +47,15 @@ dev = [
     "pre-commit>=4.0",
     "rumdl>=0.2.49,<0.3",
     "ruff>=0.9",
+    "setuptools-scm>=8",
     "twine>=6.1",
 ]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools_scm]
+version_scheme = "no-guess-dev"
 
 [tool.pytest.ini_options]
 addopts = ["-ra", "--strict-config", "--strict-markers"]

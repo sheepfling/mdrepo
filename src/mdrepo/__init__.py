@@ -5,7 +5,13 @@ The supported consumer interface is the ``mdrepo`` command and its
 exported as a stable programmatic API yet.
 """
 
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as package_version
+
 __all__ = ["__version__"]
 
 
-__version__ = "0.2.1"
+try:
+    __version__ = package_version("markdown-repo-policy")
+except PackageNotFoundError:
+    __version__ = "0+unknown"

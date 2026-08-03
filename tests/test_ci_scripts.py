@@ -57,12 +57,17 @@ def test_build_check_runs_sdist_wheel_then_twine(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     commands: list[list[str]] = []
+    environments: list[dict[str, str]] = []
 
     def fake_run(
         command: list[str],
-        **_kwargs: object,
+        **kwargs: object,
     ) -> subprocess.CompletedProcess[str]:
         commands.append(command)
+        environment = kwargs.get("env")
+        if environment is not None:
+            assert isinstance(environment, dict)
+            environments.append(environment)
         return subprocess.CompletedProcess(command, 0)
 
     monkeypatch.setattr(check_build.subprocess, "run", fake_run)
@@ -71,3 +76,6 @@ def test_build_check_runs_sdist_wheel_then_twine(
     assert commands[0][1:4] == ["-m", "build", "--sdist"]
     assert "--wheel" in commands[0]
     assert commands[1][1:4] == ["-m", "twine", "check"]
+    assert environments[0][check_build.SCM_VERSION_ENV] == check_build.package_version(
+        check_build.PACKAGE_NAME
+    )
