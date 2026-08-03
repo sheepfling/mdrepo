@@ -8,6 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
+
 def main() -> int:
     """Run Pyright using the active development environment."""
 
@@ -16,6 +17,7 @@ def main() -> int:
         cwd=ROOT,
         check=False,
     ).returncode
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

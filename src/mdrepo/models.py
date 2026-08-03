@@ -6,12 +6,14 @@ from dataclasses import dataclass, replace
 from enum import StrEnum
 from pathlib import Path
 
+
 class Severity(StrEnum):
     """Diagnostic severity."""
 
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
+
 
 class OutputFormat(StrEnum):
     """Supported diagnostic output formats."""
@@ -20,12 +22,14 @@ class OutputFormat(StrEnum):
     JSON = "json"
     GITHUB = "github"
 
+
 class LinkKind(StrEnum):
     """Markdown construct that uses a destination."""
 
     LINK = "link"
     IMAGE = "image"
     REFERENCE_DEFINITION = "reference-definition"
+
 
 class LinkSourceKind(StrEnum):
     """How a parsed destination is represented in source Markdown."""
@@ -34,6 +38,7 @@ class LinkSourceKind(StrEnum):
     AUTOLINK = "autolink"
     REFERENCE_USE = "reference-use"
     REFERENCE_DEFINITION = "reference-definition"
+
 
 @dataclass(frozen=True, slots=True)
 class TextSpan:
@@ -50,6 +55,7 @@ class TextSpan:
         if self.line < 1 or self.column < 1:
             raise ValueError("line and column must be one-based positive integers")
 
+
 @dataclass(frozen=True, slots=True)
 class Fix:
     """One safe, source-level replacement."""
@@ -59,6 +65,7 @@ class Fix:
     expected: str
     replacement: str
     description: str
+
 
 @dataclass(frozen=True, slots=True)
 class Diagnostic:
@@ -85,6 +92,7 @@ class Diagnostic:
 
         return replace(self, suppressed_by=exception_id, fix=None)
 
+
 @dataclass(frozen=True, slots=True)
 class RuleMetadata:
     """Stable public metadata for one built-in rule."""
@@ -94,6 +102,7 @@ class RuleMetadata:
     description: str
     default_severity: Severity
     fixable: bool
+
 
 @dataclass(frozen=True, slots=True)
 class LinkOccurrence:
@@ -113,6 +122,7 @@ class LinkOccurrence:
         """Return whether the destination has an exact source span."""
 
         return self.span is not None
+
 
 @dataclass(frozen=True, slots=True)
 class Document:

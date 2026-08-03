@@ -8,6 +8,7 @@ import pytest
 
 from tests.support import RepositoryBuilder
 
+
 @pytest.fixture
 def tmp_path() -> Iterator[Path]:
     """Provide temporary repositories inside the checkout for predictable cleanup."""
@@ -18,6 +19,7 @@ def tmp_path() -> Iterator[Path]:
         test_root = Path(directory)
         (test_root / "pyproject.toml").write_text("[tool.mdrepo]\n", encoding="utf-8")
         yield test_root
+
 
 @pytest.fixture
 def repository(tmp_path: Path) -> RepositoryBuilder:

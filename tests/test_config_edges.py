@@ -14,6 +14,7 @@ from mdrepo.config import (
 )
 from mdrepo.models import Severity
 
+
 @pytest.mark.parametrize(
     ("expression", "expected"),
     [
@@ -24,15 +25,17 @@ from mdrepo.models import Severity
     ],
 )
 def test_parse_override_accepts_typed_and_fallback_values(
-        expression: str,
-        expected: tuple[str, object],
+    expression: str,
+    expected: tuple[str, object],
 ) -> None:
     assert parse_override(expression) == expected
+
 
 @pytest.mark.parametrize("expression", ("missing", "=value", "   =value"))
 def test_parse_override_rejects_missing_or_blank_keys(expression: str) -> None:
     with pytest.raises(ConfigurationError, match="KEY=VALUE"):
         parse_override(expression)
+
 
 def test_set_dotted_value_normalizes_underscores_and_rejects_scalar_parents() -> None:
     target: dict[str, object] = {}
@@ -44,6 +47,7 @@ def test_set_dotted_value_normalizes_underscores_and_rejects_scalar_parents() ->
 
     with pytest.raises(ConfigurationError, match="invalid dotted"):
         set_dotted_value({}, "rules..select", [])
+
 
 def test_deep_merge_copies_nested_values_and_replaces_lists() -> None:
     base = {"links": {"check-case": True, "extensions": ["md"]}}
@@ -58,6 +62,7 @@ def test_deep_merge_copies_nested_values_and_replaces_lists() -> None:
         }
     }
     assert base == {"links": {"check-case": True, "extensions": ["md"]}}
+
 
 def test_application_config_normalizes_rules_extensions_and_exceptions() -> None:
     config = ApplicationConfig.model_validate(
@@ -84,6 +89,7 @@ def test_application_config_normalizes_rules_extensions_and_exceptions() -> None
     assert config.exceptions[0].id == "temporary"
     assert config.exceptions[0].rule == "MDR101"
 
+
 @pytest.mark.parametrize(
     "payload",
     [
@@ -97,22 +103,25 @@ def test_application_config_rejects_invalid_policy_values(payload: dict[str, obj
     with pytest.raises(ValidationError):
         ApplicationConfig.model_validate(payload)
 
+
 @pytest.mark.parametrize(
     ("field", "value"),
     [("id", 123), ("rule", 101), ("path", ["**"]), ("reason", None)],
 )
 def test_exception_fields_preserve_type_validation(
-        field: str,
-        value: object,
+    field: str,
+    value: object,
 ) -> None:
     payload: dict[str, object] = {
-        "id": "exception", "rule": "MDR101",
+        "id": "exception",
+        "rule": "MDR101",
         "path": "**",
         "reason": "A sufficiently documented reason.",
-        field: value
+        field: value,
     }
     with pytest.raises(ValidationError):
         ApplicationConfig.model_validate({"exceptions": [payload]})
+
 
 @pytest.mark.parametrize(
     "payload",
@@ -126,7 +135,7 @@ def test_exception_fields_preserve_type_validation(
     ],
 )
 def test_all_normalizers_preserve_non_string_type_validation(
-        payload: dict[str, object],
+    payload: dict[str, object],
 ) -> None:
     with pytest.raises(ValidationError):
         ApplicationConfig.model_validate(payload)

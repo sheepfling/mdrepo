@@ -18,8 +18,10 @@ from mdrepo.models import OutputFormat, Severity
 from mdrepo.reporting import TextWriter, should_fail, write_diagnostics
 from mdrepo.rules import RULE_METADATA
 
+
 class CliError(RuntimeError):
     """Raised for invalid command combinations discovered after parsing."""
+
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Run the CLI and return a process exit status."""
@@ -30,14 +32,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         loaded = _load_for_namespace(namespace)
         return _dispatch(namespace=namespace, loaded=loaded, stdout=sys.stdout, stderr=sys.stderr)
     except (
-            CliError,
-            ConfigurationError,
-            EngineError,
-            FileDiscoveryError,
-            FixError,
+        CliError,
+        ConfigurationError,
+        EngineError,
+        FileDiscoveryError,
+        FixError,
     ) as error:
         print(f"mdrepo: error: {error}", file=sys.stderr)
         return 2
+
 
 def _build_parser() -> argparse.ArgumentParser:
     common = argparse.ArgumentParser(add_help=False, argument_default=argparse.SUPPRESS)
@@ -136,6 +139,7 @@ def _build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("config", parents=[common], help="Print resolved configuration as JSON.")
     return parser
 
+
 def _load_for_namespace(namespace: argparse.Namespace) -> LoadedConfig:
     paths = list(getattr(namespace, "paths", []))
     cwd = _configuration_start(paths=paths, explicit_root=getattr(namespace, "root", None))
@@ -161,6 +165,7 @@ def _load_for_namespace(namespace: argparse.Namespace) -> LoadedConfig:
         overrides=overrides,
     )
 
+
 def _configuration_start(*, paths: list[str], explicit_root: Path | None) -> Path:
     if explicit_root is not None or not paths:
         return Path.cwd()
@@ -173,12 +178,13 @@ def _configuration_start(*, paths: list[str], explicit_root: Path | None) -> Pat
         return first.resolve()
     return Path.cwd()
 
+
 def _dispatch(
-        *,
-        namespace: argparse.Namespace,
-        loaded: LoadedConfig,
-        stdout: TextWriter,
-        stderr: TextWriter,
+    *,
+    namespace: argparse.Namespace,
+    loaded: LoadedConfig,
+    stdout: TextWriter,
+    stderr: TextWriter,
 ) -> int:
     command = str(namespace.command)
     if command == "check":
@@ -193,12 +199,13 @@ def _dispatch(
         return _config(loaded=loaded, stdout=stdout)
     raise CliError(f"unknown command: {command}")
 
+
 def _check(
-        *,
-        namespace: argparse.Namespace,
-        loaded: LoadedConfig,
-        stdout: TextWriter,
-        stderr: TextWriter,
+    *,
+    namespace: argparse.Namespace,
+    loaded: LoadedConfig,
+    stdout: TextWriter,
+    stderr: TextWriter,
 ) -> int:
     result = run_repository(
         loaded_config=loaded,
@@ -216,12 +223,13 @@ def _check(
         _write_summary(result=result, stream=stderr)
     return int(should_fail(diagnostics=result.diagnostics, threshold=loaded.model.fail_on))
 
+
 def _fix(
-        *,
-        namespace: argparse.Namespace,
-        loaded: LoadedConfig,
-        stdout: TextWriter,
-        stderr: TextWriter,
+    *,
+    namespace: argparse.Namespace,
+    loaded: LoadedConfig,
+    stdout: TextWriter,
+    stderr: TextWriter,
 ) -> int:
     if (namespace.dry_run or namespace.diff) and loaded.model.output is not OutputFormat.TEXT:
         raise CliError("fix diffs require --format text")
@@ -272,11 +280,12 @@ def _fix(
         return 1
     return int(should_fail(diagnostics=remaining.diagnostics, threshold=loaded.model.fail_on))
 
+
 def _graph(
-        *,
-        namespace: argparse.Namespace,
-        loaded: LoadedConfig,
-        stdout: TextWriter,
+    *,
+    namespace: argparse.Namespace,
+    loaded: LoadedConfig,
+    stdout: TextWriter,
 ) -> int:
     if namespace.paths:
         raise CliError("graph is repository-wide and does not accept path filters")
@@ -294,6 +303,7 @@ def _graph(
         stream=stdout,
     )
     return 0
+
 
 def _rules(*, loaded: LoadedConfig, stdout: TextWriter) -> int:
     if loaded.model.output is OutputFormat.JSON:
@@ -324,6 +334,7 @@ def _rules(*, loaded: LoadedConfig, stdout: TextWriter) -> int:
         stdout.write(f"  {metadata.description}\n")
     return 0
 
+
 def _config(*, loaded: LoadedConfig, stdout: TextWriter) -> int:
     payload = {
         "config": loaded.model.model_dump(by_alias=True, mode="json"),
@@ -334,12 +345,13 @@ def _config(*, loaded: LoadedConfig, stdout: TextWriter) -> int:
     stdout.write("\n")
     return 0
 
+
 def _write_graph(
-        *,
-        graph: DocumentGraph,
-        root: Path,
-        graph_format: str,
-        stream: TextWriter,
+    *,
+    graph: DocumentGraph,
+    root: Path,
+    graph_format: str,
+    stream: TextWriter,
 ) -> None:
     relative_edges = {
         source.relative_to(root).as_posix(): sorted(
@@ -381,6 +393,7 @@ def _write_graph(
         stream.write(f"{source} -> {rendered}\n")
     stream.write(f"unreachable: {', '.join(unreachable) if unreachable else '(none)'}\n")
 
+
 def _write_summary(*, result: RunResult, stream: TextWriter) -> None:
     errors = sum(diagnostic.severity is Severity.ERROR for diagnostic in result.diagnostics)
     warnings = sum(diagnostic.severity is Severity.WARNING for diagnostic in result.diagnostics)
@@ -389,6 +402,7 @@ def _write_summary(*, result: RunResult, stream: TextWriter) -> None:
         f"mdrepo: {errors} error(s), {warnings} warning(s), {infos} info finding(s), "
         f"{len(result.suppressed)} suppressed\n"
     )
+
 
 def _split_rule_arguments(values: list[str]) -> list[str]:
     rules: list[str] = []

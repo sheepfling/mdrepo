@@ -23,6 +23,7 @@ from mdrepo.models import (
 
 _AUTOLINK_SCHEME: Final[re.Pattern[str]] = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]{1,31}:")
 
+
 @dataclass(frozen=True, slots=True)
 class _ScannedDestination:
     raw_target: str
@@ -31,6 +32,7 @@ class _ScannedDestination:
     source_kind: LinkSourceKind
     raw_start: int
     raw_end: int
+
 
 class _SourceMap:
     """Map absolute character offsets to one-based source locations."""
@@ -65,6 +67,7 @@ class _SourceMap:
     def span(self, start: int, end: int) -> TextSpan:
         line, column = self.position(start)
         return TextSpan(start=start, end=end, line=line, column=column)
+
 
 class MarkdownParser:
     """CommonMark parser that records direct and reference link destinations."""
@@ -116,10 +119,10 @@ class MarkdownParser:
         )
 
     def _extract_inline_links(
-            self,
-            *,
-            token: Token,
-            source_map: _SourceMap,
+        self,
+        *,
+        token: Token,
+        source_map: _SourceMap,
     ) -> tuple[LinkOccurrence, ...]:
         line_map = token.map or [0, 1]
         start_line = int(line_map[0])
@@ -201,10 +204,10 @@ class MarkdownParser:
         return tuple(occurrences)
 
     def _extract_reference_definitions(
-            self,
-            *,
-            environment: dict[str, Any],
-            source_map: _SourceMap,
+        self,
+        *,
+        environment: dict[str, Any],
+        source_map: _SourceMap,
     ) -> tuple[LinkOccurrence, ...]:
         references = environment.get("references", {})
         if not isinstance(references, dict):
@@ -256,8 +259,9 @@ class MarkdownParser:
             )
         )
 
+
 def _semantic_link(
-        token: Token,
+    token: Token,
 ) -> tuple[str, LinkKind, LinkSourceKind, str | None] | None:
     if token.type == "link_open":
         target = token.attrGet("href")
@@ -281,9 +285,10 @@ def _semantic_link(
         return target, LinkKind.IMAGE, LinkSourceKind.DIRECT, None
     return None
 
+
 def _scan_inline_destinations(
-        source: str,
-        parser: MarkdownIt,
+    source: str,
+    parser: MarkdownIt,
 ) -> tuple[_ScannedDestination, ...]:
     candidates: list[_ScannedDestination] = []
     position = 0
@@ -322,8 +327,8 @@ def _scan_inline_destinations(
                 continue
         elif character == "<":
             close = source.find(">", position + 1)
-            if close >= 0 and "\n" not in source[position + 1: close]:
-                raw_target = source[position + 1: close]
+            if close >= 0 and "\n" not in source[position + 1 : close]:
+                raw_target = source[position + 1 : close]
                 if _AUTOLINK_SCHEME.match(raw_target):
                     candidates.append(
                         _ScannedDestination(
@@ -340,12 +345,13 @@ def _scan_inline_destinations(
         position += 1
     return tuple(candidates)
 
+
 def _parse_direct_destination(
-        *,
-        source: str,
-        parser: MarkdownIt,
-        bracket_position: int,
-        kind: LinkKind,
+    *,
+    source: str,
+    parser: MarkdownIt,
+    bracket_position: int,
+    kind: LinkKind,
 ) -> tuple[_ScannedDestination, int] | None:
     state = StateInline(source, parser, {}, [])
     disable_nested = kind is LinkKind.LINK
@@ -408,6 +414,7 @@ def _parse_direct_destination(
         position + 1,
     )
 
+
 def _skip_code_span(source: str, start: int) -> int:
     run_length = 1
     while start + run_length < len(source) and source[start + run_length] == "`":
@@ -416,12 +423,13 @@ def _skip_code_span(source: str, start: int) -> int:
     close = source.find(marker, start + run_length)
     return close + run_length if close >= 0 else start + run_length
 
+
 def _span_for_scanned_destination(
-        *,
-        source_map: _SourceMap,
-        content_start: int,
-        region_end: int,
-        candidate: _ScannedDestination,
+    *,
+    source_map: _SourceMap,
+    content_start: int,
+    region_end: int,
+    candidate: _ScannedDestination,
 ) -> TextSpan | None:
     if content_start < 0 or not candidate.raw_target:
         return None
@@ -434,13 +442,14 @@ def _span_for_scanned_destination(
         return None
     return source_map.span(absolute_start, absolute_end)
 
+
 def _locate_reference_destination(
-        *,
-        parser: MarkdownIt,
-        source_map: _SourceMap,
-        target: str,
-        region_start: int,
-        region_end: int,
+    *,
+    parser: MarkdownIt,
+    source_map: _SourceMap,
+    target: str,
+    region_start: int,
+    region_end: int,
 ) -> tuple[TextSpan | None, str]:
     region = source_map.text[region_start:region_end]
     delimiter = region.find("]:")
@@ -465,6 +474,7 @@ def _locate_reference_destination(
         return None, raw_target
     absolute_start = region_start + raw_start
     return source_map.span(absolute_start, region_start + raw_end), raw_target
+
 
 def _is_line_map(value: object) -> TypeGuard[list[int]]:
     if not isinstance(value, list):

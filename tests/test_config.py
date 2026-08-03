@@ -7,6 +7,7 @@ import pytest
 from mdrepo.config import ConfigurationError, load_configuration
 from mdrepo.models import OutputFormat, Severity
 
+
 def test_pyproject_and_dedicated_overlay_merge(tmp_path: Path) -> None:
     (tmp_path / "pyproject.toml").write_text(
         """
@@ -43,6 +44,7 @@ check-case = false
         tmp_path / ".mdrepo.toml",
     )
 
+
 def test_external_overlay_does_not_change_discovered_root(tmp_path: Path) -> None:
     overlay = tmp_path.parent / f"{tmp_path.name}-overlay.toml"
     overlay.write_text("[links]\ncheck-case = false\n", encoding="utf-8")
@@ -60,6 +62,7 @@ def test_external_overlay_does_not_change_discovered_root(tmp_path: Path) -> Non
     assert loaded.model.links.check_case is False
     assert loaded.sources == (tmp_path / "pyproject.toml", overlay)
 
+
 def test_unknown_configuration_is_rejected(tmp_path: Path) -> None:
     (tmp_path / "pyproject.toml").write_text(
         "[tool.mdrepo]\nunknown-option = true\n",
@@ -73,6 +76,7 @@ def test_unknown_configuration_is_rejected(tmp_path: Path) -> None:
             config_paths=[],
             overrides=[],
         )
+
 
 def test_duplicate_exception_ids_are_rejected(tmp_path: Path) -> None:
     (tmp_path / "pyproject.toml").write_text(
@@ -98,6 +102,7 @@ reason = "Second documented exception."
             overrides=[],
         )
 
+
 def test_unknown_rule_id_is_rejected(tmp_path: Path) -> None:
     (tmp_path / "pyproject.toml").write_text(
         '[tool.mdrepo.rules]\nignore = ["MDR999"]\n',
@@ -112,9 +117,10 @@ def test_unknown_rule_id_is_rejected(tmp_path: Path) -> None:
             overrides=[],
         )
 
+
 def test_explicit_configuration_path_must_be_regular_file(
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     config_path = tmp_path / "config.toml"
     config_path.write_text("[tool.mdrepo]\n", encoding="utf-8")

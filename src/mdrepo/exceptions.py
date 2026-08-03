@@ -11,6 +11,7 @@ from pathspec import GitIgnoreSpec
 from mdrepo.config import ApplicationConfig, ExceptionConfig
 from mdrepo.models import Diagnostic
 
+
 @dataclass(frozen=True, slots=True)
 class ExceptionResult:
     """Visible, suppressed, and exception-health findings."""
@@ -19,13 +20,14 @@ class ExceptionResult:
     suppressed: tuple[Diagnostic, ...]
     health: tuple[Diagnostic, ...]
 
+
 def apply_exceptions(
-        *,
-        diagnostics: tuple[Diagnostic, ...],
-        config: ApplicationConfig,
-        today: date | None = None,
-        report_unused: bool = True,
-        enabled_rules: set[str] | None = None,
+    *,
+    diagnostics: tuple[Diagnostic, ...],
+    config: ApplicationConfig,
+    today: date | None = None,
+    report_unused: bool = True,
+    enabled_rules: set[str] | None = None,
 ) -> ExceptionResult:
     """Suppress matching diagnostics and report expired or stale exception records."""
 
@@ -91,10 +93,12 @@ def apply_exceptions(
         health=tuple(health),
     )
 
+
 def _expiry_text(exception: ExceptionConfig) -> str:
     if exception.expires is None:
         return "an unknown date"
     return exception.expires.isoformat()
+
 
 def _matches(*, exception: ExceptionConfig, diagnostic: Diagnostic) -> bool:
     if exception.rule != diagnostic.rule_id:

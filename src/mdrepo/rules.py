@@ -88,6 +88,7 @@ RULE_METADATA: tuple[RuleMetadata, ...] = (
 )
 RULES_BY_ID: dict[str, RuleMetadata] = {metadata.rule_id: metadata for metadata in RULE_METADATA}
 
+
 @dataclass(frozen=True, slots=True)
 class PolicyLink:
     """One editable policy destination with its local interpretation, when applicable."""
@@ -95,6 +96,7 @@ class PolicyLink:
     document: Document
     occurrence: LinkOccurrence
     local: LocalTargetResolution | None
+
 
 @dataclass(frozen=True, slots=True)
 class RuleContext:
@@ -111,6 +113,7 @@ class RuleContext:
     # Reachability is intentionally computed over the complete document set.
     graph: DocumentGraph | None
 
+
 class Rule(Protocol):
     """Small future-compatible seam for repository rules."""
 
@@ -120,6 +123,7 @@ class Rule(Protocol):
         """Evaluate this rule for one repository context."""
 
         ...
+
 
 class NonPosixLocalLinkRule:
     """MDR001 implementation."""
@@ -144,6 +148,7 @@ class NonPosixLocalLinkRule:
             )
         return tuple(diagnostics)
 
+
 class AbsoluteLocalLinkRule:
     """MDR002 implementation."""
 
@@ -156,12 +161,12 @@ class AbsoluteLocalLinkRule:
             if local is None or not local.absolute:
                 continue
             if (
-                    local.root_relative
-                    and not local.windows_absolute
-                    and not local.protocol_relative
-                    and not local.file_uri
-                    and not local.home_relative
-                    and context.config.links.allow_root_relative
+                local.root_relative
+                and not local.windows_absolute
+                and not local.protocol_relative
+                and not local.file_uri
+                and not local.home_relative
+                and context.config.links.allow_root_relative
             ):
                 continue
 
@@ -189,6 +194,7 @@ class AbsoluteLocalLinkRule:
             )
         return tuple(diagnostics)
 
+
 class RepositoryEscapeRule:
     """MDR003 implementation."""
 
@@ -207,6 +213,7 @@ class RepositoryEscapeRule:
             if link.local is not None and link.local.outside_root
         )
 
+
 class MissingLocalTargetRule:
     """MDR004 implementation, disabled by default because rumdl already covers this area."""
 
@@ -222,7 +229,7 @@ class MissingLocalTargetRule:
             if local is None or local.candidate_path is None or local.outside_root:
                 continue
             if local.absolute and not (
-                    local.root_relative and context.config.links.allow_root_relative
+                local.root_relative and context.config.links.allow_root_relative
             ):
                 continue
             if local.exists:
@@ -236,6 +243,7 @@ class MissingLocalTargetRule:
                 )
             )
         return tuple(diagnostics)
+
 
 class LocalTargetCaseRule:
     """MDR005 implementation."""
@@ -263,6 +271,7 @@ class LocalTargetCaseRule:
             )
         return tuple(diagnostics)
 
+
 class MissingGraphRootRule:
     """MDR100 implementation."""
 
@@ -280,6 +289,7 @@ class MissingGraphRootRule:
             ),
         )
 
+
 class OrphanDocumentRule:
     """MDR101 implementation."""
 
@@ -291,8 +301,8 @@ class OrphanDocumentRule:
 
         diagnostics: list[Diagnostic] = []
         for document in sorted(
-                context.selected_documents,
-                key=lambda item: item.relative_path.as_posix(),
+            context.selected_documents,
+            key=lambda item: item.relative_path.as_posix(),
         ):
             if document.path in context.graph.reachable:
                 continue
@@ -309,6 +319,7 @@ class OrphanDocumentRule:
             )
         return tuple(diagnostics)
 
+
 BUILTIN_RULES: tuple[Rule, ...] = (
     NonPosixLocalLinkRule(),
     AbsoluteLocalLinkRule(),
@@ -319,6 +330,7 @@ BUILTIN_RULES: tuple[Rule, ...] = (
     OrphanDocumentRule(),
 )
 
+
 def rule_enabled(*, config: ApplicationConfig, rule_id: str) -> bool:
     """Apply stable select/ignore semantics to one rule ID."""
 
@@ -328,18 +340,20 @@ def rule_enabled(*, config: ApplicationConfig, rule_id: str) -> bool:
         return False
     return rule_id not in ignored
 
+
 def configured_severity(*, config: ApplicationConfig, diagnostic: Diagnostic) -> Severity:
     """Return a rule-specific severity override or the emitted default."""
 
     return config.rules.severity.get(diagnostic.rule_id, diagnostic.severity)
 
+
 def _link_diagnostic(
-        *,
-        metadata: RuleMetadata,
-        link: PolicyLink,
-        message: str,
-        replacement: str | None = None,
-        fix_description: str = "",
+    *,
+    metadata: RuleMetadata,
+    link: PolicyLink,
+    message: str,
+    replacement: str | None = None,
+    fix_description: str = "",
 ) -> Diagnostic:
     fix: Fix | None = None
     span = link.occurrence.span
