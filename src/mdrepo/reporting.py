@@ -72,9 +72,7 @@ def _text_line(diagnostic: Diagnostic) -> str:
 
 def _location(diagnostic: Diagnostic) -> str:
     rendered = (
-        _escape_text(diagnostic.path.as_posix())
-        if diagnostic.path is not None
-        else "<project>"
+        _escape_text(diagnostic.path.as_posix()) if diagnostic.path is not None else "<project>"
     )
     if diagnostic.line is not None:
         rendered += f":{diagnostic.line}"

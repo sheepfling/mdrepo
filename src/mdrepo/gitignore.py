@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Protocol, cast
 
 from pathspec import GitIgnoreSpec
 from pathspec.patterns.gitignore import GitIgnorePatternError
@@ -12,6 +13,16 @@ from pathspec.patterns.gitignore import GitIgnorePatternError
 
 class GitIgnoreError(RuntimeError):
     """Raised when a repository ignore file cannot be interpreted safely."""
+
+
+class _GitIgnorePattern(Protocol):
+    pattern: object
+    include: bool
+
+    def match_file(self, file: str) -> bool:
+        """Return whether this pattern matches a repository-relative path."""
+
+        ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -55,7 +66,14 @@ class TargetDurabilityPolicy:
         relative = target.relative_to(self.root).as_posix()
         return TargetDurability(
             gitignored=_is_gitignored(root=self.root, target=target),
-            mdrepo_excluded=_last_gitignore_match(self.mdrepo_exclude, relative) is True,
+            mdrepo_excluded=(
+                _last_gitignore_match(
+                    self.mdrepo_exclude,
+                    relative,
+                    is_directory=target.is_dir(),
+                )
+                is True
+            ),
         )
 
 
@@ -84,17 +102,30 @@ def _is_gitignored(*, root: Path, target: Path) -> bool:
         if ignored:
             # Git cannot traverse an ignored parent to discover a later negation.
             continue
-        decision = _gitignore_decision(roots=directories[:index], path=directory)
+        decision = _gitignore_decision(
+            roots=directories[:index],
+            path=directory,
+            is_directory=True,
+        )
         if decision is not None:
             ignored = decision
 
     if ignored:
         return True
-    decision = _gitignore_decision(roots=directories, path=target)
+    decision = _gitignore_decision(
+        roots=directories,
+        path=target,
+        is_directory=target.is_dir(),
+    )
     return decision is True
 
 
-def _gitignore_decision(*, roots: Sequence[Path], path: Path) -> bool | None:
+def _gitignore_decision(
+    *,
+    roots: Sequence[Path],
+    path: Path,
+    is_directory: bool,
+) -> bool | None:
     """Return the last matching decision from applicable ignore files."""
 
     decision: bool | None = None
@@ -103,7 +134,7 @@ def _gitignore_decision(*, roots: Sequence[Path], path: Path) -> bool | None:
         if spec is None:
             continue
         relative = path.relative_to(ignore_root).as_posix()
-        matched = _last_gitignore_match(spec, relative)
+        matched = _last_gitignore_match(spec, relative, is_directory=is_directory)
         if matched is not None:
             decision = matched
     return decision
@@ -130,11 +161,20 @@ def parse_gitignore(lines: Sequence[str], *, source: str) -> GitIgnoreSpec:
         raise GitIgnoreError(f"invalid Git-ignore pattern in {source}: {error}") from error
 
 
-def _last_gitignore_match(spec: GitIgnoreSpec, relative: str) -> bool | None:
+def _last_gitignore_match(
+    spec: GitIgnoreSpec,
+    relative: str,
+    *,
+    is_directory: bool,
+) -> bool | None:
     """Return the final include decision for one path within one ignore file."""
 
     decision: bool | None = None
-    for pattern in spec.patterns:
-        if pattern.match_file(relative) or pattern.match_file(f"{relative}/"):
+    patterns = cast(Sequence[_GitIgnorePattern], spec.patterns)
+    for pattern in patterns:
+        pattern_text = pattern.pattern
+        if isinstance(pattern_text, str) and pattern_text.endswith("/") and not is_directory:
+            continue
+        if pattern.match_file(relative) or (is_directory and pattern.match_file(f"{relative}/")):
             decision = pattern.include
     return decision

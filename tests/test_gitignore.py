@@ -61,6 +61,19 @@ def test_durability_policy_honors_gitignore_and_mdrepo_overrides(
     assert policy.classify(artifact).mdrepo_excluded is False
 
 
+def test_directory_only_pattern_does_not_ignore_regular_file(
+    repository: RepositoryBuilder,
+) -> None:
+    repository.write_text(".gitignore", "build/\n")
+    target = repository.write_text("build", "regular file\n")
+    policy = TargetDurabilityPolicy.from_repository(
+        root=repository.root,
+        exclude_patterns=(),
+    )
+
+    assert policy.classify(target).gitignored is False
+
+
 def test_gitignore_cannot_reinclude_descendant_without_reincluding_parent(
     repository: RepositoryBuilder,
 ) -> None:
@@ -223,8 +236,6 @@ def test_malformed_exception_pattern_is_a_reported_policy_error(
 
     with pytest.raises(GitIgnoreError, match="exception 'bad-path'"):
         apply_exceptions(
-            diagnostics=(
-                Diagnostic(rule_id="MDR001", message="finding", severity=Severity.ERROR),
-            ),
+            diagnostics=(Diagnostic(rule_id="MDR001", message="finding", severity=Severity.ERROR),),
             config=config,
         )
