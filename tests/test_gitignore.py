@@ -9,7 +9,12 @@ from mdrepo.cli import main
 from mdrepo.config import ApplicationConfig
 from mdrepo.exceptions import apply_exceptions
 from mdrepo.files import collect_project_markdown
-from mdrepo.gitignore import GitIgnoreError, TargetDurabilityPolicy
+from mdrepo.gitignore import (
+    GitIgnoreError,
+    TargetDurabilityPolicy,
+    matches_gitignore,
+    parse_gitignore,
+)
 from mdrepo.models import Diagnostic, Severity
 from tests.support import RepositoryBuilder
 
@@ -72,6 +77,14 @@ def test_directory_only_pattern_does_not_ignore_regular_file(
     )
 
     assert policy.classify(target).gitignored is False
+
+
+def test_directory_only_pattern_matches_descendant_files() -> None:
+    spec = parse_gitignore(["build/"], source="test policy")
+
+    assert matches_gitignore(spec, "build", is_directory=False) is False
+    assert matches_gitignore(spec, "build", is_directory=True) is True
+    assert matches_gitignore(spec, "build/artifact.md", is_directory=False) is True
 
 
 def test_gitignore_cannot_reinclude_descendant_without_reincluding_parent(

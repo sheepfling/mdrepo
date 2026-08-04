@@ -111,14 +111,13 @@ enabled = true
 roots = ["README.md", "docs/index.md"]
 ```
 
-Markdown discovery does not automatically use `.gitignore` as an include/exclude filter. Git-ignored
-files are scanned when they match `include` and do not match `exclude`; generated, scratch, vendor,
-and legacy trees must therefore be excluded explicitly. With durable-target checking enabled,
-`MDR006` separately reads applicable repository `.gitignore` files and reports existing links to
-ignored targets. When orphan analysis is enabled, Git-ignored Markdown documents are omitted from
-the graph so they cannot create reachability or orphan noise. Explicit file and directory
-selections remain constrained by the resolved `include`/`exclude` policy. Symlinks are not admitted
-to the discovered document set.
+Markdown discovery respects `.gitignore` by default in addition to `include` and `exclude`. Set
+`respect-gitignore = false` only when generated, scratch, vendor, or legacy Markdown must be
+inspected explicitly. With durable-target checking enabled, `MDR006` separately reads applicable
+repository `.gitignore` files and reports existing links to ignored targets. When orphan analysis
+is enabled, Git-ignored Markdown documents are omitted from the graph so they cannot create
+reachability or orphan noise. Explicit file and directory selections remain constrained by the
+resolved `include`/`exclude` policy. Symlinks are not admitted to the discovered document set.
 
 ## GitHub Actions
 

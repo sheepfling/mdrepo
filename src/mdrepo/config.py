@@ -24,8 +24,6 @@ _DEFAULT_EXCLUDE_PATTERNS = (
     "**/.mypy_cache/**",
     "**/build/**",
     "**/dist/**",
-    "**/site/**",
-    "**/artifacts/**",
 )
 
 
@@ -178,12 +176,8 @@ class ApplicationConfig(ConfigModel):
             return raw
 
         configured = cast(list[Any], configured_value)
-        merged: list[Any] = list(_DEFAULT_EXCLUDE_PATTERNS)
-        for pattern in configured:
-            if pattern not in merged:
-                merged.append(pattern)
         normalized = copy.deepcopy(raw)
-        normalized["exclude"] = merged
+        normalized["exclude"] = [*_DEFAULT_EXCLUDE_PATTERNS, *configured]
         return normalized
 
     @model_validator(mode="after")

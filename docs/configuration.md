@@ -36,7 +36,7 @@ recorded through `[[tool.mdrepo.exceptions]]` with an ID and reason. See
 |------------|----------------------------------|------------------------------------|
 | `include`  | `*.md`, `**/*.md`                | Gitignore-style inclusion patterns |
 | `respect-gitignore` | `true`                   | Exclude Git-ignored Markdown from discovery |
-| `exclude`  | transient build, VCS, cache, and artifact directories | Gitignore-style exclusion patterns |
+| `exclude`  | transient build, VCS, cache, and distribution directories | Gitignore-style exclusion patterns |
 | `encoding` | `utf-8`                          | Markdown source encoding           |
 | `output`   | `text`                           | `text`, `json`, or `github`        |
 | `fail-on`  | `error`                          | `info`, `warning`, or `error`      |
@@ -53,14 +53,13 @@ exclude = [
     "**/.mypy_cache/**",
     "**/build/**",
     "**/dist/**",
-    "**/site/**",
-    "**/artifacts/**",
 ]
 ```
 
-Configured `exclude` patterns extend these defaults and are deduplicated, so a project only needs
-to list its additional source-scope exclusions. `.gitignore` patterns do not need to be copied
-into `exclude`: mdrepo intentionally keeps discovery scope separate from Git durability. A
+Configured `exclude` patterns extend these defaults. Their order and repetitions are preserved
+because Gitignore-style negations are order-sensitive, so a project only needs to list its
+additional source-scope exclusions. `.gitignore` patterns do not need to be copied into `exclude`:
+mdrepo intentionally keeps discovery scope separate from Git durability. A
 Git-ignored Markdown document is excluded from discovery by default and remains a valid `MDR006`
 target when another durable document links to it.
 
@@ -87,10 +86,11 @@ Orphan analysis is disabled by default. `roots` identifies entry documents. `ext
 allows `docs/guide` to resolve to `docs/guide.md`. `directory-indexes` allows a directory link to
 resolve to a configured index file.
 
-The default discovery exclusions cover `.git`, virtual environments, Python and tool caches,
-build and distribution directories, generated sites, and artifact directories. Git-ignored
-Markdown files are also excluded from discovery by default and remain subject to `MDR006` when
-another document links to them.
+The default discovery exclusions cover `.git`, virtual environments, Python and tool caches, and
+build and distribution directories. Project-specific generated sites, artifact directories, and
+legacy trees should be excluded through `.gitignore` or explicit top-level `exclude` patterns.
+Git-ignored Markdown files are also excluded from discovery by default and remain subject to
+`MDR006` when another document links to them.
 
 This is generic Markdown graph reachability. It is not a site-generator navigation validator. For
 MkDocs, rumdl `MD074` can separately check the `mkdocs.yml` navigation and omitted files.
@@ -131,4 +131,4 @@ mdrepo check . \
 ```
 
 Nested tables merge. Scalar values and most lists replace earlier values; `exclude` extends the
-built-in baseline and deduplicates exact patterns.
+built-in baseline while preserving Gitignore-style ordering and repetitions.

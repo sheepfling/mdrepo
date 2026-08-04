@@ -6,7 +6,7 @@ import stat
 from pathlib import Path
 
 from mdrepo.config import ApplicationConfig
-from mdrepo.gitignore import is_gitignored, parse_gitignore
+from mdrepo.gitignore import is_gitignored, matches_gitignore, parse_gitignore
 
 
 class FileDiscoveryError(RuntimeError):
@@ -24,9 +24,9 @@ def collect_project_markdown(*, root: Path, config: ApplicationConfig) -> tuple[
             if not _is_regular_file(path):
                 continue
             relative = path.relative_to(root).as_posix()
-            if exclude_spec.match_file(relative):
+            if matches_gitignore(exclude_spec, relative, is_directory=False):
                 continue
-            if include_spec.match_file(relative):
+            if matches_gitignore(include_spec, relative, is_directory=False):
                 resolved = path.resolve()
                 if config.respect_gitignore and is_gitignored(root=root, target=resolved):
                     continue
