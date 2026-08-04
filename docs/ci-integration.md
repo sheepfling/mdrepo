@@ -26,7 +26,7 @@ Pin `mdrepo` in the consuming project's development dependencies:
 ```toml
 [project.optional-dependencies]
 dev = [
-    "mdrepo==0.0.1a0",
+    "mdrepo==0.0.1a2",
 ]
 ```
 
