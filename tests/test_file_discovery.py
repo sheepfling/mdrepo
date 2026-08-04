@@ -30,6 +30,36 @@ def test_project_discovery_applies_include_exclude_and_ignores_symlinks(
     ] == ["README.md", "docs/guide.md"]
 
 
+def test_project_discovery_handles_spaces_newlines_and_long_names(
+    repository: RepositoryBuilder,
+) -> None:
+    relative_paths = (
+        "docs/with spaces.md",
+        f"docs/{'x' * 160}.md",
+    )
+    for relative in relative_paths:
+        repository.markdown(relative, "# Document\n")
+    config = ApplicationConfig.model_validate({"include": ["**/*.md"]})
+
+    discovered = {
+        path.relative_to(repository.root).as_posix()
+        for path in collect_project_markdown(root=repository.root, config=config)
+    }
+
+    assert discovered == set(relative_paths)
+
+
+@pytest.mark.skipif(os.name == "nt", reason="Windows filenames cannot contain control characters")
+def test_project_discovery_handles_newline_names(repository: RepositoryBuilder) -> None:
+    relative = "docs/with\nnewline.md"
+    repository.markdown(relative, "# Document\n")
+    config = ApplicationConfig.model_validate({"include": ["**/*.md"]})
+
+    discovered = collect_project_markdown(root=repository.root, config=config)
+
+    assert [path.relative_to(repository.root).as_posix() for path in discovered] == [relative]
+
+
 @pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="named pipes are not supported on this OS")
 def test_project_discovery_ignores_non_regular_files(repository: RepositoryBuilder) -> None:
     """A matching FIFO must not enter the set of files later read by the engine."""
@@ -62,6 +92,25 @@ def test_project_discovery_requires_regular_file(
     config = ApplicationConfig.model_validate({"include": ["*.py"]})
 
     assert collect_project_markdown(root=repository.root, config=config) == ()
+
+
+def test_project_discovery_reports_filesystem_inspection_errors(
+    monkeypatch: pytest.MonkeyPatch,
+    repository: RepositoryBuilder,
+) -> None:
+    candidate = repository.markdown("docs/guide.md", "# Guide\n")
+    original_stat = Path.stat
+
+    def failing_stat(path: Path, *args: object, **kwargs: object) -> object:
+        if path == candidate:
+            raise OSError("path is too long")
+        return original_stat(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "stat", failing_stat)
+    config = ApplicationConfig.model_validate({})
+
+    with pytest.raises(FileDiscoveryError, match="unable to inspect repository"):
+        collect_project_markdown(root=repository.root, config=config)
 
 
 def test_requested_selection_deduplicates_files_and_rejects_invalid_inputs(

@@ -1,11 +1,16 @@
 """Git-ignore hierarchy and durable-target policy coverage."""
 
+import os
 from pathlib import Path
 
 import pytest
 
 from mdrepo.cli import main
-from mdrepo.gitignore import TargetDurabilityPolicy
+from mdrepo.config import ApplicationConfig
+from mdrepo.exceptions import apply_exceptions
+from mdrepo.files import collect_project_markdown
+from mdrepo.gitignore import GitIgnoreError, TargetDurabilityPolicy
+from mdrepo.models import Diagnostic, Severity
 from tests.support import RepositoryBuilder
 
 
@@ -98,6 +103,35 @@ def test_nested_gitignore_is_applied_to_target(
     assert policy.classify(target).gitignored is True
 
 
+def test_durability_handles_spaces_newlines_and_long_names(
+    repository: RepositoryBuilder,
+) -> None:
+    repository.write_text(".gitignore", "ignored/\n")
+    relative_paths = (
+        "ignored/with spaces.md",
+        f"ignored/{'x' * 160}.md",
+    )
+    targets = [repository.write_text(relative, "target\n") for relative in relative_paths]
+    policy = TargetDurabilityPolicy.from_repository(
+        root=repository.root,
+        exclude_patterns=(),
+    )
+
+    assert all(policy.classify(target).gitignored for target in targets)
+
+
+@pytest.mark.skipif(os.name == "nt", reason="Windows filenames cannot contain newlines")
+def test_durability_handles_newline_names(repository: RepositoryBuilder) -> None:
+    repository.write_text(".gitignore", "ignored/\n")
+    target = repository.write_text("ignored/with\nnewline.md", "target\n")
+    policy = TargetDurabilityPolicy.from_repository(
+        root=repository.root,
+        exclude_patterns=(),
+    )
+
+    assert policy.classify(target).gitignored is True
+
+
 def test_repeated_classification_uses_current_gitignore_contents(
     repository: RepositoryBuilder,
 ) -> None:
@@ -144,3 +178,53 @@ def test_unreadable_gitignore_is_a_reported_cli_error(
 
     assert main(["check", "."]) == 2
     assert "unable to read repository .gitignore" in capsys.readouterr().err
+
+
+def test_malformed_gitignore_is_a_reported_cli_error(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / ".gitignore").write_text("bad\\\n", encoding="utf-8")
+    (tmp_path / "target.txt").write_text("target\n", encoding="utf-8")
+    (tmp_path / "README.md").write_text("[Target](target.txt)\n", encoding="utf-8")
+
+    assert main(["check", "."]) == 2
+    error = capsys.readouterr().err
+    assert "invalid Git-ignore pattern" in error
+    assert "bad\\" in error
+
+
+def test_malformed_discovery_pattern_is_a_reported_policy_error(
+    repository: RepositoryBuilder,
+) -> None:
+    config = ApplicationConfig.model_validate({"include": ["bad\\"]})
+
+    with pytest.raises(GitIgnoreError, match="mdrepo include policy"):
+        collect_project_markdown(root=repository.root, config=config)
+
+
+def test_malformed_exception_pattern_is_a_reported_policy_error(
+    repository: RepositoryBuilder,
+) -> None:
+    config = ApplicationConfig.model_validate(
+        {
+            "exceptions": [
+                {
+                    "id": "bad-path",
+                    "rule": "MDR001",
+                    "path": "bad\\",
+                    "reason": "test malformed path",
+                }
+            ]
+        }
+    )
+
+    with pytest.raises(GitIgnoreError, match="exception 'bad-path'"):
+        apply_exceptions(
+            diagnostics=(
+                Diagnostic(rule_id="MDR001", message="finding", severity=Severity.ERROR),
+            ),
+            config=config,
+        )

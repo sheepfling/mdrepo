@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
+import stat
 from pathlib import Path
 
-from pathspec import GitIgnoreSpec
-
 from mdrepo.config import ApplicationConfig
+from mdrepo.gitignore import parse_gitignore
 
 
 class FileDiscoveryError(RuntimeError):
@@ -16,17 +16,22 @@ class FileDiscoveryError(RuntimeError):
 def collect_project_markdown(*, root: Path, config: ApplicationConfig) -> tuple[Path, ...]:
     """Collect all configured Markdown files beneath the project root."""
 
-    include_spec = GitIgnoreSpec.from_lines(config.include)
-    exclude_spec = GitIgnoreSpec.from_lines(config.exclude)
+    include_spec = parse_gitignore(config.include, source="mdrepo include policy")
+    exclude_spec = parse_gitignore(config.exclude, source="mdrepo exclude policy")
     collected: list[Path] = []
-    for path in root.rglob("*"):
-        if not _is_regular_file(path):
-            continue
-        relative = path.relative_to(root).as_posix()
-        if exclude_spec.match_file(relative):
-            continue
-        if include_spec.match_file(relative):
-            collected.append(path.resolve())
+    try:
+        for path in root.rglob("*"):
+            if not _is_regular_file(path):
+                continue
+            relative = path.relative_to(root).as_posix()
+            if exclude_spec.match_file(relative):
+                continue
+            if include_spec.match_file(relative):
+                collected.append(path.resolve())
+    except OSError as error:
+        raise FileDiscoveryError(
+            f"unable to inspect repository files under {root}: {error}"
+        ) from error
     return tuple(
         sorted(collected, key=lambda candidate_path: candidate_path.relative_to(root).as_posix())
     )
@@ -35,7 +40,14 @@ def collect_project_markdown(*, root: Path, config: ApplicationConfig) -> tuple[
 def _is_regular_file(path: Path) -> bool:
     """Return whether a candidate is a non-symlink regular file."""
 
-    return path.is_file() and not path.is_symlink()
+    try:
+        if path.is_symlink():
+            return False
+        if not stat.S_ISREG(path.stat().st_mode):
+            return False
+        return path.is_file()
+    except OSError as error:
+        raise FileDiscoveryError(f"unable to inspect repository path {path}: {error}") from error
 
 
 def select_requested_markdown(

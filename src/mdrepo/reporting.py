@@ -49,11 +49,11 @@ def write_diagnostics(
     for diagnostic in diagnostics:
         stream.write(_text_line(diagnostic) + "\n")
         if diagnostic.hint:
-            stream.write(f"  hint: {diagnostic.hint}\n")
+            stream.write(f"  hint: {_escape_text(diagnostic.hint)}\n")
         if diagnostic.fix is not None:
-            stream.write(f"  fix: {diagnostic.fix.description}\n")
+            stream.write(f"  fix: {_escape_text(diagnostic.fix.description)}\n")
         if diagnostic.suppressed_by is not None:
-            stream.write(f"  suppressed by: {diagnostic.suppressed_by}\n")
+            stream.write(f"  suppressed by: {_escape_text(diagnostic.suppressed_by)}\n")
 
 
 def should_fail(*, diagnostics: tuple[Diagnostic, ...], threshold: Severity) -> bool:
@@ -66,17 +66,34 @@ def should_fail(*, diagnostics: tuple[Diagnostic, ...], threshold: Severity) -> 
 def _text_line(diagnostic: Diagnostic) -> str:
     return (
         f"{_location(diagnostic)}: {diagnostic.severity.value} "
-        f"{diagnostic.rule_id} {diagnostic.message}"
+        f"{_escape_text(diagnostic.rule_id)} {_escape_text(diagnostic.message)}"
     )
 
 
 def _location(diagnostic: Diagnostic) -> str:
-    rendered = diagnostic.path.as_posix() if diagnostic.path is not None else "<project>"
+    rendered = (
+        _escape_text(diagnostic.path.as_posix())
+        if diagnostic.path is not None
+        else "<project>"
+    )
     if diagnostic.line is not None:
         rendered += f":{diagnostic.line}"
     if diagnostic.column is not None:
         rendered += f":{diagnostic.column}"
     return rendered
+
+
+def _escape_text(value: str) -> str:
+    """Escape control characters that would make text diagnostics ambiguous."""
+
+    replacements = {"\t": r"\t", "\n": r"\n", "\r": r"\r"}
+    return "".join(
+        replacements.get(
+            character,
+            f"\\x{ord(character):02x}" if ord(character) < 32 else character,
+        )
+        for character in value
+    )
 
 
 def _json_record(diagnostic: Diagnostic) -> dict[str, object]:

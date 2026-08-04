@@ -6,9 +6,8 @@ import fnmatch
 from dataclasses import dataclass
 from datetime import date
 
-from pathspec import GitIgnoreSpec
-
 from mdrepo.config import ApplicationConfig, ExceptionConfig
+from mdrepo.gitignore import parse_gitignore
 from mdrepo.models import Diagnostic
 
 
@@ -105,7 +104,7 @@ def _matches(*, exception: ExceptionConfig, diagnostic: Diagnostic) -> bool:
         return False
 
     path_value = diagnostic.path.as_posix() if diagnostic.path is not None else "<project>"
-    path_spec = GitIgnoreSpec.from_lines([exception.path])
+    path_spec = parse_gitignore([exception.path], source=f"exception {exception.id!r}")
     if not path_spec.match_file(path_value):
         return False
 

@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from pathspec import GitIgnoreSpec
+from pathspec.patterns.gitignore import GitIgnorePatternError
 
 
 class GitIgnoreError(RuntimeError):
@@ -45,7 +46,7 @@ class TargetDurabilityPolicy:
 
         return cls(
             root=root,
-            mdrepo_exclude=GitIgnoreSpec.from_lines(exclude_patterns),
+            mdrepo_exclude=parse_gitignore(exclude_patterns, source="mdrepo exclude policy"),
         )
 
     def classify(self, target: Path) -> TargetDurability:
@@ -114,9 +115,19 @@ def _load_gitignore(path: Path) -> GitIgnoreSpec | None:
     if not path.is_file() or path.is_symlink():
         return None
     try:
-        return GitIgnoreSpec.from_lines(path.read_text(encoding="utf-8").splitlines())
+        lines = path.read_text(encoding="utf-8").splitlines()
     except (OSError, UnicodeError) as error:
         raise GitIgnoreError(f"unable to read repository .gitignore: {path}: {error}") from error
+    return parse_gitignore(lines, source=f"repository .gitignore {path}")
+
+
+def parse_gitignore(lines: Sequence[str], *, source: str) -> GitIgnoreSpec:
+    """Parse Git-ignore patterns and convert invalid syntax to a CLI-safe error."""
+
+    try:
+        return GitIgnoreSpec.from_lines(lines)
+    except GitIgnorePatternError as error:
+        raise GitIgnoreError(f"invalid Git-ignore pattern in {source}: {error}") from error
 
 
 def _last_gitignore_match(spec: GitIgnoreSpec, relative: str) -> bool | None:
