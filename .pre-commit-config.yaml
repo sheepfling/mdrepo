@@ -3,7 +3,7 @@ repos:
     hooks:
       - id: mdrepo
         name: mdrepo repository policy
-        entry: mdrepo check .
+        entry: python -m mdrepo check .
         language: system
         types: [ markdown ]
         pass_filenames: false

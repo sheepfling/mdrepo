@@ -10,7 +10,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-MARKDOWN_ROOTS = ("README.md", "CHANGELOG.md", "docs")
+MARKDOWN_ROOTS = (".",)
 
 
 def _rumdl_command() -> str:
