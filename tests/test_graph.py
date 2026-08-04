@@ -63,6 +63,58 @@ reason = "The changelog is discovered by package tooling instead."
     assert "suppressed by: standalone-changelog" in output
 
 
+def test_gitignored_documents_do_not_enter_orphan_graph(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[tool.mdrepo.orphans]
+enabled = true
+roots = ["README.md"]
+""".strip(),
+        encoding="utf-8",
+    )
+    (tmp_path / ".gitignore").write_text("generated.md\n", encoding="utf-8")
+    (tmp_path / "README.md").write_text("# Root\n", encoding="utf-8")
+    (tmp_path / "generated.md").write_text("[Guide](guide.md)\n", encoding="utf-8")
+    (tmp_path / "guide.md").write_text("# Guide\n", encoding="utf-8")
+
+    assert main(["check", "."]) == 1
+    output = capsys.readouterr().out
+    assert "guide.md" in output
+    assert "generated.md" not in output
+
+
+def test_respecting_gitignore_removes_ignored_sources_but_keeps_durability_check(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[tool.mdrepo]
+respect-gitignore = true
+
+[tool.mdrepo.orphans]
+enabled = true
+roots = ["README.md"]
+""".strip(),
+        encoding="utf-8",
+    )
+    (tmp_path / ".gitignore").write_text("generated.md\n", encoding="utf-8")
+    (tmp_path / "README.md").write_text("[Generated](generated.md)\n", encoding="utf-8")
+    (tmp_path / "generated.md").write_text("[Bad](docs\\guide.md)\n", encoding="utf-8")
+
+    assert main(["check", "."]) == 1
+    output = capsys.readouterr().out
+    assert "MDR006" in output
+    assert "MDR001" not in output
+
+
 def test_graph_command_emits_dot(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

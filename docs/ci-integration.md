@@ -83,6 +83,7 @@ For a notes repository, make the scope explicit:
 ```toml
 [tool.mdrepo]
 include = ["*.md", "**/*.md"]
+respect-gitignore = true
 exclude = [
     "inbox/**",
     "artifacts/**",
@@ -114,8 +115,10 @@ Markdown discovery does not automatically use `.gitignore` as an include/exclude
 files are scanned when they match `include` and do not match `exclude`; generated, scratch, vendor,
 and legacy trees must therefore be excluded explicitly. With durable-target checking enabled,
 `MDR006` separately reads applicable repository `.gitignore` files and reports existing links to
-ignored targets. Explicit file and directory selections remain constrained by the resolved
-`include`/`exclude` policy. Symlinks are not admitted to the discovered document set.
+ignored targets. When orphan analysis is enabled, Git-ignored Markdown documents are omitted from
+the graph so they cannot create reachability or orphan noise. Explicit file and directory
+selections remain constrained by the resolved `include`/`exclude` policy. Symlinks are not admitted
+to the discovered document set.
 
 ## GitHub Actions
 

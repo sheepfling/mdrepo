@@ -30,6 +30,60 @@ def test_project_discovery_applies_include_exclude_and_ignores_symlinks(
     ] == ["README.md", "docs/guide.md"]
 
 
+def test_project_discovery_excludes_default_transient_directories(
+    repository: RepositoryBuilder,
+) -> None:
+    repository.markdown("README.md", "# Root\n")
+    repository.markdown("docs/guide.md", "# Guide\n")
+    for directory in (
+        ".git/cache",
+        ".venv311/lib",
+        "nested/__pycache__",
+        ".pytest_cache/v",
+        ".ruff_cache",
+        ".mypy_cache",
+        "build/docs",
+        "dist/docs",
+        "site/docs",
+        "artifacts/docs",
+    ):
+        repository.markdown(f"{directory}/generated.md", "# Generated\n")
+
+    discovered = {
+        path.relative_to(repository.root).as_posix()
+        for path in collect_project_markdown(
+            root=repository.root,
+            config=ApplicationConfig.model_validate({}),
+        )
+    }
+
+    assert discovered == {"README.md", "docs/guide.md"}
+
+
+def test_project_discovery_can_respect_gitignore(
+    repository: RepositoryBuilder,
+) -> None:
+    repository.markdown("README.md", "# Root\n")
+    repository.markdown("generated.md", "# Generated\n")
+    repository.write_text(".gitignore", "generated.md\n")
+
+    assert [
+        path.relative_to(repository.root).as_posix()
+        for path in collect_project_markdown(
+            root=repository.root,
+            config=ApplicationConfig.model_validate({}),
+        )
+    ] == ["README.md"]
+
+    assert [
+        path.relative_to(repository.root).as_posix()
+        for path in collect_project_markdown(
+            root=repository.root,
+            config=ApplicationConfig.model_validate({"respect-gitignore": False}),
+        )
+    ] == ["README.md", "generated.md"]
+
+
 def test_project_discovery_handles_spaces_newlines_and_long_names(
     repository: RepositoryBuilder,
 ) -> None:

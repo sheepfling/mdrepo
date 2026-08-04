@@ -152,6 +152,6 @@ def test_case_rule_and_missing_graph_root_are_guarded(repository: RepositoryBuil
         documents=context.documents,
         selected_documents=context.selected_documents,
         policy_links=(),
-        graph=DocumentGraph(edges={}, roots=(), reachable=frozenset()),
+        graph=DocumentGraph(edges={}, eligible=frozenset(), roots=(), reachable=frozenset()),
     )
     assert MissingGraphRootRule().check(no_root)[0].rule_id == "MDR100"

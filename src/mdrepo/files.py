@@ -6,7 +6,7 @@ import stat
 from pathlib import Path
 
 from mdrepo.config import ApplicationConfig
-from mdrepo.gitignore import parse_gitignore
+from mdrepo.gitignore import is_gitignored, parse_gitignore
 
 
 class FileDiscoveryError(RuntimeError):
@@ -27,7 +27,10 @@ def collect_project_markdown(*, root: Path, config: ApplicationConfig) -> tuple[
             if exclude_spec.match_file(relative):
                 continue
             if include_spec.match_file(relative):
-                collected.append(path.resolve())
+                resolved = path.resolve()
+                if config.respect_gitignore and is_gitignored(root=root, target=resolved):
+                    continue
+                collected.append(resolved)
     except OSError as error:
         raise FileDiscoveryError(
             f"unable to inspect repository files under {root}: {error}"

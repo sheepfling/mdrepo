@@ -15,6 +15,18 @@ from mdrepo.models import OutputFormat, Severity
 
 _CONFIG_FILENAMES = ("pyproject.toml", "mdrepo.toml", ".mdrepo.toml")
 _EXCEPTION_HEALTH_RULES = {"MDR201", "MDR202"}
+_DEFAULT_EXCLUDE_PATTERNS = (
+    "**/.git/**",
+    "**/.venv*/**",
+    "**/__pycache__/**",
+    "**/.pytest_cache/**",
+    "**/.ruff_cache/**",
+    "**/.mypy_cache/**",
+    "**/build/**",
+    "**/dist/**",
+    "**/site/**",
+    "**/artifacts/**",
+)
 
 
 class ConfigurationError(RuntimeError):
@@ -143,15 +155,8 @@ class ApplicationConfig(ConfigModel):
     """Complete configuration for one repository run."""
 
     include: list[str] = Field(default_factory=lambda: ["*.md", "**/*.md"])
-    exclude: list[str] = Field(
-        default_factory=lambda: [
-            ".git/**",
-            ".venv/**",
-            "build/**",
-            "dist/**",
-            "site/**",
-        ]
-    )
+    respect_gitignore: bool = True
+    exclude: list[str] = Field(default_factory=lambda: list(_DEFAULT_EXCLUDE_PATTERNS))
     encoding: str = "utf-8"
     output: OutputFormat = OutputFormat.TEXT
     fail_on: Severity = Severity.ERROR
@@ -160,6 +165,26 @@ class ApplicationConfig(ConfigModel):
     orphans: OrphanConfig = Field(default_factory=OrphanConfig)
     exception_policy: ExceptionPolicyConfig = Field(default_factory=ExceptionPolicyConfig)
     exceptions: list[ExceptionConfig] = Field(default_factory=lambda: list[ExceptionConfig]())
+
+    @model_validator(mode="before")
+    @classmethod
+    def _retain_default_excludes(cls, values: object) -> object:
+        if not isinstance(values, dict):
+            return values
+
+        raw = cast(dict[str, Any], values)
+        configured_value = raw.get("exclude")
+        if not isinstance(configured_value, list):
+            return raw
+
+        configured = cast(list[Any], configured_value)
+        merged: list[Any] = list(_DEFAULT_EXCLUDE_PATTERNS)
+        for pattern in configured:
+            if pattern not in merged:
+                merged.append(pattern)
+        normalized = copy.deepcopy(raw)
+        normalized["exclude"] = merged
+        return normalized
 
     @model_validator(mode="after")
     def _validate_exception_ids(self) -> ApplicationConfig:

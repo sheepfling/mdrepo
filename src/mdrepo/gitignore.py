@@ -65,7 +65,7 @@ class TargetDurabilityPolicy:
 
         relative = target.relative_to(self.root).as_posix()
         return TargetDurability(
-            gitignored=_is_gitignored(root=self.root, target=target),
+            gitignored=is_gitignored(root=self.root, target=target),
             mdrepo_excluded=(
                 _last_gitignore_match(
                     self.mdrepo_exclude,
@@ -91,7 +91,7 @@ def _ancestor_directories(*, root: Path, target: Path) -> tuple[Path, ...]:
     return tuple(directories)
 
 
-def _is_gitignored(*, root: Path, target: Path) -> bool:
+def is_gitignored(*, root: Path, target: Path) -> bool:
     """Apply Git's parent-directory traversal rule before file negations."""
 
     directories = _ancestor_directories(root=root, target=target)
