@@ -1,4 +1,4 @@
-"""Repository Git-ignore interpretation for durable local-link checks."""
+"""Repository Git-ignore parsing and policy evaluation."""
 
 from __future__ import annotations
 
@@ -16,7 +16,6 @@ class GitIgnoreError(RuntimeError):
 
 
 class _GitIgnorePattern(Protocol):
-    pattern: object
     include: bool
 
     def match_file(self, file: str) -> bool:
@@ -66,13 +65,10 @@ class TargetDurabilityPolicy:
         relative = target.relative_to(self.root).as_posix()
         return TargetDurability(
             gitignored=is_gitignored(root=self.root, target=target),
-            mdrepo_excluded=(
-                _last_gitignore_match(
-                    self.mdrepo_exclude,
-                    relative,
-                    is_directory=target.is_dir(),
-                )
-                is True
+            mdrepo_excluded=matches_gitignore(
+                self.mdrepo_exclude,
+                relative,
+                is_directory=target.is_dir(),
             ),
         )
 
@@ -161,6 +157,17 @@ def parse_gitignore(lines: Sequence[str], *, source: str) -> GitIgnoreSpec:
         raise GitIgnoreError(f"invalid Git-ignore pattern in {source}: {error}") from error
 
 
+def matches_gitignore(
+    spec: GitIgnoreSpec,
+    relative: str,
+    *,
+    is_directory: bool,
+) -> bool:
+    """Return the ordered Git-ignore decision for one repository-relative path."""
+
+    return _last_gitignore_match(spec, relative, is_directory=is_directory) is True
+
+
 def _last_gitignore_match(
     spec: GitIgnoreSpec,
     relative: str,
@@ -172,9 +179,6 @@ def _last_gitignore_match(
     decision: bool | None = None
     patterns = cast(Sequence[_GitIgnorePattern], spec.patterns)
     for pattern in patterns:
-        pattern_text = pattern.pattern
-        if isinstance(pattern_text, str) and pattern_text.endswith("/") and not is_directory:
-            continue
         if pattern.match_file(relative) or (is_directory and pattern.match_file(f"{relative}/")):
             decision = pattern.include
     return decision

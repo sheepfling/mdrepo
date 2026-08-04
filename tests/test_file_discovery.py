@@ -44,8 +44,6 @@ def test_project_discovery_excludes_default_transient_directories(
         ".mypy_cache",
         "build/docs",
         "dist/docs",
-        "site/docs",
-        "artifacts/docs",
     ):
         repository.markdown(f"{directory}/generated.md", "# Generated\n")
 
@@ -58,6 +56,17 @@ def test_project_discovery_excludes_default_transient_directories(
     }
 
     assert discovered == {"README.md", "docs/guide.md"}
+
+
+def test_top_level_exclude_can_reinclude_default_pattern(
+    repository: RepositoryBuilder,
+) -> None:
+    repository.markdown("build/keep.md", "# Keep\n")
+    config = ApplicationConfig.model_validate({"exclude": ["!build/keep.md"]})
+
+    assert collect_project_markdown(root=repository.root, config=config) == (
+        repository.root / "build" / "keep.md",
+    )
 
 
 def test_project_discovery_can_respect_gitignore(
@@ -82,6 +91,26 @@ def test_project_discovery_can_respect_gitignore(
             config=ApplicationConfig.model_validate({"respect-gitignore": False}),
         )
     ] == ["README.md", "generated.md"]
+
+
+def test_project_discovery_preserves_repeated_exclude_patterns_after_negation(
+    repository: RepositoryBuilder,
+) -> None:
+    repository.markdown("foo/keep.md", "# Keep\n")
+    repository.markdown("site/keep.md", "# Keep\n")
+    config = ApplicationConfig.model_validate(
+        {
+            "exclude": [
+                "foo/**",
+                "!foo/keep.md",
+                "foo/**",
+                "!**/site/keep.md",
+                "**/site/**",
+            ]
+        }
+    )
+
+    assert collect_project_markdown(root=repository.root, config=config) == ()
 
 
 def test_project_discovery_handles_spaces_newlines_and_long_names(
