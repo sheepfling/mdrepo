@@ -2,6 +2,9 @@
 
 ## 0.2.1
 
+- Added `MDR006` to reject existing local links that are excluded by applicable `.gitignore` files
+  or mdrepo's own discovery exclusions, preventing links to transient artifacts from passing only
+  an existence check.
 - Added an explicit responsibility contract defining the boundary between rumdl, `mdrepo`, network
   checking, and documentation-site builds.
 - Documented one authoritative owner for missing targets, fragments, path portability, document
@@ -16,7 +19,7 @@
 - Added a repository-local CI runner covering compilation, Ruff, formatting, coverage tests,
   isolated sdist/wheel builds, Pyright, rumdl, and the `mdrepo`
   self-check.
-- Added cross-platform CI coverage for Windows and Ubuntu on Python 3.12, 3.13, and 3.14.
+- Added cross-platform CI coverage for Windows and Ubuntu on Python 3.11, 3.12, 3.13, and 3.14.
 - Added strict Pyright checking, branch coverage reporting, `twine check` packaging validation,
   and pre-commit configuration and hook validation.
 - Made the repository's default orphan policy part of CI self-checks.

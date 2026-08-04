@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Protocol
 
 from mdrepo.config import ApplicationConfig
+from mdrepo.gitignore import TargetDurabilityPolicy
 from mdrepo.graph import DocumentGraph
 from mdrepo.models import (
     Diagnostic,
@@ -54,6 +55,13 @@ RULE_METADATA: tuple[RuleMetadata, ...] = (
         description="Local path spelling must match on-disk case for cross-platform builds.",
         default_severity=Severity.ERROR,
         fixable=True,
+    ),
+    RuleMetadata(
+        rule_id="MDR006",
+        name="non-durable-local-target",
+        description="Local targets must not be excluded by Git or mdrepo discovery policy.",
+        default_severity=Severity.ERROR,
+        fixable=False,
     ),
     RuleMetadata(
         rule_id="MDR100",
@@ -272,6 +280,51 @@ class LocalTargetCaseRule:
         return tuple(diagnostics)
 
 
+class NonDurableLocalTargetRule:
+    """MDR006 implementation."""
+
+    metadata = RULES_BY_ID["MDR006"]
+
+    def check(self, context: RuleContext) -> tuple[Diagnostic, ...]:
+        if not context.config.links.check_durable_targets:
+            return ()
+
+        policy = TargetDurabilityPolicy.from_repository(
+            root=context.root,
+            exclude_patterns=context.config.exclude,
+        )
+        diagnostics: list[Diagnostic] = []
+        for link in context.policy_links:
+            local = link.local
+            if (
+                local is None
+                or not local.exists
+                or local.outside_root
+                or local.canonical_path is None
+            ):
+                continue
+            durability = policy.classify(local.canonical_path)
+            if not durability.excluded:
+                continue
+
+            reasons: list[str] = []
+            if durability.gitignored:
+                reasons.append(".gitignore")
+            if durability.mdrepo_excluded:
+                reasons.append("mdrepo exclude policy")
+            diagnostics.append(
+                _link_diagnostic(
+                    metadata=self.metadata,
+                    link=link,
+                    message=(
+                        "local target is not durable because it is excluded by "
+                        f"{' and '.join(reasons)}"
+                    ),
+                )
+            )
+        return tuple(diagnostics)
+
+
 class MissingGraphRootRule:
     """MDR100 implementation."""
 
@@ -326,6 +379,7 @@ BUILTIN_RULES: tuple[Rule, ...] = (
     RepositoryEscapeRule(),
     MissingLocalTargetRule(),
     LocalTargetCaseRule(),
+    NonDurableLocalTargetRule(),
     MissingGraphRootRule(),
     OrphanDocumentRule(),
 )

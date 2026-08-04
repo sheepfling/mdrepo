@@ -13,6 +13,7 @@ from mdrepo.config import ConfigurationError, LoadedConfig, load_configuration
 from mdrepo.engine import EngineError, RunResult, run_repository
 from mdrepo.files import FileDiscoveryError
 from mdrepo.fixes import FixError, apply_fixes, collect_fixes
+from mdrepo.gitignore import GitIgnoreError
 from mdrepo.graph import DocumentGraph
 from mdrepo.models import OutputFormat, Severity
 from mdrepo.reporting import TextWriter, should_fail, write_diagnostics
@@ -37,6 +38,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         EngineError,
         FileDiscoveryError,
         FixError,
+        GitIgnoreError,
     ) as error:
         print(f"mdrepo: error: {error}", file=sys.stderr)
         return 2

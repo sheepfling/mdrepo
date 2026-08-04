@@ -3,7 +3,7 @@
 > **Portable links. Reachable docs. Exceptions that do not quietly live forever.**
 
 [![CI][ci-badge]][ci]
-[![Python 3.12+][python-badge]][python]
+[![Python 3.11+][python-badge]][python]
 [![License: MIT][license-badge]][license]
 [![Typing: strict Pyright][typing-badge]][typing]
 [![Lint: Ruff][ruff-badge]][ruff]
@@ -11,7 +11,7 @@
 
 Most Markdown linters stop at the file boundary. `mdrepo` starts at the repository boundary.
 
-`mdrepo` is a focused Python 3.12+ CLI for policies that require cross-platform filesystem
+`mdrepo` is a focused Python 3.11+ CLI for policies that require cross-platform filesystem
 semantics or a view of the complete documentation set. It complements [rumdl][rumdl] rather than
 replacing it.
 
@@ -39,7 +39,7 @@ For development inside this repository:
 
 ```bash
 uv sync --extra dev
-uv run mdrepo check .
+uv run python -m mdrepo check .
 ```
 
 Preview the deliberately narrow safe-fix set before changing files:
@@ -87,6 +87,7 @@ MkDocs guidance, guarantees, and non-goals.
 | Portable destinations | Backslashes, local absolute paths, and disallowed root-relative paths |
 | Repository boundaries | Local destinations that resolve outside the configured root |
 | Exact path case | Links that pass on case-insensitive filesystems and fail on Linux |
+| Durable local targets | Existing links to Git-ignored or mdrepo-excluded files |
 | Rooted document graph | Pages disconnected from configured roots |
 | Structured exceptions | Anonymous ignores, expired waivers, and stale policy debt |
 | Conservative fixing | Ambiguous edits, overlapping replacements, and changed CRLF line endings |
@@ -119,7 +120,8 @@ roots = ["README.md", "docs/index.md"]
 
 The link-policy defaults are strict and portable. In the normal paired workflow,
 `links.check-missing-targets` remains `false` so rumdl `MD057` is the sole authority for ordinary
-missing targets.
+missing targets. `links.check-durable-targets` remains enabled so existing links cannot silently
+point at transient or excluded files.
 
 ### Structured exceptions
 
@@ -155,18 +157,24 @@ Run document formatting first, then repository-policy fixes, and finish with rea
 uvx rumdl check --fix .
 mdrepo fix .
 uvx rumdl check .
-mdrepo check .
+python -m mdrepo check .
 ```
 
 In CI, keep the two authorities visible and independent:
 
 ```bash
 rumdl check .
-mdrepo check . --format github
+python -m mdrepo check . --format github
 ```
 
 A green run means the Markdown layer and repository-policy layer are clean. It does not claim that
 remote websites respond or that a documentation generator can build the published site.
+
+## CI integration
+
+See the [CI integration guide](docs/ci-integration.md) for `mdrepo`'s standalone installation,
+root and configuration contract, mutation ordering, exclusions, platform commands, exit codes,
+and a minimal GitHub Actions job.
 
 `MDR004` is available as a standalone missing-target fallback, but it remains disabled in the normal
 rumdl workflow to avoid duplicate ownership and duplicate diagnostics.
@@ -208,6 +216,7 @@ Exit statuses are stable:
 | `MDR003` | Local destination escapes the repository root | No |
 | `MDR004` | Standalone missing-target fallback; disabled with rumdl | No |
 | `MDR005` | Path spelling differs from exact on-disk case | Yes |
+| `MDR006` | Existing local target is Git-ignored or mdrepo-excluded | No |
 | `MDR100` | No configured orphan-graph root exists | No |
 | `MDR101` | Markdown document is unreachable from all roots | No |
 | `MDR201` | Structured exception is expired | No |
@@ -216,6 +225,10 @@ Exit statuses are stable:
 Rule IDs use the `MDR` namespace so they remain distinct from rumdl's `MD` rules.
 
 ## Automation
+
+See the [CI integration guide](docs/ci-integration.md) for the installation pin, execution
+directory, discovery and exclusion rules, mutation order, platform examples, exit codes, and a
+minimal GitHub Actions job.
 
 Use GitHub output to create native annotations. Until a package release is published, pin the
 repository to a commit or tag:
@@ -263,7 +276,7 @@ uv run python -m scripts.ci --fix
 uv run python -m scripts.ci
 ```
 
-Hosted CI covers Ubuntu and Windows on Python 3.12, 3.13, and 3.14. The gate includes compilation,
+Hosted CI covers Ubuntu and Windows on Python 3.11, 3.12, 3.13, and 3.14. The gate includes compilation,
 Ruff lint and formatting, branch-coverage tests, isolated sdist and wheel validation, strict
 Pyright, rumdl, pre-commit validation, and an `mdrepo` self-check.
 
@@ -271,6 +284,7 @@ Pyright, rumdl, pre-commit validation, and an `mdrepo` self-check.
 
 - [Responsibility boundary](docs/responsibility-boundary.md)
 - [Configuration reference](docs/configuration.md)
+- [CI integration](docs/ci-integration.md)
 - [Design notes](docs/design.md)
 - [Changelog](CHANGELOG.md)
 
@@ -282,7 +296,7 @@ Pyright, rumdl, pre-commit validation, and an `mdrepo` self-check.
 [license]: LICENSE
 [pre-commit-badge]: https://img.shields.io/badge/pre--commit-enabled-FAB040?logo=pre-commit
 [pre-commit]: .pre-commit-config.yaml
-[python-badge]: https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white
+[python-badge]: https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white
 [python]: https://www.python.org/downloads/
 [ruff-badge]: https://img.shields.io/badge/lint-Ruff-D7FF64?logo=ruff&logoColor=261230
 [ruff]: https://docs.astral.sh/ruff/
