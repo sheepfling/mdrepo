@@ -149,6 +149,10 @@ Unknown configuration keys are errors. Repeated `--config` overlays and typed
 See the [configuration reference](docs/configuration.md) for discovery patterns, link policy, graph
 resolution, rule selection, severity overrides, and configuration layering.
 
+This repository is also a complete integration example: see its [`pyproject.toml`](pyproject.toml)
+for independent rumdl and mdrepo configuration, and the [CI integration guide](docs/ci-integration.md)
+for dependency, hook, and CI setup patterns.
+
 By default, discovery excludes Markdown files matched by the repository's `.gitignore`, along with
 common transient locations such as virtual environments, tool caches, `build/`, and `dist/`. Use
 top-level `exclude` patterns for project-specific generated or legacy trees. Set
@@ -258,6 +262,9 @@ repos:
     hooks:
       - id: mdrepo
 ```
+
+For an editable checkout, a local `language: system` hook is also supported. See the [CI integration
+guide](docs/ci-integration.md) for both forms and their execution contract.
 
 ## Deliberate boundaries
 
