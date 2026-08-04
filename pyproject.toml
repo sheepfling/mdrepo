@@ -8,7 +8,6 @@ dynamic = ["version"]
 description = "Repository-aware Markdown policy checks for portable links, reachable docs, and governed exceptions."
 readme = "README.md"
 license = { file = "LICENSE" }
-license-files = ["LICENSE"]
 requires-python = ">=3.11"
 authors = [
 ]
