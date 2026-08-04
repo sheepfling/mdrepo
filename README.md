@@ -149,6 +149,12 @@ Unknown configuration keys are errors. Repeated `--config` overlays and typed
 See the [configuration reference](docs/configuration.md) for discovery patterns, link policy, graph
 resolution, rule selection, severity overrides, and configuration layering.
 
+By default, discovery excludes Markdown files matched by the repository's `.gitignore`, along with
+common transient locations such as virtual environments, tool caches, `build/`, and `dist/`. Use
+top-level `exclude` patterns for project-specific generated or legacy trees. Set
+`respect-gitignore = false` only when ignored Markdown should be inspected explicitly; those files
+remain outside the orphan graph, and links to them can still receive `MDR006`.
+
 ## Recommended workflow with rumdl
 
 Run document formatting first, then repository-policy fixes, and finish with read-only checks:
@@ -230,18 +236,18 @@ See the [CI integration guide](docs/ci-integration.md) for the installation pin,
 directory, discovery and exclusion rules, mutation order, platform examples, exit codes, and a
 minimal GitHub Actions job.
 
-Use GitHub output to create native annotations. Until a package release is published, pin the
-repository to a commit or tag:
+Use GitHub output to create native annotations. For the current released package, pin the
+distribution in CI:
 
 ```yaml
 - name: Install mdrepo
-  run: >-
-    python -m pip install
-    "git+https://github.com/sheepfling/mdrepo.git@<commit-or-tag>"
+  run: python -m pip install "mdrepo==0.0.1a2"
 
 - name: Check Markdown repository policy
   run: mdrepo check . --format github
 ```
+
+For unreleased changes, pin a repository commit or tag instead.
 
 The repository also exports a `mdrepo` pre-commit hook. Pin a tagged release when consuming it:
 
