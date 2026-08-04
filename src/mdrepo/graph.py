@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from mdrepo.config import ApplicationConfig
+from mdrepo.gitignore import is_gitignored
 from mdrepo.models import Document, LinkKind, LinkOccurrence
 from mdrepo.resolution import canonicalize_case, resolve_graph_document, resolve_local_target
 
@@ -17,6 +18,7 @@ class DocumentGraph:
     """Directed graph of Markdown documents linked from other Markdown documents."""
 
     edges: dict[Path, frozenset[Path]]
+    eligible: frozenset[Path]
     roots: tuple[Path, ...]
     reachable: frozenset[Path]
 
@@ -29,8 +31,13 @@ def build_document_graph(
 ) -> DocumentGraph:
     """Build local Markdown-link edges, then walk configured roots."""
 
-    mutable_edges: dict[Path, set[Path]] = {path: set() for path in documents}
-    for document in documents.values():
+    eligible_documents = {
+        path: document
+        for path, document in documents.items()
+        if not is_gitignored(root=root, target=path)
+    }
+    mutable_edges: dict[Path, set[Path]] = {path: set() for path in eligible_documents}
+    for document in eligible_documents.values():
         for occurrence in document.links:
             if occurrence.kind is LinkKind.IMAGE:
                 continue
@@ -39,7 +46,7 @@ def build_document_graph(
                 root=root,
                 document=document,
                 occurrence=occurrence,
-                documents=documents,
+                documents=eligible_documents,
                 config=config,
             )
             if target_document is not None:
@@ -48,7 +55,7 @@ def build_document_graph(
     roots = _resolve_roots(
         root=root,
         configured=config.orphans.roots,
-        documents=documents,
+        documents=eligible_documents,
     )
     frozen_edges = {
         path: frozenset(targets)
@@ -60,6 +67,7 @@ def build_document_graph(
     reachable = _walk(edges=frozen_edges, roots=roots)
     return DocumentGraph(
         edges=frozen_edges,
+        eligible=frozenset(eligible_documents),
         roots=roots,
         reachable=frozenset(reachable),
     )

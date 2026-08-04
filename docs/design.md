@@ -42,7 +42,8 @@ disabled by default and should stay disabled when rumdl `MD057` runs.
 4. Record direct destinations, autolinks, reference uses, and reference definitions separately.
 5. Resolve selected documents' policy destinations against the repository filesystem.
 6. Classify existing local targets against `.gitignore` and mdrepo exclusion policy.
-7. Build the complete document graph when orphan analysis or graph output is requested.
+7. Build the durable document graph when orphan analysis or graph output is requested; Git-ignored
+   documents are omitted from its nodes and edges.
 8. Run the fixed built-in rule registry.
 9. Apply structured exceptions and produce exception-health diagnostics.
 10. Render text, JSON, or GitHub Actions diagnostics.

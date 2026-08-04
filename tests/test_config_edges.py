@@ -90,6 +90,15 @@ def test_application_config_normalizes_rules_extensions_and_exceptions() -> None
     assert config.exceptions[0].rule == "MDR101"
 
 
+def test_application_config_retains_and_deduplicates_default_excludes() -> None:
+    config = ApplicationConfig.model_validate({"exclude": ["**/dist/**", "notes/**", "notes/**"]})
+
+    assert config.exclude.count("**/dist/**") == 1
+    assert config.exclude.count("notes/**") == 1
+    assert "**/__pycache__/**" in config.exclude
+    assert config.exclude[-1] == "notes/**"
+
+
 @pytest.mark.parametrize(
     "payload",
     [

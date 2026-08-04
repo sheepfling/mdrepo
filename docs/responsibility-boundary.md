@@ -138,7 +138,7 @@ ordinary lint rules, checks local file targets, and validates heading fragments.
 3. parses Markdown link destinations and reference definitions;
 4. resolves local destinations against the repository filesystem;
 5. applies portable-path and exact-case policy;
-6. optionally constructs the rooted documentation graph;
+6. optionally constructs the rooted documentation graph from non-Git-ignored documents;
 7. applies structured exceptions and reports their health;
 8. emits text, JSON, or GitHub Actions diagnostics.
 

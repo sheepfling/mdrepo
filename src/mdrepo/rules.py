@@ -357,6 +357,8 @@ class OrphanDocumentRule:
             context.selected_documents,
             key=lambda item: item.relative_path.as_posix(),
         ):
+            if document.path not in context.graph.eligible:
+                continue
             if document.path in context.graph.reachable:
                 continue
             diagnostics.append(
