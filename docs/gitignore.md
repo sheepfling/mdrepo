@@ -66,6 +66,12 @@ Git from traversing to the descendant.
 
 ## Semantics
 
+Pattern parsing and matching follow Git's documented `gitignore` pattern format, including
+comments, escaped leading `#` and `!`, trailing-space handling, directory-only patterns, anchored
+patterns, shell globs, and the three special `**` forms. See the
+[Git `gitignore` documentation](https://git-scm.com/docs/gitignore) for the normative pattern
+definition.
+
 The evaluator applies repository `.gitignore` files in order from the root toward the target:
 
 - root and nested `.gitignore` files are considered;
