@@ -338,6 +338,24 @@ def test_gitignore_engine_prunes_ignored_directories_and_supports_topdown_prunin
     assert "kept/nested" not in visited
 
 
+def test_gitignore_engine_does_not_prune_contents_only_ignored_directories(
+    repository: RepositoryBuilder,
+) -> None:
+    repository.write_text(".gitignore", "docs/**\n!docs/keep.md\n")
+    repository.write_text("docs/keep.md", "keep\n")
+    repository.write_text("docs/drop.md", "drop\n")
+    engine = GitIgnoreEngine(repository.root)
+
+    unignored_files = {
+        (directory / name).relative_to(repository.root).as_posix()
+        for directory, _, filenames in engine.walk(ignored=False)
+        for name in filenames
+    }
+
+    assert "docs/keep.md" in unignored_files
+    assert "docs/drop.md" not in unignored_files
+
+
 def test_gitignore_engine_ignored_walk_descends_through_unignored_directories(
     repository: RepositoryBuilder,
 ) -> None:

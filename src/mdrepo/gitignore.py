@@ -468,9 +468,19 @@ def _last_gitignore_pattern(
     decision: tuple[_GitIgnorePattern, int] | None = None
     patterns = cast(Sequence[_GitIgnorePattern], cast(object, spec.patterns))
     for index, pattern in enumerate(patterns):
-        if pattern.match_file(relative) or (is_directory and pattern.match_file(f"{relative}/")):
+        if pattern.match_file(relative) or (
+            is_directory
+            and not _is_contents_only_pattern(pattern.pattern)
+            and pattern.match_file(f"{relative}/")
+        ):
             decision = pattern, index
     return decision
+
+
+def _is_contents_only_pattern(pattern: str) -> bool:
+    """Return whether a pattern applies below a directory, not to that directory itself."""
+
+    return pattern.rstrip().endswith("/**")
 
 
 def _match_loaded_ignore(
