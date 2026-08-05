@@ -2,7 +2,6 @@
 
 > **Portable links. Reachable docs. Exceptions that do not quietly live forever.**
 
-[![CI][ci-badge]][ci]
 [![Python 3.11+][python-badge]][python]
 [![License: MIT][license-badge]][license]
 [![Typing: strict Pyright][typing-badge]][typing]
@@ -256,7 +255,7 @@ distribution in CI:
 
 ```yaml
 - name: Install mdrepo
-  run: python -m pip install "mdrepo==0.0.1a2"
+  run: python -m pip install "mdrepo==0.0.1"
 
 - name: Check Markdown repository policy
   run: mdrepo check . --format github
@@ -264,18 +263,9 @@ distribution in CI:
 
 For unreleased changes, pin a repository commit or tag instead.
 
-The repository also exports a `mdrepo` pre-commit hook. Pin a tagged release when consuming it:
-
-```yaml
-repos:
-  - repo: https://github.com/sheepfling/mdrepo
-    rev: <release-tag>
-    hooks:
-      - id: mdrepo
-```
-
-For an editable checkout, a local `language: system` hook is also supported. See the [CI integration
-guide](docs/ci-integration.md) for both forms and their execution contract.
+The package also provides a `mdrepo` pre-commit hook. Install the package into the environment
+used by pre-commit and use the local `language: system` form shown in the [CI integration guide]
+(docs/ci-integration.md).
 
 ## Deliberate boundaries
 
@@ -312,10 +302,6 @@ Pyright, rumdl, pre-commit validation, and an `mdrepo` self-check.
 - [CI integration](docs/ci-integration.md)
 - [Design notes](docs/design.md)
 - [Changelog](CHANGELOG.md)
-
-[ci-badge]: https://github.com/sheepfling/mdrepo/actions/workflows/ci.yml/badge.svg?branch=main
-
-[ci]: https://github.com/sheepfling/mdrepo/actions/workflows/ci.yml?query=branch%3Amain
 
 [license-badge]: https://img.shields.io/badge/license-MIT-blue.svg
 

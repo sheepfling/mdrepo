@@ -147,19 +147,7 @@ resolved `include`/`exclude` policy. Symlinks are not admitted to the discovered
 
 ## Pre-commit integration
 
-Choose one hook form for a consuming repository. The published hook is convenient when pinning a
-release:
-
-```yaml
-repos:
-  - repo: https://github.com/sheepfling/mdrepo
-    rev: v0.0.1.a2
-    hooks:
-      - id: mdrepo
-```
-
-For an editable checkout or a repository that already installs its development tools, use a local
-system hook instead:
+For a repository that installs `mdrepo` into its development environment, use a local system hook:
 
 ```yaml
 repos:
