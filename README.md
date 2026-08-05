@@ -263,9 +263,9 @@ distribution in CI:
 
 For unreleased changes, pin a repository commit or tag instead.
 
-The package also provides a `mdrepo` pre-commit hook. Install the package into the environment
-used by pre-commit and use the local `language: system` form shown in the [CI integration guide]
-(docs/ci-integration.md).
+The package also provides a `mdrepo` pre-commit hook. Use the PyPI-backed local hook shown in the
+[CI integration guide](docs/ci-integration.md) to install a pinned release into pre-commit's
+isolated environment.
 
 ## Deliberate boundaries
 

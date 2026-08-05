@@ -147,7 +147,25 @@ resolved `include`/`exclude` policy. Symlinks are not admitted to the discovered
 
 ## Pre-commit integration
 
-For a repository that installs `mdrepo` into its development environment, use a local system hook:
+For a published release, use a local hook with a pinned PyPI dependency. `pre-commit` creates an
+isolated environment and installs `mdrepo` into it:
+
+```yaml
+repos:
+  - repo: local
+    hooks:
+      - id: mdrepo
+        name: mdrepo repository policy
+        entry: mdrepo check .
+        language: python
+        additional_dependencies:
+          - mdrepo==0.0.1
+        pass_filenames: false
+        always_run: true
+```
+
+For an editable checkout or a repository that already installs its development tools, use a local
+system hook instead:
 
 ```yaml
 repos:
@@ -161,10 +179,10 @@ repos:
         pass_filenames: false
 ```
 
-The hook is read-only. It runs from the repository root, checks the complete configured document
-set, and returns a nonzero status for policy findings or configuration failures. `pre-commit`
-passes the selected interpreter environment to the hook; install `mdrepo` into that same
-environment. Do not configure both the published and local forms in the same repository.
+Both forms are read-only. They run from the repository root, check the complete configured
+document set, and return a nonzero status for policy findings or configuration failures. Use one
+form per consuming repository; the PyPI-backed form is the reproducible choice for released
+versions, while the system form is convenient during local development.
 
 ## GitHub Actions
 
