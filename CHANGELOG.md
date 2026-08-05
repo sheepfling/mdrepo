@@ -1,7 +1,20 @@
 # Changelog
 
-Release versions are derived from Git tags by `setuptools-scm`. The project is currently in the
-`0.0.1` pre-release series; the entries below correspond to the published alpha tags.
+Release versions are derived from Git tags by `setuptools-scm`. Version `0.0.1` is the first
+non-prerelease release; the entries below document it and its preceding alpha sequence.
+
+## 0.0.1.post0
+
+- Clarified provider-neutral CI and pre-commit integration guidance.
+- Aligned released-version examples and documented configuration defaults.
+- Added mechanical checks to keep documentation contracts consistent with the implementation.
+
+## 0.0.1
+
+- Published the first non-prerelease package after validating the `0.0.1` alpha series.
+- Consolidated the Git-ignore policy, portable-link, exact-case, document-reachability, and
+  governed-exception checks into the released `mdrepo` package.
+- Added provider-neutral CI and pre-commit integration guidance.
 
 ## 0.0.1a3
 

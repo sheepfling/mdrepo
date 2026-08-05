@@ -13,3 +13,4 @@ repos:
         language: system
         types: [ markdown ]
         pass_filenames: false
+        always_run: true

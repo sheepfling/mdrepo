@@ -5,3 +5,4 @@
   language: python
   types: [ markdown ]
   pass_filenames: false
+  always_run: true

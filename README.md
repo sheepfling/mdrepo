@@ -2,7 +2,6 @@
 
 > **Portable links. Reachable docs. Exceptions that do not quietly live forever.**
 
-[![CI][ci-badge]][ci]
 [![Python 3.11+][python-badge]][python]
 [![License: MIT][license-badge]][license]
 [![Typing: strict Pyright][typing-badge]][typing]
@@ -113,6 +112,7 @@ MkDocs navigation is the only discoverability policy.
 A small paired configuration is often enough:
 
 ```toml
+# mdrepo-doc-example
 [tool.rumdl]
 flavor = "gfm"
 extend-enable = ["MD029", "MD060"]
@@ -245,37 +245,12 @@ Exit statuses are stable:
 
 Rule IDs use the `MDR` namespace so they remain distinct from rumdl's `MD` rules.
 
-## Automation
+## Integration
 
-See the [CI integration guide](docs/ci-integration.md) for the installation pin, execution
-directory, discovery and exclusion rules, mutation order, platform examples, exit codes, and a
-minimal GitHub Actions job.
-
-Use GitHub output to create native annotations. For the current released package, pin the
-distribution in CI:
-
-```yaml
-- name: Install mdrepo
-  run: python -m pip install "mdrepo==0.0.1a2"
-
-- name: Check Markdown repository policy
-  run: mdrepo check . --format github
-```
-
-For unreleased changes, pin a repository commit or tag instead.
-
-The repository also exports a `mdrepo` pre-commit hook. Pin a tagged release when consuming it:
-
-```yaml
-repos:
-  - repo: https://github.com/sheepfling/mdrepo
-    rev: <release-tag>
-    hooks:
-      - id: mdrepo
-```
-
-For an editable checkout, a local `language: system` hook is also supported. See the [CI integration
-guide](docs/ci-integration.md) for both forms and their execution contract.
+See the [CI integration guide](docs/ci-integration.md) for installation, repository-root
+requirements, configuration discovery, exclusions, mutation ordering, platform commands, exit
+codes, CI, and pre-commit setup. That guide is the canonical integration reference; this README
+keeps only the product overview and command summary.
 
 ## Deliberate boundaries
 
@@ -300,9 +275,10 @@ uv run python -m scripts.ci --fix
 uv run python -m scripts.ci
 ```
 
-Hosted CI covers Ubuntu and Windows on Python 3.11, 3.12, 3.13, and 3.14. The gate includes compilation,
-Ruff lint and formatting, branch-coverage tests, isolated sdist and wheel validation, strict
-Pyright, rumdl, pre-commit validation, and an `mdrepo` self-check.
+Hosted CI runs the supported operating-system and Python-version matrix defined in
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml). The gate includes compilation, linting,
+tests, isolated package validation, type checking, documentation checks, pre-commit validation,
+and an `mdrepo` self-check.
 
 ## Documentation
 
@@ -312,10 +288,6 @@ Pyright, rumdl, pre-commit validation, and an `mdrepo` self-check.
 - [CI integration](docs/ci-integration.md)
 - [Design notes](docs/design.md)
 - [Changelog](CHANGELOG.md)
-
-[ci-badge]: https://github.com/sheepfling/mdrepo/actions/workflows/ci.yml/badge.svg?branch=main
-
-[ci]: https://github.com/sheepfling/mdrepo/actions/workflows/ci.yml?query=branch%3Amain
 
 [license-badge]: https://img.shields.io/badge/license-MIT-blue.svg
 

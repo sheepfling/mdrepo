@@ -34,10 +34,13 @@ Pin `mdrepo` in the consuming project's development dependencies:
 ```toml
 [project.optional-dependencies]
 dev = [
-    "mdrepo==0.0.1a2",
+    "mdrepo==0.0.1",
     "rumdl>=0.2.49,<0.3",
 ]
 ```
+
+The version pin in this guide is the current published release. Update the pin when selecting a
+different release, and update the matching pre-commit pin below at the same time.
 
 Install it into the interpreter used by CI:
 
@@ -101,6 +104,7 @@ For a notes repository, make the scope explicit. The rumdl and mdrepo tables can
 the same `pyproject.toml`, but each tool reads only its own table:
 
 ```toml
+# mdrepo-doc-example
 [tool.rumdl]
 line-length = 100
 
@@ -147,15 +151,21 @@ resolved `include`/`exclude` policy. Symlinks are not admitted to the discovered
 
 ## Pre-commit integration
 
-Choose one hook form for a consuming repository. The published hook is convenient when pinning a
-release:
+For a published release, use a local hook with a pinned PyPI dependency. `pre-commit` creates an
+isolated environment and installs `mdrepo` into it:
 
 ```yaml
 repos:
-  - repo: https://github.com/sheepfling/mdrepo
-    rev: v0.0.1.a2
+  - repo: local
     hooks:
       - id: mdrepo
+        name: mdrepo repository policy
+        entry: mdrepo check .
+        language: python
+        additional_dependencies:
+          - mdrepo==0.0.1
+        pass_filenames: false
+        always_run: true
 ```
 
 For an editable checkout or a repository that already installs its development tools, use a local
@@ -171,12 +181,15 @@ repos:
         language: system
         types: [markdown]
         pass_filenames: false
+        always_run: true
 ```
 
-The hook is read-only. It runs from the repository root, checks the complete configured document
-set, and returns a nonzero status for policy findings or configuration failures. `pre-commit`
-passes the selected interpreter environment to the hook; install `mdrepo` into that same
-environment. Do not configure both the published and local forms in the same repository.
+Both forms are read-only. They run from the repository root, check the complete configured
+document set, and return a nonzero status for policy findings or configuration failures. Use one
+form per consuming repository; the PyPI-backed form is the reproducible choice for released
+versions. The system form is convenient during local development, but its `python` command must
+resolve to the environment where `mdrepo` is installed; activate that environment before running
+pre-commit.
 
 ## GitHub Actions
 
