@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from tests.constants import TOOL_EXCEPTIONS_TABLE, TOOL_LINKS_TABLE, TOOL_TABLE
 from tests.support import RepositoryBuilder
 
 
@@ -24,7 +25,7 @@ def test_rules_command_supports_text_and_json_output(
     assert "MDR202" in text_output
     assert "MDR006" in text_output
 
-    repository.configure('[tool.mdrepo]\noutput = "json"')
+    repository.configure(f'{TOOL_TABLE}\noutput = "json"')
     assert repository.run(monkeypatch, "rules") == 0
     records = json.loads(capsys.readouterr().out)
     assert {record["rule_id"] for record in records} >= {"MDR001", "MDR202"}
@@ -37,11 +38,11 @@ def test_config_command_reports_layered_sources(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     repository.configure(
-        """
-[tool.mdrepo]
+        f"""
+{TOOL_TABLE}
 fail-on = "warning"
 
-[tool.mdrepo.links]
+{TOOL_LINKS_TABLE}
 check-case = false
 """
     )
@@ -119,10 +120,10 @@ def test_check_summary_and_suppressed_diagnostics_are_explicit(
 ) -> None:
     repository.markdown("README.md", "[Root](/README.md)\n")
     repository.configure(
-        """
-[tool.mdrepo]
+        f"""
+{TOOL_TABLE}
 
-[[tool.mdrepo.exceptions]]
+{TOOL_EXCEPTIONS_TABLE}
 id = "root-route"
 rule = "MDR002"
 path = "README.md"

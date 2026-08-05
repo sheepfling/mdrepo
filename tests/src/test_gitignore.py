@@ -5,19 +5,21 @@ from pathlib import Path
 
 import pytest
 
-from mdrepo import GitIgnoreDecision, GitIgnorePolicy, GitIgnoreWalker
-from mdrepo import is_gitignored as public_is_gitignored
 from mdrepo.cli import main
 from mdrepo.config import ApplicationConfig
 from mdrepo.exceptions import apply_exceptions
 from mdrepo.files import collect_project_markdown
 from mdrepo.gitignore import (
+    GitIgnoreDecision,
     GitIgnoreError,
+    GitIgnorePolicy,
+    GitIgnoreWalker,
     TargetDurabilityPolicy,
     is_gitignored,
     matches_gitignore,
     parse_gitignore,
 )
+from mdrepo.gitignore import is_gitignored as public_is_gitignored
 from mdrepo.models import Diagnostic, Severity
 from tests.support import RepositoryBuilder
 

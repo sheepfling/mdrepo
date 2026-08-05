@@ -6,15 +6,16 @@ import pytest
 
 from mdrepo.config import ConfigurationError, load_configuration
 from mdrepo.models import OutputFormat, Severity
+from tests.constants import TOOL_EXCEPTIONS_TABLE, TOOL_LINKS_TABLE, TOOL_RULES_TABLE, TOOL_TABLE
 
 
 def test_pyproject_and_dedicated_overlay_merge(tmp_path: Path) -> None:
     (tmp_path / "pyproject.toml").write_text(
-        """
-[tool.mdrepo]
+        f"""
+{TOOL_TABLE}
 fail-on = "warning"
 
-[tool.mdrepo.links]
+{TOOL_LINKS_TABLE}
 check-missing-targets = true
 """.strip(),
         encoding="utf-8",
@@ -65,7 +66,7 @@ def test_external_overlay_does_not_change_discovered_root(tmp_path: Path) -> Non
 
 def test_unknown_configuration_is_rejected(tmp_path: Path) -> None:
     (tmp_path / "pyproject.toml").write_text(
-        "[tool.mdrepo]\nunknown-option = true\n",
+        f"{TOOL_TABLE}\nunknown-option = true\n",
         encoding="utf-8",
     )
 
@@ -80,13 +81,13 @@ def test_unknown_configuration_is_rejected(tmp_path: Path) -> None:
 
 def test_duplicate_exception_ids_are_rejected(tmp_path: Path) -> None:
     (tmp_path / "pyproject.toml").write_text(
-        """
-[[tool.mdrepo.exceptions]]
+        f"""
+{TOOL_EXCEPTIONS_TABLE}
 id = "same"
 rule = "MDR101"
 reason = "First documented exception."
 
-[[tool.mdrepo.exceptions]]
+{TOOL_EXCEPTIONS_TABLE}
 id = "same"
 rule = "MDR101"
 reason = "Second documented exception."
@@ -105,7 +106,7 @@ reason = "Second documented exception."
 
 def test_unknown_rule_id_is_rejected(tmp_path: Path) -> None:
     (tmp_path / "pyproject.toml").write_text(
-        '[tool.mdrepo.rules]\nignore = ["MDR999"]\n',
+        f'{TOOL_RULES_TABLE}\nignore = ["MDR999"]\n',
         encoding="utf-8",
     )
 
@@ -123,7 +124,7 @@ def test_explicit_configuration_path_must_be_regular_file(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     config_path = tmp_path / "config.toml"
-    config_path.write_text("[tool.mdrepo]\n", encoding="utf-8")
+    config_path.write_text(f"{TOOL_TABLE}\n", encoding="utf-8")
     original_is_file = Path.is_file
 
     def pretend_non_regular(path: Path) -> bool:

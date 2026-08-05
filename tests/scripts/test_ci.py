@@ -7,18 +7,24 @@ from typing import cast
 import pytest
 
 from scripts import check_build, ci
+from tests.constants import COVERAGE_ARGUMENT, MODULE_COMMAND, PYTEST_COMMAND
 
 
 def test_ci_command_sets_keep_read_only_and_fix_modes_distinct() -> None:
     readonly = ci.ci_commands("python", fix=False)
     fixing = ci.ci_commands("python", fix=True)
 
-    assert ("python", "-m", "pytest", "--cov=mdrepo", "--cov-report=term-missing") in readonly
+    assert (
+        "python",
+        *PYTEST_COMMAND,
+        COVERAGE_ARGUMENT,
+        "--cov-report=term-missing",
+    ) in readonly
     assert all("--cov-fail-under" not in command for command in readonly)
-    assert ("python", "-m", "mdrepo", "fix", ".") not in readonly
+    assert ("python", *MODULE_COMMAND, "fix", ".") not in readonly
     assert ("python", "-m", "scripts.check_format") in readonly
     assert ("python", "-m", "ruff", "check", "src", "scripts", "tests") in readonly
-    assert ("python", "-m", "mdrepo", "fix", ".") in fixing
+    assert ("python", *MODULE_COMMAND, "fix", ".") in fixing
     assert ("python", "-m", "scripts.check_rumdl", "--fix") in fixing
     assert len(fixing) > len(readonly)
 

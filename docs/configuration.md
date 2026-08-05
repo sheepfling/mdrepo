@@ -39,10 +39,10 @@ recorded through `[[tool.mdrepo.exceptions]]` with an ID and reason. See
 
 ## Programmatic Git-ignore checks
 
-The durable Git-ignore evaluator is also available as the small top-level Python API:
+The durable Git-ignore evaluator is available from the focused `mdrepo.gitignore` submodule:
 
 ```python
-from mdrepo import GitIgnorePolicy, GitIgnoreWalker, is_gitignored
+from mdrepo.gitignore import GitIgnorePolicy, GitIgnoreWalker, is_gitignored
 
 if is_gitignored("/path/to/repository", "artifacts/release.md"):
     print("target is not durable in a clean checkout")
@@ -55,8 +55,8 @@ for directory, _, filenames in walker.walk(ignored=False):
 
 The target may be a string, `Path`, or other path-like object. Relative targets are interpreted
 relative to the repository root; targets outside that root raise `ValueError`. Invalid or unreadable
-ignore files raise `mdrepo.GitIgnoreError`, allowing callers to distinguish a policy failure from a
-normal non-ignored result. Use `GitIgnorePolicy` when checking multiple paths and
+ignore files raise `mdrepo.gitignore.GitIgnoreError`, allowing callers to distinguish a policy
+failure from a normal non-ignored result. Use `GitIgnorePolicy` when checking multiple paths and
 `GitIgnoreWalker` when walking the tree;
 its `initial_excludes` argument accepts caller-owned baseline patterns. Other `mdrepo` modules
 remain internal and are not part of the stable import surface.

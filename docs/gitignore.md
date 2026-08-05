@@ -6,10 +6,16 @@ so it also works in minimal CI images and embedded Python workflows.
 
 ## Python API
 
-The supported API is exported from the package root:
+The supported API is exported from the focused `mdrepo.gitignore` submodule:
 
 ```python
-from mdrepo import GitIgnoreDecision, GitIgnoreError, GitIgnorePolicy, GitIgnoreWalker, is_gitignored
+from mdrepo.gitignore import (
+    GitIgnoreDecision,
+    GitIgnoreError,
+    GitIgnorePolicy,
+    GitIgnoreWalker,
+    is_gitignored,
+)
 
 try:
     ignored = is_gitignored("/workspace/project", "artifacts/release.md")

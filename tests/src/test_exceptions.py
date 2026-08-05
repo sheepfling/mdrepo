@@ -9,6 +9,7 @@ from mdrepo.cli import main
 from mdrepo.config import ApplicationConfig
 from mdrepo.exceptions import apply_exceptions
 from mdrepo.models import Diagnostic, Severity
+from tests.constants import TOOL_EXCEPTIONS_TABLE, TOOL_TABLE
 
 
 def test_expired_exception_does_not_suppress() -> None:
@@ -77,10 +78,10 @@ def test_full_directory_check_reports_unused_exception(
     (tmp_path / "README.md").write_text("# Root\n", encoding="utf-8")
     (tmp_path / "docs" / "standalone.md").write_text("# Standalone\n", encoding="utf-8")
     (tmp_path / "pyproject.toml").write_text(
-        """
-[tool.mdrepo]
+        f"""
+{TOOL_TABLE}
 
-[[tool.mdrepo.exceptions]]
+{TOOL_EXCEPTIONS_TABLE}
 id = "removed-workaround"
 rule = "MDR101"
 path = "docs/standalone.md"

@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from mdrepo.cli import main
+from tests.constants import TOOL_ORPHANS_TABLE
 
 
 def test_interconnected_repository_reports_distinct_policy_issues(
@@ -17,8 +18,8 @@ def test_interconnected_repository_reports_distinct_policy_issues(
     (tmp_path / "docs" / "Guide.md").write_text("[Next](next.md)\n", encoding="utf-8")
     (tmp_path / "docs" / "next.md").write_text("[Home](../README.md)\n", encoding="utf-8")
     (tmp_path / "pyproject.toml").write_text(
-        """
-[tool.mdrepo.orphans]
+        f"""
+{TOOL_ORPHANS_TABLE}
 enabled = true
 roots = ["README.md"]
 """.strip(),
@@ -48,8 +49,8 @@ def test_filtered_check_scopes_orphan_diagnostics(
 ) -> None:
     monkeypatch.chdir(tmp_path)
     (tmp_path / "pyproject.toml").write_text(
-        """
-[tool.mdrepo.orphans]
+        f"""
+{TOOL_ORPHANS_TABLE}
 enabled = true
 roots = ["README.md"]
 """.strip(),
