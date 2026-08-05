@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import re
 import tomllib
 from pathlib import Path
@@ -28,10 +27,6 @@ def test_documented_release_pins_are_consistent() -> None:
 
     assert pins
     assert len(set(pins)) == 1
-
-    release_tag = os.environ.get("RELEASE_TAG")
-    if release_tag:
-        assert set(pins) == {release_tag.removeprefix("v")}
 
 
 def test_documented_defaults_match_configuration_models() -> None:

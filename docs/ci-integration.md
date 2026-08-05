@@ -39,8 +39,9 @@ dev = [
 ]
 ```
 
-The version pin in this guide is the current published release. Update the pin when selecting a
-different release, and update the matching pre-commit pin below at the same time.
+The version pin in this guide is a released consumer baseline, not a source-tree or development
+version. Update the pin when selecting a different release, and update the matching pre-commit pin
+below at the same time.
 
 Install it into the interpreter used by CI:
 
