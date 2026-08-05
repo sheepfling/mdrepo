@@ -65,7 +65,7 @@ needs only safe file paths rather than the full `os.walk`-style directory tuple.
 ## Top-level keys
 
 | Key                 | Default                                                   | Meaning                                     |
-|---------------------|-----------------------------------------------------------|---------------------------------------------|
+| ------------------- | --------------------------------------------------------- | ------------------------------------------- |
 | `include`           | `*.md`, `**/*.md`                                         | Gitignore-style inclusion patterns          |
 | `respect-gitignore` | `true`                                                    | Exclude Git-ignored Markdown from discovery |
 | `exclude`           | transient build, VCS, cache, and distribution directories | Gitignore-style exclusion patterns          |

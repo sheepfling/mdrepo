@@ -64,7 +64,7 @@ notes.md:1:1: error MDR101 Markdown document is unreachable from every configure
 > relationships inside a repository**.
 
 | Question                                                                       | Authority                   |
-|--------------------------------------------------------------------------------|-----------------------------|
+| ------------------------------------------------------------------------------ | --------------------------- |
 | Is the Markdown valid, consistently formatted, and flavor-aware?               | `rumdl`                     |
 | Does a relative target or heading fragment exist?                              | `rumdl` `MD057` and `MD051` |
 | Are local paths portable, root-bounded, and cased exactly like the filesystem? | `mdrepo`                    |
@@ -83,7 +83,7 @@ MkDocs guidance, guarantees, and non-goals.
 ## What the focused tool adds
 
 | Capability            | What it protects against                                                 |
-|-----------------------|--------------------------------------------------------------------------|
+| --------------------- | ------------------------------------------------------------------------ |
 | Portable destinations | Backslashes, local absolute paths, and disallowed root-relative paths    |
 | Repository boundaries | Local destinations that resolve outside the configured root              |
 | Exact path case       | Links that pass on case-insensitive filesystems and fail on Linux        |
@@ -203,7 +203,7 @@ rumdl workflow to avoid duplicate ownership and duplicate diagnostics.
 ## Commands
 
 | Command                              | Purpose                                                       |
-|--------------------------------------|---------------------------------------------------------------|
+| ------------------------------------ | ------------------------------------------------------------- |
 | `mdrepo check [PATH ...]`            | Check repository policy without modifying files.              |
 | `mdrepo fix [PATH ...]`              | Apply only source-verified safe fixes.                        |
 | `mdrepo fix --dry-run`               | Print proposed diffs and return `1` when edits are available. |
@@ -231,7 +231,7 @@ Exit statuses are stable:
 ## Built-in rules
 
 | Rule     | Purpose                                                      |           Safe fix |
-|----------|--------------------------------------------------------------|-------------------:|
+| -------- | ------------------------------------------------------------ | -----------------: |
 | `MDR001` | Backslash in a local destination                             |                Yes |
 | `MDR002` | Machine-, protocol-, or repository-root-absolute destination | Root-relative only |
 | `MDR003` | Local destination escapes the repository root                |                 No |

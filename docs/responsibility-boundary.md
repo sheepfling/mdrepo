@@ -42,7 +42,7 @@ policy, retry policy, or interpretation of a remote server response.
 ## Responsibility matrix
 
 | Concern                                                                | Owner                                         | Reason                                                                       |
-|------------------------------------------------------------------------|-----------------------------------------------|------------------------------------------------------------------------------|
+| ---------------------------------------------------------------------- | --------------------------------------------- | ---------------------------------------------------------------------------- |
 | Heading, list, table, fence, and whitespace formatting                 | `rumdl`                                       | General Markdown formatting does not require repository semantics.           |
 | Markdown syntax and structural linting                                 | `rumdl`                                       | These are document-level rules.                                              |
 | Heading hierarchy, alt text, empty links, and similar lint rules       | `rumdl`                                       | These are ordinary Markdown quality checks.                                  |
