@@ -8,6 +8,7 @@ All models are strict: unknown keys are errors. TOML uses kebab-case names, whil
 Rumdl and mdrepo may use the same `pyproject.toml`, but neither reads the other's table:
 
 ```toml
+# mdrepo-doc-example
 [tool.rumdl]
 flavor = "standard"
 extend-enable = ["MD029", "MD060"]

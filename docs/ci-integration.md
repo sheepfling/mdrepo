@@ -34,10 +34,13 @@ Pin `mdrepo` in the consuming project's development dependencies:
 ```toml
 [project.optional-dependencies]
 dev = [
-    "mdrepo==0.0.1a2",
+    "mdrepo==0.0.1",
     "rumdl>=0.2.49,<0.3",
 ]
 ```
+
+The version pin in this guide is the current published release. Update the pin when selecting a
+different release, and update the matching pre-commit pin below at the same time.
 
 Install it into the interpreter used by CI:
 
@@ -101,6 +104,7 @@ For a notes repository, make the scope explicit. The rumdl and mdrepo tables can
 the same `pyproject.toml`, but each tool reads only its own table:
 
 ```toml
+# mdrepo-doc-example
 [tool.rumdl]
 line-length = 100
 
@@ -177,12 +181,15 @@ repos:
         language: system
         types: [markdown]
         pass_filenames: false
+        always_run: true
 ```
 
 Both forms are read-only. They run from the repository root, check the complete configured
 document set, and return a nonzero status for policy findings or configuration failures. Use one
 form per consuming repository; the PyPI-backed form is the reproducible choice for released
-versions, while the system form is convenient during local development.
+versions. The system form is convenient during local development, but its `python` command must
+resolve to the environment where `mdrepo` is installed; activate that environment before running
+pre-commit.
 
 ## GitHub Actions
 
