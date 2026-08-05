@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from tests.constants import TOOL_EXCEPTIONS_TABLE, TOOL_LINKS_TABLE, TOOL_TABLE
 from tests.support import RepositoryBuilder
 
 
@@ -24,7 +25,7 @@ def test_rules_command_supports_text_and_json_output(
     assert "MDR202" in text_output
     assert "MDR006" in text_output
 
-    repository.configure('[tool.mdrepo]\noutput = "json"')
+    repository.configure(f'{TOOL_TABLE}\noutput = "json"')
     assert repository.run(monkeypatch, "rules") == 0
     records = json.loads(capsys.readouterr().out)
     assert {record["rule_id"] for record in records} >= {"MDR001", "MDR202"}
@@ -37,11 +38,11 @@ def test_config_command_reports_layered_sources(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     repository.configure(
-        """
-[tool.mdrepo]
+        f"""
+{TOOL_TABLE}
 fail-on = "warning"
 
-[tool.mdrepo.links]
+{TOOL_LINKS_TABLE}
 check-case = false
 """
     )
@@ -97,17 +98,19 @@ def test_graph_text_and_dot_serializations_cover_empty_and_edge_nodes(
 ) -> None:
     repository.markdown("README.md", "[Guide](docs/guide.md)\n")
     repository.markdown("docs/guide.md", "# Guide\n")
+    repository.markdown("orphan page.md", "# Orphan\n")
 
     assert repository.run(monkeypatch, "graph") == 0
     text_output = capsys.readouterr().out
     assert "roots: README.md" in text_output
     assert "README.md -> docs/guide.md" in text_output
-    assert "unreachable: (none)" in text_output
+    assert "unreachable: orphan page.md" in text_output
 
     assert repository.run(monkeypatch, "graph", "--graph-format", "dot") == 0
     dot_output = capsys.readouterr().out
     assert '"README.md" [shape=doublecircle]' in dot_output
     assert '"README.md" -> "docs/guide.md"' in dot_output
+    assert '"orphan page.md";' in dot_output
 
 
 def test_check_summary_and_suppressed_diagnostics_are_explicit(
@@ -117,10 +120,10 @@ def test_check_summary_and_suppressed_diagnostics_are_explicit(
 ) -> None:
     repository.markdown("README.md", "[Root](/README.md)\n")
     repository.configure(
-        """
-[tool.mdrepo]
+        f"""
+{TOOL_TABLE}
 
-[[tool.mdrepo.exceptions]]
+{TOOL_EXCEPTIONS_TABLE}
 id = "root-route"
 rule = "MDR002"
 path = "README.md"

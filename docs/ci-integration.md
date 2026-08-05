@@ -3,8 +3,16 @@
 This guide documents `mdrepo` as a standalone repository-policy check. It does not require,
 invoke, or configure another formatter or repository tool.
 
+This repository is itself a working integration example: its `pyproject.toml` contains independent
+`[tool.rumdl]` and `[tool.mdrepo]` tables, its pre-commit files show both hook modes, and its
+GitHub Actions workflow runs the same provider-neutral validation runner used locally.
+
 The important integration rule is sequencing: run formatters, tests, and generated-artifact steps
 first, then run the final read-only checks from the repository root:
+
+This repository enables rumdl `MD029` with `style = "ordered"` and rumdl `MD060` with
+`style = "aligned"` in `pyproject.toml`. The local pre-commit hook runs rumdl with `--fix`, and
+the CI runner's `--fix` mode applies the same step before its read-only checks.
 
 ```bash
 rumdl check --fix .
@@ -26,7 +34,8 @@ Pin `mdrepo` in the consuming project's development dependencies:
 ```toml
 [project.optional-dependencies]
 dev = [
-    "mdrepo==0.0.1a0",
+    "mdrepo==0.0.1a2",
+    "rumdl>=0.2.49,<0.3",
 ]
 ```
 
@@ -55,7 +64,17 @@ The command returns:
 
 The module command works identically in Windows PowerShell, macOS shells, and Linux shells. Using
 `python -m` selects the interpreter that owns the installed package and avoids dependence on a
-globally discoverable executable.
+globally discoverable executable:
+
+```powershell
+# Windows PowerShell
+python -m mdrepo check .
+```
+
+```bash
+# macOS or Linux
+python3 -m mdrepo check .
+```
 
 ## Configuration and discovery
 
@@ -78,9 +97,16 @@ root. Use `--root` when intentionally selecting another repository.
 4. **Orphan detection** optionally builds a document graph from configured `orphans.roots` and
    reports documents unreachable from those entry points.
 
-For a notes repository, make the scope explicit:
+For a notes repository, make the scope explicit. The rumdl and mdrepo tables can live together in
+the same `pyproject.toml`, but each tool reads only its own table:
 
 ```toml
+[tool.rumdl]
+line-length = 100
+
+[tool.rumdl.MD013]
+line-length = 100
+
 [tool.mdrepo]
 include = ["*.md", "**/*.md"]
 respect-gitignore = true
@@ -111,14 +137,46 @@ enabled = true
 roots = ["README.md", "docs/index.md"]
 ```
 
-Markdown discovery does not automatically use `.gitignore` as an include/exclude filter. Git-ignored
-files are scanned when they match `include` and do not match `exclude`; generated, scratch, vendor,
-and legacy trees must therefore be excluded explicitly. With durable-target checking enabled,
-`MDR006` separately reads applicable repository `.gitignore` files and reports existing links to
-ignored targets. When orphan analysis is enabled, Git-ignored Markdown documents are omitted from
-the graph so they cannot create reachability or orphan noise. Explicit file and directory
-selections remain constrained by the resolved `include`/`exclude` policy. Symlinks are not admitted
-to the discovered document set.
+Markdown discovery respects `.gitignore` by default in addition to `include` and `exclude`. Set
+`respect-gitignore = false` only when generated, scratch, vendor, or legacy Markdown must be
+inspected explicitly. With durable-target checking enabled, `MDR006` separately reads applicable
+repository `.gitignore` files and reports existing links to ignored targets. When orphan analysis
+is enabled, Git-ignored Markdown documents are omitted from the graph so they cannot create
+reachability or orphan noise. Explicit file and directory selections remain constrained by the
+resolved `include`/`exclude` policy. Symlinks are not admitted to the discovered document set.
+
+## Pre-commit integration
+
+Choose one hook form for a consuming repository. The published hook is convenient when pinning a
+release:
+
+```yaml
+repos:
+  - repo: https://github.com/sheepfling/mdrepo
+    rev: v0.0.1.a2
+    hooks:
+      - id: mdrepo
+```
+
+For an editable checkout or a repository that already installs its development tools, use a local
+system hook instead:
+
+```yaml
+repos:
+  - repo: local
+    hooks:
+      - id: mdrepo
+        name: mdrepo repository policy
+        entry: python -m mdrepo check .
+        language: system
+        types: [markdown]
+        pass_filenames: false
+```
+
+The hook is read-only. It runs from the repository root, checks the complete configured document
+set, and returns a nonzero status for policy findings or configuration failures. `pre-commit`
+passes the selected interpreter environment to the hook; install `mdrepo` into that same
+environment. Do not configure both the published and local forms in the same repository.
 
 ## GitHub Actions
 
@@ -142,6 +200,7 @@ jobs:
           python-version: "3.11"
       - run: python -m pip install --upgrade pip
       - run: python -m pip install -e ".[dev]"
+      - run: rumdl check .
       - run: python -m mdrepo check .
 ```
 

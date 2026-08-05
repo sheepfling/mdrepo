@@ -95,6 +95,19 @@ include = ["src", "scripts", "tests"]
 pythonVersion = "3.11"
 typeCheckingMode = "strict"
 
+[tool.rumdl]
+line-length = 100
+extend-enable = ["MD029", "MD060"]
+
+[tool.rumdl.MD029]
+style = "ordered"
+
+[tool.rumdl.MD060]
+style = "aligned"
+
+[tool.rumdl.MD013]
+line-length = 100
+
 [tool.mdrepo]
 include = ["*.md", "**/*.md"]
 exclude = [

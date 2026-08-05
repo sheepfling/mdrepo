@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from mdrepo.cli import main
+from tests.constants import TOOL_EXCEPTIONS_TABLE, TOOL_ORPHANS_TABLE, TOOL_TABLE
 
 
 def test_orphan_graph_follows_reference_and_extensionless_links(
@@ -16,8 +17,8 @@ def test_orphan_graph_follows_reference_and_extensionless_links(
     monkeypatch.chdir(tmp_path)
     (tmp_path / "docs").mkdir()
     (tmp_path / "pyproject.toml").write_text(
-        """
-[tool.mdrepo.orphans]
+        f"""
+{TOOL_ORPHANS_TABLE}
 enabled = true
 roots = ["README.md"]
 """.strip(),
@@ -42,12 +43,12 @@ def test_orphan_can_be_governed_by_structured_exception(
 ) -> None:
     monkeypatch.chdir(tmp_path)
     (tmp_path / "pyproject.toml").write_text(
-        """
-[tool.mdrepo.orphans]
+        f"""
+{TOOL_ORPHANS_TABLE}
 enabled = true
 roots = ["README.md"]
 
-[[tool.mdrepo.exceptions]]
+{TOOL_EXCEPTIONS_TABLE}
 id = "standalone-changelog"
 rule = "MDR101"
 path = "CHANGELOG.md"
@@ -70,8 +71,8 @@ def test_gitignored_documents_do_not_enter_orphan_graph(
 ) -> None:
     monkeypatch.chdir(tmp_path)
     (tmp_path / "pyproject.toml").write_text(
-        """
-[tool.mdrepo.orphans]
+        f"""
+{TOOL_ORPHANS_TABLE}
 enabled = true
 roots = ["README.md"]
 """.strip(),
@@ -95,11 +96,11 @@ def test_respecting_gitignore_removes_ignored_sources_but_keeps_durability_check
 ) -> None:
     monkeypatch.chdir(tmp_path)
     (tmp_path / "pyproject.toml").write_text(
-        """
-[tool.mdrepo]
+        f"""
+{TOOL_TABLE}
 respect-gitignore = true
 
-[tool.mdrepo.orphans]
+{TOOL_ORPHANS_TABLE}
 enabled = true
 roots = ["README.md"]
 """.strip(),
@@ -158,8 +159,8 @@ def test_enabled_orphan_check_reports_missing_configured_root(
 ) -> None:
     monkeypatch.chdir(tmp_path)
     (tmp_path / "pyproject.toml").write_text(
-        """
-[tool.mdrepo.orphans]
+        f"""
+{TOOL_ORPHANS_TABLE}
 enabled = true
 roots = ["docs/index.md"]
 """.strip(),

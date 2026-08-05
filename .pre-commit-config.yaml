@@ -1,9 +1,15 @@
 repos:
   - repo: local
     hooks:
+      - id: rumdl
+        name: rumdl Markdown formatting
+        entry: python -m scripts.check_rumdl --fix
+        language: system
+        types: [ markdown ]
+        pass_filenames: false
       - id: mdrepo
         name: mdrepo repository policy
-        entry: mdrepo check .
+        entry: python -m mdrepo check .
         language: system
         types: [ markdown ]
         pass_filenames: false

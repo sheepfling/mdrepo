@@ -10,10 +10,11 @@ from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as package_version
 from pathlib import Path
 
-from mdrepo._metadata import DISTRIBUTION_NAME as PACKAGE_NAME
-from mdrepo._metadata import SCM_VERSION_ENV
+import mdrepo
 
 ROOT = Path(__file__).resolve().parents[1]
+PACKAGE_NAME = mdrepo.__name__
+SCM_VERSION_ENV = f"SETUPTOOLS_SCM_PRETEND_VERSION_FOR_{PACKAGE_NAME.upper()}"
 
 
 class ReleaseError(RuntimeError):

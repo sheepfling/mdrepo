@@ -33,6 +33,20 @@ def test_json_diagnostic_output(
     assert payload[0]["fix"]["replacement"] == "README.md"
 
 
+def test_text_diagnostic_output_includes_location_and_fix(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "README.md").write_text("[Root](/README.md)\n", encoding="utf-8")
+
+    assert main(["check", "."]) == 1
+    output = capsys.readouterr().out
+    assert "README.md:1:8: error MDR002" in output
+    assert "fix: replace the repository-root path with a document-relative path" in output
+
+
 def test_select_and_ignore_rules(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

@@ -39,7 +39,7 @@ disabled by default and should stay disabled when rumdl `MD057` runs.
 1. Discover the repository root and merge typed TOML configuration.
 2. Collect the complete configured Markdown document set.
 3. Parse each document with `markdown-it-py`.
-4. Record direct destinations, autolinks, reference uses, and reference definitions separately.
+4. Record direct destinations, `autolinks`, reference uses, and reference definitions separately.
 5. Resolve selected documents' policy destinations against the repository filesystem.
 6. Classify existing local targets against `.gitignore` and mdrepo exclusion policy.
 7. Build the durable document graph when orphan analysis or graph output is requested; Git-ignored
@@ -117,11 +117,13 @@ navigation model. In a MkDocs project, rumdl `MD074` can validate `mkdocs.yml` m
 
 ## Public import boundary
 
-The supported consumer interface is the `mdrepo` console command and its `python -m mdrepo`
-equivalent. The package root intentionally exports only `__version__`; modules such as `config`,
-`engine`, `markdown`, `resolution`, and `rules` are implementation modules rather than a stable
-programmatic API. A supported Python API can be introduced later behind an explicit facade once a
-real consumer use case exists.
+The supported consumer interface is the `mdrepo` console command, its `python -m mdrepo`
+equivalent, and the focused Git-ignore API in the `mdrepo.gitignore` submodule:
+`mdrepo.gitignore.is_gitignored(root, target)`, `mdrepo.gitignore.GitIgnorePolicy`,
+`mdrepo.gitignore.GitIgnoreWalker`, `mdrepo.gitignore.GitIgnoreDecision`, and
+`mdrepo.gitignore.GitIgnoreError`.
+Modules such as `config`, `engine`, `markdown`, `resolution`, and `rules` are implementation
+modules rather than stable programmatic APIs.
 
 ## Extension seam
 
