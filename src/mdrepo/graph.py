@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from mdrepo.config import ApplicationConfig
-from mdrepo.gitignore import is_gitignored
+from mdrepo.gitignore import GitIgnoreEngine
 from mdrepo.models import Document, LinkKind, LinkOccurrence
 from mdrepo.resolution import canonicalize_case, resolve_graph_document, resolve_local_target
 
@@ -31,10 +31,13 @@ def build_document_graph(
 ) -> DocumentGraph:
     """Build local Markdown-link edges, then walk configured roots."""
 
+    gitignore = GitIgnoreEngine(root)
+    document_paths = tuple(documents)
+    ignored = gitignore.is_ignored_many(document_paths)
     eligible_documents = {
-        path: document
-        for path, document in documents.items()
-        if not is_gitignored(root=root, target=path)
+        path: documents[path]
+        for path, is_ignored in zip(document_paths, ignored, strict=True)
+        if not is_ignored
     }
     mutable_edges: dict[Path, set[Path]] = {path: set() for path in eligible_documents}
     for document in eligible_documents.values():

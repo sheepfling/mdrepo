@@ -10,6 +10,10 @@ GitHub Actions workflow runs the same provider-neutral validation runner used lo
 The important integration rule is sequencing: run formatters, tests, and generated-artifact steps
 first, then run the final read-only checks from the repository root:
 
+This repository enables rumdl `MD029` with `style = "ordered"` and rumdl `MD060` with
+`style = "aligned"` in `pyproject.toml`. The local pre-commit hook runs rumdl with `--fix`, and
+the CI runner's `--fix` mode applies the same step before its read-only checks.
+
 ```bash
 rumdl check --fix .
 python -m mdrepo fix .

@@ -63,15 +63,15 @@ notes.md:1:1: error MDR101 Markdown document is unreachable from every configure
 > `rumdl` validates Markdown **as documents**. `mdrepo` validates Markdown references **as
 > relationships inside a repository**.
 
-| Question | Authority |
-|---|---|
-| Is the Markdown valid, consistently formatted, and flavor-aware? | `rumdl` |
-| Does a relative target or heading fragment exist? | `rumdl` `MD057` and `MD051` |
-| Are local paths portable, root-bounded, and cased exactly like the filesystem? | `mdrepo` |
-| Is each page reachable from a configured documentation root? | `mdrepo` |
-| Are policy exceptions justified, current, and still necessary? | `mdrepo` |
-| Does a generated documentation site build and route correctly? | The site build |
-| Does an external URL currently respond? | A dedicated network checker |
+| Question                                                                       | Authority                   |
+|--------------------------------------------------------------------------------|-----------------------------|
+| Is the Markdown valid, consistently formatted, and flavor-aware?               | `rumdl`                     |
+| Does a relative target or heading fragment exist?                              | `rumdl` `MD057` and `MD051` |
+| Are local paths portable, root-bounded, and cased exactly like the filesystem? | `mdrepo`                    |
+| Is each page reachable from a configured documentation root?                   | `mdrepo`                    |
+| Are policy exceptions justified, current, and still necessary?                 | `mdrepo`                    |
+| Does a generated documentation site build and route correctly?                 | The site build              |
+| Does an external URL currently respond?                                        | A dedicated network checker |
 
 The tools are independent. `mdrepo` does not invoke rumdl, consume its diagnostics, interpret its
 inline suppressions, or forward its configuration. Each tool owns its own rules, configuration,
@@ -82,21 +82,24 @@ MkDocs guidance, guarantees, and non-goals.
 
 ## What the focused tool adds
 
-| Capability | What it protects against |
-|---|---|
-| Portable destinations | Backslashes, local absolute paths, and disallowed root-relative paths |
-| Repository boundaries | Local destinations that resolve outside the configured root |
-| Exact path case | Links that pass on case-insensitive filesystems and fail on Linux |
-| Durable local targets | Existing links to Git-ignored or mdrepo-excluded files |
-| Rooted document graph | Pages disconnected from configured roots |
-| Structured exceptions | Anonymous ignores, expired waivers, and stale policy debt |
-| Conservative fixing | Ambiguous edits, overlapping replacements, and changed CRLF line endings |
+| Capability            | What it protects against                                                 |
+|-----------------------|--------------------------------------------------------------------------|
+| Portable destinations | Backslashes, local absolute paths, and disallowed root-relative paths    |
+| Repository boundaries | Local destinations that resolve outside the configured root              |
+| Exact path case       | Links that pass on case-insensitive filesystems and fail on Linux        |
+| Durable local targets | Existing links to Git-ignored or mdrepo-excluded files                   |
+| Rooted document graph | Pages disconnected from configured roots                                 |
+| Structured exceptions | Anonymous ignores, expired waivers, and stale policy debt                |
+| Conservative fixing   | Ambiguous edits, overlapping replacements, and changed CRLF line endings |
 
 Safe fixes are applied only when the source span is verified and the replacement is unambiguous.
 Writes are atomic, and existing CRLF line endings are preserved.
 
-Orphan analysis is generic Markdown graph reachability. It is not the same as membership in an
-MkDocs `nav` tree; rumdl `MD074` owns that site-generator-specific check.
+Orphan analysis is generic Markdown graph reachability. It is *not* the same as membership in an
+MkDocs `nav` tree. An optional `mkdocs.yml` file configures an MkDocs documentation site, and its
+`nav` section is the publication membership/order authority; rumdl `MD074` owns that
+site-generator-specific check. Use `MDR101` for repository-link reachability, or disable it when
+MkDocs navigation is the only discoverability policy.
 
 ## Configuration
 
@@ -112,6 +115,13 @@ A small paired configuration is often enough:
 ```toml
 [tool.rumdl]
 flavor = "gfm"
+extend-enable = ["MD029", "MD060"]
+
+[tool.rumdl.MD029]
+style = "ordered"
+
+[tool.rumdl.MD060]
+style = "aligned"
 
 [tool.mdrepo.orphans]
 enabled = true
@@ -161,7 +171,8 @@ remain outside the orphan graph, and links to them can still receive `MDR006`.
 
 ## Recommended workflow with rumdl
 
-Run document formatting first, then repository-policy fixes, and finish with read-only checks:
+Run rumdl's configured document formatting first, then repository-policy fixes, and finish with
+read-only checks:
 
 ```bash
 uvx rumdl check --fix .
@@ -191,15 +202,15 @@ rumdl workflow to avoid duplicate ownership and duplicate diagnostics.
 
 ## Commands
 
-| Command | Purpose |
-|---|---|
-| `mdrepo check [PATH ...]` | Check repository policy without modifying files. |
-| `mdrepo fix [PATH ...]` | Apply only source-verified safe fixes. |
-| `mdrepo fix --dry-run` | Print proposed diffs and return `1` when edits are available. |
-| `mdrepo fix --diff` | Apply fixes and also print unified diffs. |
-| `mdrepo graph --graph-format FORMAT` | Render the graph as `text`, `json`, or `dot`. |
-| `mdrepo rules` | List built-in rule metadata. |
-| `mdrepo config` | Print the fully resolved configuration as JSON. |
+| Command                              | Purpose                                                       |
+|--------------------------------------|---------------------------------------------------------------|
+| `mdrepo check [PATH ...]`            | Check repository policy without modifying files.              |
+| `mdrepo fix [PATH ...]`              | Apply only source-verified safe fixes.                        |
+| `mdrepo fix --dry-run`               | Print proposed diffs and return `1` when edits are available. |
+| `mdrepo fix --diff`                  | Apply fixes and also print unified diffs.                     |
+| `mdrepo graph --graph-format FORMAT` | Render the graph as `text`, `json`, or `dot`.                 |
+| `mdrepo rules`                       | List built-in rule metadata.                                  |
+| `mdrepo config`                      | Print the fully resolved configuration as JSON.               |
 
 Useful invocation overrides:
 
@@ -219,18 +230,18 @@ Exit statuses are stable:
 
 ## Built-in rules
 
-| Rule | Purpose | Safe fix |
-|---|---|---:|
-| `MDR001` | Backslash in a local destination | Yes |
+| Rule     | Purpose                                                      |           Safe fix |
+|----------|--------------------------------------------------------------|-------------------:|
+| `MDR001` | Backslash in a local destination                             |                Yes |
 | `MDR002` | Machine-, protocol-, or repository-root-absolute destination | Root-relative only |
-| `MDR003` | Local destination escapes the repository root | No |
-| `MDR004` | Standalone missing-target fallback; disabled with rumdl | No |
-| `MDR005` | Path spelling differs from exact on-disk case | Yes |
-| `MDR006` | Existing local target is Git-ignored or mdrepo-excluded | No |
-| `MDR100` | No configured orphan-graph root exists | No |
-| `MDR101` | Markdown document is unreachable from all roots | No |
-| `MDR201` | Structured exception is expired | No |
-| `MDR202` | Structured exception is unused | No |
+| `MDR003` | Local destination escapes the repository root                |                 No |
+| `MDR004` | Standalone missing-target fallback; disabled with rumdl      |                 No |
+| `MDR005` | Path spelling differs from exact on-disk case                |                Yes |
+| `MDR006` | Existing local target is Git-ignored or mdrepo-excluded      |                 No |
+| `MDR100` | No configured orphan-graph root exists                       |                 No |
+| `MDR101` | Markdown document is unreachable from all roots              |                 No |
+| `MDR201` | Structured exception is expired                              |                 No |
+| `MDR202` | Structured exception is unused                               |                 No |
 
 Rule IDs use the `MDR` namespace so they remain distinct from rumdl's `MD` rules.
 
@@ -297,22 +308,33 @@ Pyright, rumdl, pre-commit validation, and an `mdrepo` self-check.
 
 - [Responsibility boundary](docs/responsibility-boundary.md)
 - [Configuration reference](docs/configuration.md)
+- [Git-ignore integration](docs/gitignore.md)
 - [CI integration](docs/ci-integration.md)
 - [Design notes](docs/design.md)
 - [Changelog](CHANGELOG.md)
 
-`mdrepo` is released under the [MIT License](LICENSE).
-
 [ci-badge]: https://github.com/sheepfling/mdrepo/actions/workflows/ci.yml/badge.svg?branch=main
+
 [ci]: https://github.com/sheepfling/mdrepo/actions/workflows/ci.yml?query=branch%3Amain
+
 [license-badge]: https://img.shields.io/badge/license-MIT-blue.svg
+
 [license]: LICENSE
+
 [pre-commit-badge]: https://img.shields.io/badge/pre--commit-enabled-FAB040?logo=pre-commit
+
 [pre-commit]: .pre-commit-config.yaml
+
 [python-badge]: https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white
+
 [python]: https://www.python.org/downloads/
+
 [ruff-badge]: https://img.shields.io/badge/lint-Ruff-D7FF64?logo=ruff&logoColor=261230
+
 [ruff]: https://docs.astral.sh/ruff/
+
 [rumdl]: https://rumdl.dev/
+
 [typing-badge]: https://img.shields.io/badge/typing-strict%20Pyright-3178C6
+
 [typing]: pyproject.toml

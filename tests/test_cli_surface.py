@@ -97,17 +97,19 @@ def test_graph_text_and_dot_serializations_cover_empty_and_edge_nodes(
 ) -> None:
     repository.markdown("README.md", "[Guide](docs/guide.md)\n")
     repository.markdown("docs/guide.md", "# Guide\n")
+    repository.markdown("orphan page.md", "# Orphan\n")
 
     assert repository.run(monkeypatch, "graph") == 0
     text_output = capsys.readouterr().out
     assert "roots: README.md" in text_output
     assert "README.md -> docs/guide.md" in text_output
-    assert "unreachable: (none)" in text_output
+    assert "unreachable: orphan page.md" in text_output
 
     assert repository.run(monkeypatch, "graph", "--graph-format", "dot") == 0
     dot_output = capsys.readouterr().out
     assert '"README.md" [shape=doublecircle]' in dot_output
     assert '"README.md" -> "docs/guide.md"' in dot_output
+    assert '"orphan page.md";' in dot_output
 
 
 def test_check_summary_and_suppressed_diagnostics_are_explicit(

@@ -1,17 +1,24 @@
-"""Repository-aware Markdown policy CLI.
+"""Repository-aware Markdown policy CLI and stable consumer helpers.
 
-The supported consumer interface is the ``mdrepo`` command and its
-``python -m mdrepo`` equivalent. Internal modules are intentionally not
-exported as a stable programmatic API yet.
+The supported consumer interfaces are the ``mdrepo`` command, its
+``python -m mdrepo`` equivalent, and the focused Git-ignore endpoint with its
+``GitIgnoreEngine``, ``GitIgnoreDecision``, and ``GitIgnoreError`` types. Internal modules are
+otherwise not exported as stable programmatic APIs.
 """
 
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as package_version
 
 from mdrepo._metadata import DISTRIBUTION_NAME as _DISTRIBUTION_NAME
+from mdrepo.gitignore import GitIgnoreDecision, GitIgnoreEngine, GitIgnoreError, is_gitignored
 
-__all__ = ["__version__"]
-
+__all__ = [
+    "GitIgnoreDecision",
+    "GitIgnoreEngine",
+    "GitIgnoreError",
+    "__version__",
+    "is_gitignored",
+]
 
 try:
     __version__ = package_version(_DISTRIBUTION_NAME)

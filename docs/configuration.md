@@ -10,6 +10,13 @@ Rumdl and mdrepo may use the same `pyproject.toml`, but neither reads the other'
 ```toml
 [tool.rumdl]
 flavor = "standard"
+extend-enable = ["MD029", "MD060"]
+
+[tool.rumdl.MD029]
+style = "ordered"
+
+[tool.rumdl.MD060]
+style = "aligned"
 
 [tool.rumdl.MD057]
 absolute-links = "ignore"
@@ -30,16 +37,41 @@ Rumdl inline suppression comments have no effect on mdrepo. Repository-policy ex
 recorded through `[[tool.mdrepo.exceptions]]` with an ID and reason. See
 [the responsibility boundary](responsibility-boundary.md) for the complete ownership matrix.
 
+## Programmatic Git-ignore checks
+
+The durable Git-ignore evaluator is also available as the small top-level Python API:
+
+```python
+from mdrepo import GitIgnoreEngine, is_gitignored
+
+if is_gitignored("/path/to/repository", "artifacts/release.md"):
+    print("target is not durable in a clean checkout")
+
+engine = GitIgnoreEngine("/path/to/repository", initial_excludes=("build/**",))
+for directory, _, filenames in engine.walk(ignored=False):
+    print(directory, filenames)
+```
+
+The target may be a string, `Path`, or other path-like object. Relative targets are interpreted
+relative to the repository root; targets outside that root raise `ValueError`. Invalid or unreadable
+ignore files raise `mdrepo.GitIgnoreError`, allowing callers to distinguish a policy failure from a
+normal non-ignored result. Use `GitIgnoreEngine` when checking multiple paths or walking the tree;
+its `initial_excludes` argument accepts caller-owned baseline patterns. Other `mdrepo` modules
+remain internal and are not part of the stable import surface.
+
+Use `GitIgnoreEngine.explain()` when policy provenance is needed, and `iter_files()` when a caller
+needs only safe file paths rather than the full `os.walk`-style directory tuple.
+
 ## Top-level keys
 
-| Key        | Default                          | Meaning                            |
-|------------|----------------------------------|------------------------------------|
-| `include`  | `*.md`, `**/*.md`                | Gitignore-style inclusion patterns |
-| `respect-gitignore` | `true`                   | Exclude Git-ignored Markdown from discovery |
-| `exclude`  | transient build, VCS, cache, and distribution directories | Gitignore-style exclusion patterns |
-| `encoding` | `utf-8`                          | Markdown source encoding           |
-| `output`   | `text`                           | `text`, `json`, or `github`        |
-| `fail-on`  | `error`                          | `info`, `warning`, or `error`      |
+| Key                 | Default                                                   | Meaning                                     |
+|---------------------|-----------------------------------------------------------|---------------------------------------------|
+| `include`           | `*.md`, `**/*.md`                                         | Gitignore-style inclusion patterns          |
+| `respect-gitignore` | `true`                                                    | Exclude Git-ignored Markdown from discovery |
+| `exclude`           | transient build, VCS, cache, and distribution directories | Gitignore-style exclusion patterns          |
+| `encoding`          | `utf-8`                                                   | Markdown source encoding                    |
+| `output`            | `text`                                                    | `text`, `json`, or `github`                 |
+| `fail-on`           | `error`                                                   | `info`, `warning`, or `error`               |
 
 The default `exclude` patterns are:
 
@@ -93,7 +125,10 @@ Git-ignored Markdown files are also excluded from discovery by default and remai
 `MDR006` when another document links to them.
 
 This is generic Markdown graph reachability. It is not a site-generator navigation validator. For
-MkDocs, rumdl `MD074` can separately check the `mkdocs.yml` navigation and omitted files.
+MkDocs, `mkdocs.yml` is the site configuration file and its `nav` section is the publication
+membership/order authority. Rumdl `MD074` can check that navigation and omitted files. If that is
+the only discoverability policy, disable mdrepo orphan analysis; enable both only when both
+properties matter.
 
 Do not place casual ignore globs here. Use documented `[[exceptions]]` records for intentionally
 standalone documents.

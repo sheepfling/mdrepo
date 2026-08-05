@@ -54,7 +54,7 @@ policy, retry policy, or interpretation of a remote server response.
 | No drive path, UNC path, home-relative path, or `file:` URL            | `mdrepo`                                      | These destinations embed one machine's filesystem assumptions.               |
 | A local destination must not escape the repository root                | `mdrepo`                                      | The repository root is required to decide the rule.                          |
 | Destination spelling matches exact on-disk case                        | `mdrepo`                                      | This protects Windows-authored links from failing on case-sensitive systems. |
-| Existing local target is not Git-ignored or mdrepo-excluded             | `mdrepo`                                      | Existence alone does not prove that the target is durable in a checkout.     |
+| Existing local target is not Git-ignored or mdrepo-excluded            | `mdrepo`                                      | Existence alone does not prove that the target is durable in a checkout.     |
 | Markdown page is reachable from configured documentation roots         | `mdrepo`                                      | This is a generic repository-wide graph property.                            |
 | Exception has a reason, is unexpired, and still suppresses something   | `mdrepo`                                      | This is repository-policy governance rather than Markdown linting.           |
 | External website currently responds                                    | Neither                                       | The focused toolchain intentionally performs no network crawl.               |
@@ -101,6 +101,23 @@ There are two legitimate definitions of an orphan:
 Use rumdl `MD074` for the first definition. Use `mdrepo` `MDR101` for the second. In a MkDocs
 repository, select the definition that represents publication policy, or run both only when both
 properties matter.
+
+`mkdocs.yml` is MkDocs' site configuration file. Its `nav` section describes which Markdown files
+belong in the published documentation site and in what navigation order; it is not a general
+repository link graph. A repository does not need `mkdocs.yml` unless it uses MkDocs to build a
+documentation site. Do not add one merely to obtain a navigation check.
+
+When MkDocs navigation is the publication authority, prefer rumdl `MD074` and disable generic
+orphan analysis in mdrepo:
+
+```toml
+[tool.mdrepo.orphans]
+enabled = false
+```
+
+When the repository is not an MkDocs site, or when Markdown-link reachability is itself the policy,
+configure mdrepo roots and enable `MDR101`. A project may enable both checks when it deliberately
+requires both site membership and repository-link reachability.
 
 ### Fixes
 
@@ -208,7 +225,7 @@ policy is invalid.
 `mdrepo` will not become:
 
 - a general Markdown formatter;
-- a replacement for markdownlint-compatible rules;
+- a replacement for `markdownlint`-compatible rules;
 - a Markdown flavor engine;
 - a live URL checker;
 - a documentation-site builder;

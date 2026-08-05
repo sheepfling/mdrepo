@@ -26,6 +26,9 @@ def test_text_output_escapes_control_characters() -> None:
     )
 
     assert stream.getvalue() == (
-        r"docs/line\nbreak.md:1:1: error MDR001 bad\nmessage" + "\n"
-        r"  hint: use\tportable paths" + "\n"
+        r"docs/line\n"
+        r"break.md:1:1: error MDR001 bad\n"
+        "message" + "\n"
+        r"  hint: use\t"
+        "portable paths" + "\n"
     )
