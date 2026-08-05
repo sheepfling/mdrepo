@@ -8,6 +8,8 @@ non-prerelease release; the entries below document it and its preceding alpha se
 - Clarified provider-neutral CI and pre-commit integration guidance.
 - Aligned released-version examples and documented configuration defaults.
 - Added mechanical checks to keep documentation contracts consistent with the implementation.
+- Kept consumer version examples independent of source-tree and post-release build versions while
+  requiring the examples to remain internally consistent.
 
 ## 0.0.1
 
