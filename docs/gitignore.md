@@ -9,7 +9,7 @@ so it also works in minimal CI images and embedded Python workflows.
 The supported API is exported from the package root:
 
 ```python
-from mdrepo import GitIgnoreDecision, GitIgnoreEngine, GitIgnoreError, is_gitignored
+from mdrepo import GitIgnoreDecision, GitIgnoreError, GitIgnorePolicy, GitIgnoreWalker, is_gitignored
 
 try:
     ignored = is_gitignored("/workspace/project", "artifacts/release.md")
@@ -23,12 +23,13 @@ returns only ignored child names but still traverses safe unignored directories 
 entries are discoverable. Initial exclusions are applied as the caller's baseline policy:
 
 ```python
-engine = GitIgnoreEngine(
+policy = GitIgnorePolicy(
     "/workspace/project",
     initial_excludes=("build/**", "dist/**"),
 )
+walker = GitIgnoreWalker("/workspace/project", policy=policy)
 
-for directory, dir_names, filenames in engine.walk(ignored=False):
+for directory, dir_names, filenames in walker.walk(ignored=False):
     for filename in filenames:
         print(directory / filename)
 ```
@@ -39,7 +40,7 @@ input-safety boundary used by Markdown discovery.
 Use `iter_files()` when directory names and pruning controls are not needed:
 
 ```python
-for path in engine.iter_files(ignored=False):
+for path in walker.iter_files(ignored=False):
     print(path)
 ```
 
@@ -48,14 +49,14 @@ is interpreted below the root. Targets outside the root and non-directory roots 
 `ValueError`. Missing targets are supported; an ignored ancestor still makes a missing descendant
 non-durable. Invalid or unreadable ignore files raise `GitIgnoreError`.
 
-For multiple targets, `engine.is_ignored_many(targets)` returns decisions in input order while
+For multiple targets, `policy.is_ignored_many(targets)` returns decisions in input order while
 sharing one ignore-policy snapshot. Use this for a repository-wide operation such as graph
 eligibility filtering; a later batch starts fresh and sees updated ignore files.
 
-Use `explain()` when a boolean result is not enough:
+Use the policy's `explain()` when a boolean result is not enough:
 
 ```python
-decision: GitIgnoreDecision = engine.explain("artifacts/release.md")
+    decision: GitIgnoreDecision = policy.explain("artifacts/release.md")
 if decision.ignored:
     print(decision.source, decision.line, decision.pattern)
 ```
@@ -97,7 +98,7 @@ controls Markdown discovery when `respect-gitignore = true` (the default) and pr
 documents from creating orphan-graph noise. Set that option to `false` only when ignored Markdown
 must be inspected explicitly; durability checks still report links to ignored targets.
 
-Markdown discovery uses `GitIgnoreEngine.walk()` for regular-file and symlink-safe traversal. The
+Markdown discovery uses `GitIgnoreWalker.walk()` for regular-file and symlink-safe traversal. The
 engine's Git-ignore filtering is combined with mdrepo's separate ordered `include` and `exclude`
 policies; those policies are not silently merged into `.gitignore`.
 

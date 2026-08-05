@@ -42,25 +42,28 @@ recorded through `[[tool.mdrepo.exceptions]]` with an ID and reason. See
 The durable Git-ignore evaluator is also available as the small top-level Python API:
 
 ```python
-from mdrepo import GitIgnoreEngine, is_gitignored
+from mdrepo import GitIgnorePolicy, GitIgnoreWalker, is_gitignored
 
 if is_gitignored("/path/to/repository", "artifacts/release.md"):
     print("target is not durable in a clean checkout")
 
-engine = GitIgnoreEngine("/path/to/repository", initial_excludes=("build/**",))
-for directory, _, filenames in engine.walk(ignored=False):
+policy = GitIgnorePolicy("/path/to/repository", initial_excludes=("build/**",))
+walker = GitIgnoreWalker("/path/to/repository", policy=policy)
+for directory, _, filenames in walker.walk(ignored=False):
     print(directory, filenames)
 ```
 
 The target may be a string, `Path`, or other path-like object. Relative targets are interpreted
 relative to the repository root; targets outside that root raise `ValueError`. Invalid or unreadable
 ignore files raise `mdrepo.GitIgnoreError`, allowing callers to distinguish a policy failure from a
-normal non-ignored result. Use `GitIgnoreEngine` when checking multiple paths or walking the tree;
+normal non-ignored result. Use `GitIgnorePolicy` when checking multiple paths and
+`GitIgnoreWalker` when walking the tree;
 its `initial_excludes` argument accepts caller-owned baseline patterns. Other `mdrepo` modules
 remain internal and are not part of the stable import surface.
 
-Use `GitIgnoreEngine.explain()` when policy provenance is needed, and `iter_files()` when a caller
-needs only safe file paths rather than the full `os.walk`-style directory tuple.
+Use `GitIgnorePolicy.explain()` when policy provenance is needed, and
+`GitIgnoreWalker.iter_files()` when a caller needs only safe file paths rather than
+the full `os.walk`-style directory tuple.
 
 ## Top-level keys
 

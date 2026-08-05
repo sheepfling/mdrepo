@@ -119,8 +119,8 @@ navigation model. In a MkDocs project, rumdl `MD074` can validate `mkdocs.yml` m
 
 The supported consumer interface is the `mdrepo` console command, its `python -m mdrepo`
 equivalent, and the focused Git-ignore API exported from the package root:
-`mdrepo.is_gitignored(root, target)`, `mdrepo.GitIgnoreEngine`, `mdrepo.GitIgnoreDecision`, and
-`mdrepo.GitIgnoreError`.
+`mdrepo.is_gitignored(root, target)`, `mdrepo.GitIgnorePolicy`,
+`mdrepo.GitIgnoreWalker`, `mdrepo.GitIgnoreDecision`, and `mdrepo.GitIgnoreError`.
 Modules such as `config`, `engine`, `markdown`, `resolution`, and `rules` are implementation
 modules rather than stable programmatic APIs.
 

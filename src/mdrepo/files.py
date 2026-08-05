@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from mdrepo.config import ApplicationConfig
-from mdrepo.gitignore import GitIgnoreEngine, GitIgnoreError, matches_gitignore, parse_gitignore
+from mdrepo.gitignore import GitIgnoreError, GitIgnoreWalker, matches_gitignore, parse_gitignore
 
 
 class FileDiscoveryError(RuntimeError):
@@ -17,7 +17,7 @@ def collect_project_markdown(*, root: Path, config: ApplicationConfig) -> tuple[
 
     include_spec = parse_gitignore(config.include, source="mdrepo include policy")
     exclude_spec = parse_gitignore(config.exclude, source="mdrepo exclude policy")
-    gitignore = GitIgnoreEngine(root)
+    gitignore = GitIgnoreWalker(root)
     collected: list[Path] = []
     try:
         ignored = False if config.respect_gitignore else None

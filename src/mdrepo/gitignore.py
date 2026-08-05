@@ -35,8 +35,8 @@ class _LoadedIgnore:
     line_numbers: tuple[int | None, ...]
 
 
-class GitIgnoreEngine:
-    """Evaluate repository ignore policy and walk a repository without invoking Git.
+class GitIgnorePolicy:
+    """Evaluate repository ignore policy without invoking Git.
 
     ``initial_excludes`` are applied as a baseline before repository ``.gitignore`` files. A
     matching baseline exclusion remains ignored. They are useful for a caller's own transient or
@@ -63,8 +63,8 @@ class GitIgnoreEngine:
     def explain(self, target: str | os.PathLike[str] | Path) -> GitIgnoreDecision:
         """Return the effective decision and matching policy source for one target."""
 
-        resolved_target = self._resolve_target(target)
-        return self._decision(target=resolved_target, snapshot=_IgnoreSnapshot())
+        resolved_target = self.resolve_target(target)
+        return self.decision(target=resolved_target, snapshot=_IgnoreSnapshot())
 
     def is_ignored_many(
         self,
@@ -77,11 +77,61 @@ class GitIgnoreEngine:
         repository ``.gitignore`` files.
         """
 
-        resolved_targets = tuple(self._resolve_target(target) for target in targets)
+        resolved_targets = tuple(self.resolve_target(target) for target in targets)
         snapshot = _IgnoreSnapshot()
         return tuple(
-            self._decision(target=target, snapshot=snapshot).ignored for target in resolved_targets
+            self.decision(target=target, snapshot=snapshot).ignored for target in resolved_targets
         )
+
+    def decision(self, *, target: Path, snapshot: _IgnoreSnapshot) -> GitIgnoreDecision:
+        relative = target.relative_to(self.root).as_posix()
+        initial_match = _match_loaded_ignore(
+            self._initial_excludes,
+            relative,
+            is_directory=target.is_dir(),
+        )
+        if initial_match is not None and initial_match.ignored:
+            return _decision_from_match(path=target, match=initial_match)
+
+        repository_match = _gitignore_path_decision(
+            root=self.root,
+            target=target,
+            snapshot=snapshot,
+        )
+        if repository_match is not None:
+            return _decision_from_match(path=target, match=repository_match)
+        if initial_match is not None:
+            return _decision_from_match(path=target, match=initial_match)
+        return GitIgnoreDecision(path=target, ignored=False)
+
+    def resolve_target(self, target: str | os.PathLike[str] | Path) -> Path:
+        target_path = Path(target).expanduser()
+        if not target_path.is_absolute():
+            target_path = self.root / target_path
+        try:
+            target_path = target_path.resolve()
+        except (OSError, RuntimeError) as error:
+            raise GitIgnoreError(f"unable to resolve Git-ignore target: {error}") from error
+        if not target_path.is_relative_to(self.root):
+            raise ValueError(f"target must be inside repository root: {target_path}")
+        return target_path
+
+
+class GitIgnoreWalker:
+    """Traverse a repository using a :class:`GitIgnorePolicy`."""
+
+    def __init__(
+        self,
+        root: str | os.PathLike[str] | Path,
+        *,
+        policy: GitIgnorePolicy | None = None,
+        initial_excludes: Sequence[str] = (),
+    ) -> None:
+        resolved_root = _resolve_root(root)
+        self.policy = policy or GitIgnorePolicy(resolved_root, initial_excludes=initial_excludes)
+        if self.policy.root != resolved_root:
+            raise ValueError("GitIgnoreWalker policy must use the same repository root")
+        self.root = resolved_root
 
     def iter_files(
         self,
@@ -103,27 +153,6 @@ class GitIgnoreEngine:
         ):
             yield from (directory / filename for filename in filenames)
 
-    def _decision(self, *, target: Path, snapshot: _IgnoreSnapshot) -> GitIgnoreDecision:
-        relative = target.relative_to(self.root).as_posix()
-        initial_match = _match_loaded_ignore(
-            self._initial_excludes,
-            relative,
-            is_directory=target.is_dir(),
-        )
-        if initial_match is not None and initial_match.ignored:
-            return _decision_from_match(path=target, match=initial_match)
-
-        repository_match = _gitignore_path_decision(
-            root=self.root,
-            target=target,
-            snapshot=snapshot,
-        )
-        if repository_match is not None:
-            return _decision_from_match(path=target, match=repository_match)
-        if initial_match is not None:
-            return _decision_from_match(path=target, match=initial_match)
-        return GitIgnoreDecision(path=target, ignored=False)
-
     def walk(
         self,
         top: str | os.PathLike[str] | Path | None = None,
@@ -142,8 +171,8 @@ class GitIgnoreEngine:
         """
 
         if follow_links:
-            raise ValueError("GitIgnoreEngine.walk does not follow symlinks")
-        top_path = self._resolve_target(self.root if top is None else top)
+            raise ValueError("GitIgnoreWalker.walk does not follow symlinks")
+        top_path = self.policy.resolve_target(self.root if top is None else top)
         snapshot = _IgnoreSnapshot()
         for directory, dir_names, filenames in os.walk(
             top_path,
@@ -167,8 +196,8 @@ class GitIgnoreEngine:
             matching_dirs = [
                 name
                 for name in safe_dir_names
-                if self._decision(
-                    target=self._resolve_target(current / name),
+                if self.policy.decision(
+                    target=self.policy.resolve_target(current / name),
                     snapshot=snapshot,
                 ).ignored
                 is ignored
@@ -176,8 +205,8 @@ class GitIgnoreEngine:
             matching_files = [
                 name
                 for name in safe_filenames
-                if self._decision(
-                    target=self._resolve_target(current / name),
+                if self.policy.decision(
+                    target=self.policy.resolve_target(current / name),
                     snapshot=snapshot,
                 ).ignored
                 is ignored
@@ -189,18 +218,6 @@ class GitIgnoreEngine:
                 yield current, dir_names, matching_files
                 continue
             yield current, matching_dirs, matching_files
-
-    def _resolve_target(self, target: str | os.PathLike[str] | Path) -> Path:
-        target_path = Path(target).expanduser()
-        if not target_path.is_absolute():
-            target_path = self.root / target_path
-        try:
-            target_path = target_path.resolve()
-        except (OSError, RuntimeError) as error:
-            raise GitIgnoreError(f"unable to resolve Git-ignore target: {error}") from error
-        if not target_path.is_relative_to(self.root):
-            raise ValueError(f"target must be inside repository root: {target_path}")
-        return target_path
 
 
 def _resolve_root(root: str | os.PathLike[str] | Path) -> Path:
@@ -291,7 +308,7 @@ class TargetDurabilityPolicy:
 
     root: Path
     mdrepo_exclude: GitIgnoreSpec
-    gitignore: GitIgnoreEngine
+    gitignore: GitIgnorePolicy
 
     @classmethod
     def from_repository(
@@ -305,7 +322,7 @@ class TargetDurabilityPolicy:
         return cls(
             root=root,
             mdrepo_exclude=parse_gitignore(exclude_patterns, source="mdrepo exclude policy"),
-            gitignore=GitIgnoreEngine(root),
+            gitignore=GitIgnorePolicy(root),
         )
 
     def classify(self, target: Path) -> TargetDurability:
@@ -348,7 +365,7 @@ def is_gitignored(
     failures raise :class:`GitIgnoreError`.
     """
 
-    return GitIgnoreEngine(root).is_ignored(target)
+    return GitIgnorePolicy(root).is_ignored(target)
 
 
 def _gitignore_path_decision(

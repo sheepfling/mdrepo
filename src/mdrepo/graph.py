@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from mdrepo.config import ApplicationConfig
-from mdrepo.gitignore import GitIgnoreEngine
+from mdrepo.gitignore import GitIgnorePolicy
 from mdrepo.models import Document, LinkKind, LinkOccurrence
 from mdrepo.resolution import canonicalize_case, resolve_graph_document, resolve_local_target
 
@@ -31,7 +31,7 @@ def build_document_graph(
 ) -> DocumentGraph:
     """Build local Markdown-link edges, then walk configured roots."""
 
-    gitignore = GitIgnoreEngine(root)
+    gitignore = GitIgnorePolicy(root)
     document_paths = tuple(documents)
     ignored = gitignore.is_ignored_many(document_paths)
     eligible_documents = {

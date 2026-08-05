@@ -6,13 +6,15 @@ import mdrepo
 def test_package_root_exposes_version_and_gitignore_endpoint() -> None:
     assert mdrepo.__all__ == [
         "GitIgnoreDecision",
-        "GitIgnoreEngine",
         "GitIgnoreError",
+        "GitIgnorePolicy",
+        "GitIgnoreWalker",
         "__version__",
         "is_gitignored",
     ]
     assert mdrepo.GitIgnoreDecision is not None
-    assert callable(mdrepo.GitIgnoreEngine)
+    assert callable(mdrepo.GitIgnorePolicy)
+    assert callable(mdrepo.GitIgnoreWalker)
     assert callable(mdrepo.is_gitignored)
     assert issubclass(mdrepo.GitIgnoreError, RuntimeError)
     assert not hasattr(mdrepo, "Diagnostic")

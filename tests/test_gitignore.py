@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from mdrepo import GitIgnoreDecision, GitIgnoreEngine
+from mdrepo import GitIgnoreDecision, GitIgnorePolicy, GitIgnoreWalker
 from mdrepo import is_gitignored as public_is_gitignored
 from mdrepo.cli import main
 from mdrepo.config import ApplicationConfig
@@ -58,6 +58,19 @@ def test_is_gitignored_is_a_pathlike_programmatic_endpoint(
     assert public_is_gitignored(str(repository.root), str(kept)) is False
     assert is_gitignored(repository.root, kept) is False
     assert is_gitignored(repository.root, ignored) is True
+
+
+def test_policy_and_walker_can_be_composed(
+    repository: RepositoryBuilder,
+) -> None:
+    repository.write_text(".gitignore", "generated/\n")
+    kept = repository.write_text("docs/guide.md", "guide\n")
+    repository.write_text("generated/output.md", "output\n")
+    policy = GitIgnorePolicy(repository.root)
+    walker = GitIgnoreWalker(repository.root, policy=policy)
+
+    assert policy.is_ignored(kept) is False
+    assert kept in tuple(walker.iter_files(ignored=False))
 
 
 def test_is_gitignored_rejects_targets_outside_the_root(
@@ -182,12 +195,13 @@ def test_gitignore_engine_applies_initial_excludes_and_walk_filters(
     repository.write_text("ignored/by-gitignore.md", "ignored\n")
     repository.write_text("generated/by-initial-policy.md", "generated\n")
     repository.write_text("docs/guide.md", "# Guide\n")
-    engine = GitIgnoreEngine(repository.root, initial_excludes=("generated/**",))
+    policy = GitIgnorePolicy(repository.root, initial_excludes=("generated/**",))
+    walker = GitIgnoreWalker(repository.root, policy=policy)
 
     def walked_files(ignored: bool | None) -> set[str]:
         return {
             (directory / name).relative_to(repository.root).as_posix()
-            for directory, _, filenames in engine.walk(ignored=ignored)
+            for directory, _, filenames in walker.walk(ignored=ignored)
             for name in filenames
         }
 
@@ -209,7 +223,7 @@ def test_gitignore_engine_applies_initial_excludes_and_walk_filters(
         "docs/guide.md",
         "pyproject.toml",
     }
-    assert engine.is_ignored("generated/by-initial-policy.md") is True
+    assert policy.is_ignored("generated/by-initial-policy.md") is True
 
 
 def test_gitignore_engine_batch_checks_share_a_fresh_snapshot(
@@ -219,7 +233,7 @@ def test_gitignore_engine_batch_checks_share_a_fresh_snapshot(
     repository.write_text(".gitignore", "docs/ignored/\n")
     ignored = repository.write_text("docs/ignored/guide.md", "ignored\n")
     kept = repository.write_text("docs/guide.md", "kept\n")
-    engine = GitIgnoreEngine(repository.root)
+    engine = GitIgnorePolicy(repository.root)
     loaded: list[Path] = []
     original_read_text = Path.read_text
 
@@ -246,7 +260,7 @@ def test_gitignore_engine_explains_matching_source_and_line(
 ) -> None:
     repository.write_text(".gitignore", "# generated files\n\nignored/\n")
     target = repository.write_text("ignored/guide.md", "ignored\n")
-    engine = GitIgnoreEngine(repository.root)
+    engine = GitIgnorePolicy(repository.root)
 
     decision = engine.explain(target)
 
@@ -264,7 +278,7 @@ def test_gitignore_engine_explains_initial_exclusions_and_unmatched_paths(
 ) -> None:
     kept = repository.write_text("docs/guide.md", "guide\n")
     generated = repository.write_text("generated/guide.md", "generated\n")
-    engine = GitIgnoreEngine(repository.root, initial_excludes=("generated/**",))
+    engine = GitIgnorePolicy(repository.root, initial_excludes=("generated/**",))
 
     assert engine.explain(generated) == GitIgnoreDecision(
         path=generated.resolve(),
@@ -282,7 +296,7 @@ def test_gitignore_engine_explains_parent_ignore_when_descendant_is_not_reinclud
     repository.write_text(".gitignore", "ignored/\n!ignored/keep.md\n")
     target = repository.write_text("ignored/keep.md", "keep\n")
 
-    decision = GitIgnoreEngine(repository.root).explain(target)
+    decision = GitIgnorePolicy(repository.root).explain(target)
 
     assert decision.ignored is True
     assert decision.pattern == "ignored/"
@@ -296,7 +310,7 @@ def test_gitignore_engine_iter_files_yields_only_files(
     repository.write_text("README.md", "root\n")
     repository.write_text("docs/guide.md", "guide\n")
     repository.write_text("ignored/generated.md", "generated\n")
-    engine = GitIgnoreEngine(repository.root)
+    engine = GitIgnoreWalker(repository.root)
 
     ignored_files = {
         path.relative_to(repository.root).as_posix() for path in engine.iter_files(ignored=True)
@@ -317,7 +331,7 @@ def test_gitignore_engine_prunes_ignored_directories_and_supports_topdown_prunin
     repository.write_text(".gitignore", "ignored/\n")
     repository.write_text("ignored/nested/hidden.md", "hidden\n")
     repository.write_text("kept/nested/visible.md", "visible\n")
-    engine = GitIgnoreEngine(repository.root)
+    engine = GitIgnoreWalker(repository.root)
 
     unignored_directories = {
         directory.relative_to(repository.root).as_posix()
@@ -344,7 +358,7 @@ def test_gitignore_engine_does_not_prune_contents_only_ignored_directories(
     repository.write_text(".gitignore", "docs/**\n!docs/keep.md\n")
     repository.write_text("docs/keep.md", "keep\n")
     repository.write_text("docs/drop.md", "drop\n")
-    engine = GitIgnoreEngine(repository.root)
+    engine = GitIgnoreWalker(repository.root)
 
     unignored_files = {
         (directory / name).relative_to(repository.root).as_posix()
@@ -362,7 +376,7 @@ def test_gitignore_engine_ignored_walk_descends_through_unignored_directories(
     repository.write_text(".gitignore", "docs/drafts/\n")
     repository.write_text("docs/guide.md", "guide\n")
     repository.write_text("docs/drafts/hidden.md", "hidden\n")
-    engine = GitIgnoreEngine(repository.root)
+    engine = GitIgnoreWalker(repository.root)
 
     ignored_files = {
         (directory / name).relative_to(repository.root).as_posix()
@@ -378,7 +392,7 @@ def test_gitignore_engine_walk_can_start_at_a_subdirectory(
 ) -> None:
     repository.write_text("docs/guide.md", "guide\n")
     repository.write_text("docs/nested/reference.md", "reference\n")
-    engine = GitIgnoreEngine(repository.root)
+    engine = GitIgnoreWalker(repository.root)
 
     directories = {
         directory.relative_to(repository.root).as_posix() for directory, _, _ in engine.walk("docs")
@@ -399,7 +413,7 @@ def test_gitignore_engine_walk_skips_symlinked_entries(
 
     filenames = {
         (directory / name).relative_to(repository.root).as_posix()
-        for directory, _, names in GitIgnoreEngine(repository.root).walk()
+        for directory, _, names in GitIgnoreWalker(repository.root).walk()
         for name in names
     }
 
@@ -410,7 +424,7 @@ def test_gitignore_engine_walk_skips_symlinked_entries(
 def test_gitignore_engine_rejects_following_symlinks(
     repository: RepositoryBuilder,
 ) -> None:
-    engine = GitIgnoreEngine(repository.root)
+    engine = GitIgnoreWalker(repository.root)
 
     with pytest.raises(ValueError, match="does not follow symlinks"):
         tuple(engine.walk(follow_links=True))
