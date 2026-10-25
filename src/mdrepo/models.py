@@ -3,11 +3,18 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from enum import StrEnum
+from enum import Enum
 from pathlib import Path
 
 
-class Severity(StrEnum):
+class _StringEnum(str, Enum):
+    """Keep string-enum formatting consistent before and after Python 3.11."""
+
+    def __str__(self) -> str:
+        return str.__str__(self)
+
+
+class Severity(_StringEnum):
     """Diagnostic severity."""
 
     INFO = "info"
@@ -15,7 +22,7 @@ class Severity(StrEnum):
     ERROR = "error"
 
 
-class OutputFormat(StrEnum):
+class OutputFormat(_StringEnum):
     """Supported diagnostic output formats."""
 
     TEXT = "text"
@@ -23,7 +30,7 @@ class OutputFormat(StrEnum):
     GITHUB = "github"
 
 
-class LinkKind(StrEnum):
+class LinkKind(_StringEnum):
     """Markdown construct that uses a destination."""
 
     LINK = "link"
@@ -31,7 +38,7 @@ class LinkKind(StrEnum):
     REFERENCE_DEFINITION = "reference-definition"
 
 
-class LinkSourceKind(StrEnum):
+class LinkSourceKind(_StringEnum):
     """How a parsed destination is represented in source Markdown."""
 
     DIRECT = "direct"

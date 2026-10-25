@@ -1,11 +1,11 @@
 """Provider-neutral release metadata and artifact command coverage."""
 
 import subprocess
-import tomllib
 from pathlib import Path
 
 import pytest
 
+from mdrepo._toml import tomllib
 from scripts import release
 
 

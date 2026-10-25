@@ -3,6 +3,11 @@
 Release versions are derived from Git tags by `setuptools-scm`. Version `0.0.1` is the first
 non-prerelease release; the entries below document it and its preceding alpha sequence.
 
+## Unreleased
+
+- Added Python 3.10 support with the `tomli` parser backport and consistent string-enum formatting.
+- Added Python 3.10 to package metadata, static-analysis targets, and the hosted CI matrix.
+
 ## 0.0.1.post0
 
 - Clarified provider-neutral CI and pre-commit integration guidance.
