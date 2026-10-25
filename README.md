@@ -2,7 +2,7 @@
 
 > **Portable links. Reachable docs. Exceptions that do not quietly live forever.**
 
-[![Python 3.11+][python-badge]][python]
+[![Python 3.10+][python-badge]][python]
 [![License: MIT][license-badge]][license]
 [![Typing: strict Pyright][typing-badge]][typing]
 [![Lint: Ruff][ruff-badge]][ruff]
@@ -10,7 +10,7 @@
 
 Most Markdown linters stop at the file boundary. `mdrepo` starts at the repository boundary.
 
-`mdrepo` is a focused Python 3.11+ CLI for policies that require cross-platform filesystem
+`mdrepo` is a focused Python 3.10+ CLI for policies that require cross-platform filesystem
 semantics or a view of the complete documentation set. It complements [rumdl][rumdl] rather than
 replacing it.
 
@@ -297,7 +297,7 @@ and an `mdrepo` self-check.
 
 [pre-commit]: .pre-commit-config.yaml
 
-[python-badge]: https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white
+[python-badge]: https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white
 
 [python]: https://www.python.org/downloads/
 

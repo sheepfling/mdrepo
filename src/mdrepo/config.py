@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import copy
-import tomllib
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
@@ -11,6 +10,7 @@ from typing import Any, cast
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
+from mdrepo._toml import tomllib
 from mdrepo.models import OutputFormat, Severity
 
 _CONFIG_FILENAMES = ("pyproject.toml", "mdrepo.toml", ".mdrepo.toml")

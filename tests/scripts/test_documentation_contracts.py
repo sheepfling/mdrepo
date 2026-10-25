@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import re
-import tomllib
 from pathlib import Path
 from typing import Any, cast
 
 from pydantic import ValidationError
 
+from mdrepo._toml import tomllib
 from mdrepo.config import ApplicationConfig
 
 ROOT = Path(__file__).resolve().parents[2]
