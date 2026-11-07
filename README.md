@@ -277,11 +277,6 @@ are inferred from Git tags; exact release tags retain their tagged version.
 During development, apply safe fixes first and then rerun the read-only gate with
 `python -m scripts.ci --fix` followed by `python -m scripts.ci`.
 
-For a broader local compatibility sweep, run `python -m scripts.ci_matrix`. It discovers installed
-Python versions from 3.10 through 3.15, creates or refreshes an isolated `.venv-ci-<version>` for
-each, installs the development dependencies, and runs the full gate. Missing interpreters are
-reported as skipped; install the missing version when you need the complete local sweep.
-
 Hosted CI runs the supported operating-system and Python-version matrix defined in
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml). The gate includes compilation, linting,
 tests, isolated package validation, type checking, documentation checks, pre-commit validation,
