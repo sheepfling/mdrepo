@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+from enum import StrEnum
 from pathlib import Path
-
-from mdrepo._compat import StrEnum
 
 
 class Severity(StrEnum):

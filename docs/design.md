@@ -135,9 +135,7 @@ independently distributed rule packages establish the required API from real use
 
 The package version is derived by `setuptools-scm` from Git tags. `pyproject.toml` deliberately does
 not contain a manually maintained `project.version`, and runtime `mdrepo.__version__` reads the
-installed distribution metadata. Release tags use the `vX.Y.Z` form. Commits after a tag use the
-next development version, which lets editable installs work from an ordinary checkout; an exact
-release tag still resolves to its tagged version.
+installed distribution metadata. Release tags use the `vX.Y.Z` form.
 
 Before building a release, install the development environment and verify the tag through the
 provider-neutral release helper:

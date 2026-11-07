@@ -13,14 +13,7 @@ def main() -> int:
     """Run Pyright using the active development environment."""
 
     return subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            "pyright",
-            "--pythonpath",
-            sys.executable,
-            f"--pythonversion={sys.version_info.major}.{sys.version_info.minor}",
-        ],
+        [sys.executable, "-m", "pyright", "--pythonpath", sys.executable],
         cwd=ROOT,
         check=False,
     ).returncode
