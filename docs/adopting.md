@@ -21,26 +21,29 @@ existing development environment and quality job where practical.
 
 ## 2. Install both tools
 
-For a Python project, add both packages to its development dependencies. The following is the
-released-package baseline shown in the CI examples:
+Declare both tools in the consuming project's existing development dependency group in
+`pyproject.toml`. Keep version constraints there, aligned with the Python versions the project
+supports and its normal dependency-update policy. For a PEP 621 project, the entries look like:
 
 ```toml
 [project.optional-dependencies]
 dev = [
-    "mdrepo==0.0.1",
-    "rumdl>=0.2.49,<0.3",
+    "mdrepo",
+    "rumdl",
 ]
 ```
 
-Install the development extra in the project's existing environment:
+If the project already has a `dev` extra, add the tools to that list instead of replacing it.
+Resolve or update the project's lockfile with its package manager, then install the project extra
+in the local environment:
 
 ```bash
 python -m pip install -e ".[dev]"
 ```
 
-The `mdrepo==0.0.1` release requires Python 3.11 or newer. Use Python 3.11 or newer when
-installing that pin. If you are testing an unreleased source checkout with Python 3.10, install
-that checkout and confirm its metadata supports the selected interpreter.
+Use the corresponding sync or install command for projects managed by uv, Poetry, or another
+package manager. CI should install the same project dependency set and honor the project's lockfile
+policy rather than duplicating tool versions in workflow files.
 
 ## 3. Create or review mdrepo configuration
 
