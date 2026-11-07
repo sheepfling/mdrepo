@@ -2,7 +2,7 @@
 
 > **Portable links. Reachable docs. Exceptions that do not quietly live forever.**
 
-[![Python 3.11+][python-badge]][python]
+[![Python 3.10+][python-badge]][python]
 [![License: MIT][license-badge]][license]
 [![Typing: strict Pyright][typing-badge]][typing]
 [![Lint: Ruff][ruff-badge]][ruff]
@@ -10,7 +10,7 @@
 
 Most Markdown linters stop at the file boundary. `mdrepo` starts at the repository boundary.
 
-`mdrepo` is a focused Python 3.11+ CLI for policies that require cross-platform filesystem
+`mdrepo` is a focused Python 3.10+ CLI for policies that require cross-platform filesystem
 semantics or a view of the complete documentation set. It complements [rumdl][rumdl] rather than
 replacing it.
 
@@ -261,19 +261,21 @@ plugin-loading system.
 
 ## Development
 
-Run the same read-only gate used by hosted CI:
+Create a Python 3.10 or newer environment, install the development dependencies, and run the same
+read-only gate used by hosted CI:
 
 ```bash
-uv sync --extra dev
-uv run python -m scripts.ci
+python3.10 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e '.[dev]'
+python -m scripts.ci
 ```
 
-During development, apply safe fixes first and then rerun the read-only gate:
+On PowerShell, use `.venv\Scripts\Activate.ps1` to activate the environment. Development versions
+are inferred from Git tags; exact release tags retain their tagged version.
 
-```bash
-uv run python -m scripts.ci --fix
-uv run python -m scripts.ci
-```
+During development, apply safe fixes first and then rerun the read-only gate with
+`python -m scripts.ci --fix` followed by `python -m scripts.ci`.
 
 Hosted CI runs the supported operating-system and Python-version matrix defined in
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml). The gate includes compilation, linting,
@@ -297,7 +299,7 @@ and an `mdrepo` self-check.
 
 [pre-commit]: .pre-commit-config.yaml
 
-[python-badge]: https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white
+[python-badge]: https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white
 
 [python]: https://www.python.org/downloads/
 
