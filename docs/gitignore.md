@@ -1,8 +1,9 @@
 # Git-ignore integration
 
-`mdrepo` has a focused Git-ignore evaluator for one repository-relative question: will this
-existing local target be excluded from a clean checkout? It does not invoke the `git` executable,
-so it also works in minimal CI images and embedded Python workflows.
+`mdrepo` delegates Git-ignore parsing, matching, and safe traversal to
+[`gitignore-walk`](https://pypi.org/project/gitignore-walk/). Its portable evaluator checks whether
+a local target is excluded by the applicable ignore policy without invoking the `git` executable.
+It also works in minimal CI images and embedded Python workflows.
 
 ## Python API
 
@@ -55,7 +56,7 @@ is interpreted below the root. Targets outside the root and non-directory roots 
 `ValueError`. Missing targets are supported; an ignored ancestor still makes a missing descendant
 non-durable. Invalid or unreadable ignore files raise `GitIgnoreError`.
 
-For multiple targets, `policy.is_ignored_many(targets)` returns decisions in input order while
+For multiple targets, `policy.is_ignored_many(targets)` returns a tuple in input order while
 sharing one ignore-policy snapshot. Use this for a repository-wide operation such as graph
 eligibility filtering; a later batch starts fresh and sees updated ignore files.
 
@@ -93,9 +94,23 @@ The evaluator applies repository `.gitignore` files in order from the root towar
 `initial_excludes` are caller-owned baseline exclusions. A matching baseline exclusion remains
 ignored even if a repository `.gitignore` contains a later negation.
 
-The evaluator intentionally does not include global Git excludes, `.git/info/exclude`, or Git's
-index state. Those are machine- or checkout-specific; this feature answers the repository policy
-represented by committed or local repository `.gitignore` files.
+The portable library also reads the conventional global ignore file
+(`$XDG_CONFIG_HOME/git/ignore`, or `~/.config/git/ignore`) and the discovered repository's
+`info/exclude`. Repository `.gitignore` rules take precedence over these lower-priority sources.
+When the supplied root is a subdirectory of a repository, applicable ancestor `.gitignore` files
+are included. Git configuration overrides, conditional includes, and index state are not read.
+Consequently, global and checkout-local exclusions can affect discovery and durability checks;
+results do not guarantee that a file is absent from a clean checkout.
+
+The mdrepo adapters preserve `ignored=None` (all entries), `ignored=True` (ignored entries),
+`ignored=False` (included entries), tuple batch results, and rejection of `follow_links=True`.
+Unlike the library's default, mdrepo retains an empty `initial_excludes` baseline. Pass
+`initial_excludes=(".git",)` to exclude Git metadata in the Python API; Markdown discovery already
+excludes `.git/**` through its default mdrepo configuration.
+
+Pattern interpretation comes from the library rather than pathspec. For example, a trailing
+backslash is accepted during parsing rather than reported as malformed. Invalid character ranges
+such as `[z-a]` still raise `GitIgnoreError`. Error details are supplied by the library.
 
 ## mdrepo policy integration
 
@@ -108,5 +123,5 @@ Markdown discovery uses `GitIgnoreWalker.walk()` for regular-file and symlink-sa
 engine's Git-ignore filtering is combined with mdrepo's separate ordered `include` and `exclude`
 policies; those policies are not silently merged into `.gitignore`.
 
-The focused regression suite is in `tests/test_gitignore.py` and runs as part of the normal
+The focused regression suite is in `tests/src/test_gitignore.py` and runs as part of the normal
 `python -m pytest` and `python -m mdrepo check .` validation flow.

@@ -64,6 +64,13 @@ RULE_METADATA: tuple[RuleMetadata, ...] = (
         fixable=False,
     ),
     RuleMetadata(
+        rule_id="MDR007",
+        name="directory-trailing-slash",
+        description="Existing local directory destinations must omit trailing slashes.",
+        default_severity=Severity.ERROR,
+        fixable=True,
+    ),
+    RuleMetadata(
         rule_id="MDR100",
         name="missing-document-root",
         description="Orphan checking requires at least one existing configured graph root.",
@@ -309,7 +316,7 @@ class NonDurableLocalTargetRule:
 
             reasons: list[str] = []
             if durability.gitignored:
-                reasons.append(".gitignore")
+                reasons.append("Git ignore policy")
             if durability.mdrepo_excluded:
                 reasons.append("mdrepo exclude policy")
             diagnostics.append(
@@ -323,6 +330,25 @@ class NonDurableLocalTargetRule:
                 )
             )
         return tuple(diagnostics)
+
+
+class DirectoryTrailingSlashRule:
+    """MDR007 implementation."""
+
+    metadata = RULES_BY_ID["MDR007"]
+
+    def check(self, context: RuleContext) -> tuple[Diagnostic, ...]:
+        return tuple(
+            _link_diagnostic(
+                metadata=self.metadata,
+                link=link,
+                message="local directory destination has a trailing slash",
+                replacement=link.local.suggested_target,
+                fix_description="remove the local directory destination's trailing slash",
+            )
+            for link in context.policy_links
+            if link.local is not None and link.local.directory_trailing_slash
+        )
 
 
 class MissingGraphRootRule:
@@ -382,6 +408,7 @@ BUILTIN_RULES: tuple[Rule, ...] = (
     MissingLocalTargetRule(),
     LocalTargetCaseRule(),
     NonDurableLocalTargetRule(),
+    DirectoryTrailingSlashRule(),
     MissingGraphRootRule(),
     OrphanDocumentRule(),
 )

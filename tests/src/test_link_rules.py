@@ -121,7 +121,7 @@ def test_existing_gitignored_and_mdrepo_excluded_targets_are_not_durable(
     assert main(["check", "."]) == 1
     output = capsys.readouterr().out
     assert output.count("MDR006") == 2
-    assert ".gitignore" in output
+    assert "Git ignore policy" in output
     assert "mdrepo exclude policy" in output
 
 

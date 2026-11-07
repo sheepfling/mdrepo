@@ -9,9 +9,18 @@ from pathlib import Path
 from typing import Final
 from urllib.parse import SplitResult, quote, unquote, urlsplit, urlunsplit
 
+from markdown_it.common.utils import unescapeAll
+
 from mdrepo.config import OrphanConfig
 from mdrepo.models import Document, LinkOccurrence
 
+# Tokens preserve source offsets while interpreting Markdown escapes and entities.
+_RAW_DESTINATION_TOKEN: Final[re.Pattern[str]] = re.compile(
+    r"\\[!\"#$%&'()*+,\-./:;<=>?@\[\]\\^_`{|}~]"
+    r"|&(?:#[xX][0-9a-fA-F]{1,6}|#[0-9]{1,7}|[A-Za-z][A-Za-z0-9]{1,31});"
+    r"|%[0-9a-fA-F]{2}|.",
+    re.DOTALL,
+)
 _WINDOWS_ABSOLUTE: Final[re.Pattern[str]] = re.compile(r"^(?:[A-Za-z]:[\\/]|\\{2})")
 
 
@@ -34,6 +43,19 @@ class LocalTargetResolution:
     exists: bool
     case_mismatch: bool
     suggested_target: str | None
+
+    @property
+    def directory_trailing_slash(self) -> bool:
+        """Whether a trailing separator belongs to a safe, existing local directory."""
+
+        return (
+            self.decoded_path.endswith(("/", "\\"))
+            and self.exists
+            and not self.outside_root
+            and self.canonical_path is not None
+            and self.canonical_path.is_dir()
+            and not self.absolute
+        )
 
     @property
     def absolute(self) -> bool:
@@ -118,6 +140,22 @@ def resolve_local_target(
             fragment=parsed.fragment,
         )
 
+    # Preserve source spelling for a slash-only edit, including percent escapes and
+    # empty query/fragment delimiters. Other portability fixes share this suggestion.
+    if (
+        exists
+        and canonical_path is not None
+        and canonical_path.is_dir()
+        and not outside_root
+        and normalized_path.endswith("/")
+        and suggested_target is not None
+    ):
+        trimmed, raw_suffix = _trim_raw_directory_path(occurrence.raw_target)
+        if not (case_mismatch or has_backslashes or root_relative):
+            suggested_target = (trimmed or ".") + raw_suffix
+        else:
+            suggested_target = suggested_target.split("?", 1)[0].split("#", 1)[0] + raw_suffix
+
     return LocalTargetResolution(
         occurrence=occurrence,
         parsed=parsed,
@@ -135,6 +173,28 @@ def resolve_local_target(
         case_mismatch=case_mismatch,
         suggested_target=suggested_target,
     )
+
+
+def _trim_raw_directory_path(raw_target: str) -> tuple[str, str]:
+    """Remove trailing separators without rewriting Markdown escapes or URL suffixes."""
+
+    path_parts: list[str] = []
+    source_offsets: list[int] = []
+    suffix_start = len(raw_target)
+    for token in _RAW_DESTINATION_TOKEN.finditer(raw_target):
+        # Percent-encoded delimiters belong to the path, but Markdown-escaped
+        # delimiters become URL syntax when the Markdown parser decodes them.
+        decoded = unescapeAll(token.group())
+        if decoded in {"?", "#"}:
+            suffix_start = token.start()
+            break
+        path_parts.append(decoded)
+        source_offsets.extend([token.start()] * len(decoded))
+    # Markdown entities can form part of a percent escape (e.g. &percnt;2F
+    # or %2&#70;), so recognize URL separators after joining decoded tokens.
+    trailing = re.search(r"(?:[/\\]|%2[fF]|%5[cC])+$", "".join(path_parts))
+    path_end = source_offsets[trailing.start()] if trailing is not None else suffix_start
+    return raw_target[:path_end], raw_target[suffix_start:]
 
 
 def canonicalize_case(
