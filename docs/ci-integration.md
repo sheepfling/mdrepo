@@ -7,6 +7,9 @@ This repository is itself a working integration example: its `pyproject.toml` co
 `[tool.rumdl]` and `[tool.mdrepo]` tables, its pre-commit files show both hook modes, and its
 GitHub Actions workflow runs the same provider-neutral validation runner used locally.
 
+For a step-by-step workflow that preserves an existing repository's settings, see
+[Adopting rumdl and mdrepo](adopting.md). This page provides reusable CI commands and examples.
+
 The important integration rule is sequencing: run formatters, tests, and generated-artifact steps
 first, then run the final read-only checks from the repository root:
 
@@ -194,6 +197,9 @@ pre-commit.
 
 ## GitHub Actions
 
+The examples below install the published `mdrepo==0.0.1` baseline, which requires Python 3.11 or
+newer. Keep the interpreter compatible with the version pinned by your project.
+
 This minimal job runs from the checkout root and uses the same interpreter for installation and
 validation:
 
@@ -211,7 +217,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
       - run: python -m pip install --upgrade pip
       - run: python -m pip install -e ".[dev]"
       - run: rumdl check .
@@ -221,3 +227,56 @@ jobs:
 Keep the working directory at the checkout root unless `--root` intentionally selects another
 repository. Add the project's own formatter, test, and documentation-linter steps before the final
 `mdrepo` command; `mdrepo` neither invokes nor depends on them.
+
+## GitLab CI
+
+Add the check commands to an existing Python job where possible. This standalone example uses the
+same released development dependencies as the GitHub Actions example:
+
+```yaml
+stages:
+  - quality
+
+markdown-policy:
+  stage: quality
+  image: python:3.11-slim
+  before_script:
+    - python -m pip install --upgrade pip
+    - python -m pip install -e ".[dev]"
+  script:
+    - rumdl check .
+    - python -m mdrepo check .
+```
+
+GitLab runs scripts from the checked-out project directory by default. Keep generated-file,
+formatter, and test commands before these read-only checks.
+
+## Azure Pipelines
+
+This job also uses Python 3.11 for the released `mdrepo==0.0.1` baseline:
+
+```yaml
+trigger:
+  - main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - checkout: self
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: "3.11"
+      addToPath: true
+  - script: |
+      python -m pip install --upgrade pip
+      python -m pip install -e ".[dev]"
+    displayName: Install Markdown tools
+  - script: rumdl check .
+    displayName: Check Markdown style
+  - script: python -m mdrepo check .
+    displayName: Check repository Markdown policy
+```
+
+Add project-specific build, formatter, and test steps before the two policy checks. In an existing
+pipeline, reuse its setup and dependency steps instead of duplicating them.

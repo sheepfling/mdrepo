@@ -247,10 +247,10 @@ Rule IDs use the `MDR` namespace so they remain distinct from rumdl's `MD` rules
 
 ## Integration
 
-See the [CI integration guide](docs/ci-integration.md) for installation, repository-root
-requirements, configuration discovery, exclusions, mutation ordering, platform commands, exit
-codes, CI, and pre-commit setup. That guide is the canonical integration reference; this README
-keeps only the product overview and command summary.
+See the [adoption guide](docs/adopting.md) for adding rumdl and mdrepo to an existing repository.
+The [CI integration guide](docs/ci-integration.md) covers repository-root requirements,
+configuration discovery, exclusions, mutation ordering, provider examples, exit codes, and
+pre-commit setup.
 
 ## Deliberate boundaries
 
@@ -292,7 +292,9 @@ and an `mdrepo` self-check.
 - [Responsibility boundary](docs/responsibility-boundary.md)
 - [Configuration reference](docs/configuration.md)
 - [Git-ignore integration](docs/gitignore.md)
+- [Adopting rumdl and mdrepo](docs/adopting.md)
 - [CI integration](docs/ci-integration.md)
+- [Agent contribution guidance](AGENTS.md)
 - [Design notes](docs/design.md)
 - [Changelog](CHANGELOG.md)
 

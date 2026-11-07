@@ -30,6 +30,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     namespace = parser.parse_args(list(argv) if argv is not None else None)
     try:
+        if namespace.command == "init":
+            return _init(namespace=namespace, stdout=sys.stdout)
         loaded = _load_for_namespace(namespace)
         return _dispatch(namespace=namespace, loaded=loaded, stdout=sys.stdout, stderr=sys.stderr)
     except (
@@ -91,6 +93,23 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     subparsers = parser.add_subparsers(dest="command", required=True)
+
+    init = subparsers.add_parser(
+        "init",
+        help="Create a starter mdrepo.toml without overwriting existing configuration.",
+    )
+    init.add_argument("--root", type=Path, help="Explicit repository root.")
+    init.add_argument(
+        "--orphan-root",
+        action="append",
+        metavar="PATH",
+        help="Enable orphan checks from this root document. Repeat for multiple roots.",
+    )
+    init.add_argument(
+        "--standalone",
+        action="store_true",
+        help="Enable mdrepo's missing-target fallback when rumdl is not used.",
+    )
 
     check = subparsers.add_parser("check", parents=[common], help="Check repository policy.")
     check.add_argument(
@@ -165,6 +184,69 @@ def _load_for_namespace(namespace: argparse.Namespace) -> LoadedConfig:
         root_override=getattr(namespace, "root", None),
         config_paths=list(getattr(namespace, "config", [])),
         overrides=overrides,
+    )
+
+
+def _init(*, namespace: argparse.Namespace, stdout: TextWriter) -> int:
+    roots = list(namespace.orphan_root or [])
+    if any(not root.strip() for root in roots):
+        raise CliError("orphan roots must not be blank")
+    if len(set(roots)) != len(roots):
+        raise CliError("orphan roots must be unique")
+
+    loaded = load_configuration(
+        cwd=Path.cwd(),
+        root_override=namespace.root,
+        config_paths=[],
+        overrides=[],
+    )
+    if loaded.sources:
+        sources = ", ".join(str(path) for path in loaded.sources)
+        raise CliError(f"mdrepo configuration already exists ({sources}); refusing to overwrite it")
+
+    destination = loaded.root / "mdrepo.toml"
+    content = _starter_configuration(
+        orphan_roots=roots,
+        standalone=namespace.standalone,
+    )
+    try:
+        with destination.open("x", encoding="utf-8", newline="\n") as config_file:
+            config_file.write(content)
+    except FileExistsError as error:
+        raise CliError(f"configuration file already exists: {destination}") from error
+    except OSError as error:
+        raise CliError(f"unable to create {destination}: {error}") from error
+
+    print(f"Created {destination}. Review its scope, then run `mdrepo check .`.", file=stdout)
+    if not roots:
+        print(
+            "Orphan checks are disabled; add --orphan-root for each documentation entry point.",
+            file=stdout,
+        )
+    if not namespace.standalone:
+        print(
+            "Missing-target checks are disabled so rumdl can own ordinary link validation.",
+            file=stdout,
+        )
+    return 0
+
+
+def _starter_configuration(*, orphan_roots: list[str], standalone: bool) -> str:
+    serialized_roots = ", ".join(json.dumps(root) for root in orphan_roots)
+    roots_line = (
+        f"roots = [{serialized_roots}]\n"
+        if orphan_roots
+        else '# roots = ["README.md"]  # add entry points to enable checks\n'
+    )
+    return (
+        "# Starter configuration created by mdrepo init. Review the scope before committing.\n"
+        'include = ["*.md", "**/*.md"]\n'
+        "respect-gitignore = true\n\n"
+        "[links]\n"
+        f"check-missing-targets = {str(standalone).lower()}\n\n"
+        "[orphans]\n"
+        f"enabled = {str(bool(orphan_roots)).lower()}\n"
+        f"{roots_line}"
     )
 
 
