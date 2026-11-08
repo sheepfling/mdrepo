@@ -98,7 +98,12 @@ def _build_parser() -> argparse.ArgumentParser:
         "init",
         help="Create a starter mdrepo.toml without overwriting existing configuration.",
     )
-    init.add_argument("--root", type=Path, help="Explicit repository root.")
+    init.add_argument(
+        "--root",
+        type=Path,
+        default=argparse.SUPPRESS,
+        help="Explicit repository root.",
+    )
     init.add_argument(
         "--orphan-root",
         action="append",
@@ -196,7 +201,7 @@ def _init(*, namespace: argparse.Namespace, stdout: TextWriter) -> int:
 
     loaded = load_configuration(
         cwd=Path.cwd(),
-        root_override=namespace.root,
+        root_override=getattr(namespace, "root", None),
         config_paths=[],
         overrides=[],
     )

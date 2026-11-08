@@ -45,9 +45,14 @@ Use the corresponding sync or install command for projects managed by uv, Poetry
 package manager. CI should install the same project dependency set and honor the project's lockfile
 policy rather than duplicating tool versions in workflow files.
 
+Check that the selected `mdrepo` build supports every Python version in the project's CI matrix.
+Package metadata enforces `Requires-Python`; if no published build matches, use the source checkout
+being evaluated or wait for a compatible release instead of bypassing that requirement. The
+`init` command is also available only in builds that include it.
+
 ## 3. Create or review mdrepo configuration
 
-From the repository root, run:
+From the repository root, run this command when the installed build provides `init`:
 
 ```bash
 mdrepo init --orphan-root README.md --orphan-root docs/index.md
@@ -58,13 +63,32 @@ point you do not use. `mdrepo init` creates `mdrepo.toml` without editing `pypro
 refuses to overwrite an existing mdrepo configuration. If your repository already has
 `[tool.mdrepo]`, edit that existing configuration instead.
 
+If your installed build predates `init`, create `mdrepo.toml` manually with the equivalent
+settings:
+
+```toml
+include = ["*.md", "**/*.md"]
+respect-gitignore = true
+
+[links]
+check-missing-targets = false
+
+[orphans]
+enabled = true
+roots = ["README.md", "docs/index.md"]
+```
+
+Use only entry paths that exist in your repository. This starter leaves missing-target checks to
+rumdl, like the `mdrepo init` default.
+
 Review the generated `include` and `respect-gitignore` settings against the repository. Add an
 `exclude` list for Markdown that should not be checked. Orphan detection stays disabled unless you
 pass one or more `--orphan-root` options.
 
 By default, `mdrepo` leaves missing-file and heading-fragment checks disabled so rumdl can own
 those checks through `MD057` and `MD051`. If you are not using rumdl and want mdrepo's missing
-local-target checks, initialize with:
+local-target checks, set `check-missing-targets = true` in the `[links]` table of `mdrepo.toml`.
+When the installed build provides `init`, the command-line equivalent is:
 
 ```bash
 mdrepo init --standalone

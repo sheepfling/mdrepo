@@ -80,6 +80,18 @@ def test_init_creates_rumdl_friendly_configuration(
     assert "roots" not in config["orphans"]
 
 
+def test_init_preserves_root_option_before_subcommand(
+    repository: RepositoryBuilder,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    target = repository.path("nested")
+    target.mkdir()
+
+    assert repository.run(monkeypatch, "--root", str(target), "init") == 0
+    assert (target / "mdrepo.toml").is_file()
+    assert not repository.path("mdrepo.toml").exists()
+
+
 def test_init_can_enable_orphan_and_standalone_link_checks(
     repository: RepositoryBuilder,
     monkeypatch: pytest.MonkeyPatch,
