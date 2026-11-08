@@ -81,9 +81,10 @@ roots = ["README.md", "docs/index.md"]
 Use only entry paths that exist in your repository. This starter leaves missing-target checks to
 rumdl, like the `mdrepo init` default.
 
-Review the generated `include` and `respect-gitignore` settings against the repository. Add an
-`exclude` list for Markdown that should not be checked. Orphan detection stays disabled unless you
-pass one or more `--orphan-root` options.
+Review the `include` and `respect-gitignore` settings against the repository. Add an `exclude` list
+for Markdown that should not be checked. The `mdrepo init` default leaves orphan detection disabled
+unless you pass one or more `--orphan-root` options. The manual example above enables it because it
+sets `enabled = true` and supplies roots; set it to `false` if you want to defer graph checks.
 
 By default, `mdrepo` leaves missing-file and heading-fragment checks disabled so rumdl can own
 those checks through `MD057` and `MD051`. If you are not using rumdl and want mdrepo's missing

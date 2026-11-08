@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import subprocess
 import sys
@@ -19,13 +20,39 @@ def find_interpreter(version: str) -> tuple[str, ...] | None:
     if f"{sys.version_info.major}.{sys.version_info.minor}" == version:
         return (sys.executable,)
     executable = shutil.which(f"python{version}")
-    if executable is not None:
+    if executable is not None and _supports_version((executable,), version):
         return (executable,)
     if sys.platform == "win32":
         launcher = shutil.which("py")
-        if launcher is not None:
-            return (launcher, f"-{version}")
+        command = (launcher, f"-{version}") if launcher is not None else ()
+        if command and _supports_version(command, version):
+            return command
     return None
+
+
+def _supports_version(command: tuple[str, ...], version: str) -> bool:
+    """Confirm an interpreter command selects the requested installed Python version."""
+
+    environment = os.environ.copy()
+    environment.pop("PYLAUNCHER_ALLOW_INSTALL", None)
+    environment.pop("PYLAUNCHER_ALWAYS_INSTALL", None)
+    try:
+        result = subprocess.run(
+            [
+                *command,
+                "-c",
+                "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            check=False,
+            env=environment,
+            text=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+    return result.returncode == 0 and result.stdout.strip() == version
 
 
 def environment_python(version: str) -> Path:
