@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from mdrepo._compat import tomllib
 from tests.constants import TOOL_EXCEPTIONS_TABLE, TOOL_LINKS_TABLE, TOOL_TABLE
 from tests.support import RepositoryBuilder
 
@@ -58,6 +59,89 @@ check-case = false
     assert payload["config"]["fail-on"] == "warning"
     assert payload["config"]["links"]["check-case"] is False
     assert payload["config"]["links"]["require-posix"] is False
+
+
+def test_init_creates_rumdl_friendly_configuration(
+    repository: RepositoryBuilder,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    repository.path("pyproject.toml").unlink()
+
+    assert repository.run(monkeypatch, "init", "--root", str(repository.root)) == 0
+    output = capsys.readouterr().out
+    assert "Created" in output
+    assert "Orphan checks are disabled" in output
+    assert "rumdl can own ordinary link validation" in output
+
+    config = tomllib.loads(repository.read_text("mdrepo.toml"))
+    assert config["links"]["check-missing-targets"] is False
+    assert config["orphans"]["enabled"] is False
+    assert "roots" not in config["orphans"]
+
+
+def test_init_preserves_root_option_before_subcommand(
+    repository: RepositoryBuilder,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    target = repository.path("nested")
+    target.mkdir()
+
+    assert repository.run(monkeypatch, "--root", str(target), "init") == 0
+    assert (target / "mdrepo.toml").is_file()
+    assert not repository.path("mdrepo.toml").exists()
+
+
+def test_init_can_enable_orphan_and_standalone_link_checks(
+    repository: RepositoryBuilder,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repository.path("pyproject.toml").unlink()
+
+    assert (
+        repository.run(
+            monkeypatch,
+            "init",
+            "--root",
+            str(repository.root),
+            "--orphan-root",
+            "README.md",
+            "--orphan-root",
+            "docs/index.md",
+            "--standalone",
+        )
+        == 0
+    )
+
+    config = tomllib.loads(repository.read_text("mdrepo.toml"))
+    assert config["links"]["check-missing-targets"] is True
+    assert config["orphans"] == {"enabled": True, "roots": ["README.md", "docs/index.md"]}
+
+
+def test_init_refuses_to_overwrite_existing_configuration(
+    repository: RepositoryBuilder,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    repository.path("pyproject.toml").unlink()
+    existing = repository.write_text("mdrepo.toml", "# keep this file\n")
+
+    assert repository.run(monkeypatch, "init", "--root", str(repository.root)) == 2
+    assert "refusing to overwrite" in capsys.readouterr().err
+    assert existing.read_text(encoding="utf-8") == "# keep this file\n"
+
+
+def test_init_refuses_to_add_sidecar_when_pyproject_has_mdrepo_config(
+    repository: RepositoryBuilder,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    pyproject = repository.read_text("pyproject.toml")
+
+    assert repository.run(monkeypatch, "init", "--root", str(repository.root)) == 2
+    assert "refusing to overwrite it" in capsys.readouterr().err
+    assert repository.read_text("pyproject.toml") == pyproject
+    assert not repository.path("mdrepo.toml").exists()
 
 
 def test_graph_json_and_path_filter_error(

@@ -2,7 +2,7 @@
 
 > **Portable links. Reachable docs. Exceptions that do not quietly live forever.**
 
-[![Python 3.11+][python-badge]][python]
+[![Python 3.10+][python-badge]][python]
 [![License: MIT][license-badge]][license]
 [![Typing: strict Pyright][typing-badge]][typing]
 [![Lint: Ruff][ruff-badge]][ruff]
@@ -10,7 +10,7 @@
 
 Most Markdown linters stop at the file boundary. `mdrepo` starts at the repository boundary.
 
-`mdrepo` is a focused Python 3.11+ CLI for policies that require cross-platform filesystem
+`mdrepo` is a focused Python 3.10+ CLI for policies that require cross-platform filesystem
 semantics or a view of the complete documentation set. It complements [rumdl][rumdl] rather than
 replacing it.
 
@@ -247,10 +247,10 @@ Rule IDs use the `MDR` namespace so they remain distinct from rumdl's `MD` rules
 
 ## Integration
 
-See the [CI integration guide](docs/ci-integration.md) for installation, repository-root
-requirements, configuration discovery, exclusions, mutation ordering, platform commands, exit
-codes, CI, and pre-commit setup. That guide is the canonical integration reference; this README
-keeps only the product overview and command summary.
+See the [adoption guide](docs/adopting.md) for adding rumdl and mdrepo to an existing repository.
+The [CI integration guide](docs/ci-integration.md) covers repository-root requirements,
+configuration discovery, exclusions, mutation ordering, provider examples, exit codes, and
+pre-commit setup.
 
 ## Deliberate boundaries
 
@@ -261,19 +261,26 @@ plugin-loading system.
 
 ## Development
 
-Run the same read-only gate used by hosted CI:
+Create a Python 3.10 or newer environment, install the development dependencies, and run the same
+read-only gate used by hosted CI:
 
 ```bash
-uv sync --extra dev
-uv run python -m scripts.ci
+python3.10 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e '.[dev]'
+python -m scripts.ci
 ```
 
-During development, apply safe fixes first and then rerun the read-only gate:
+On PowerShell, use `.venv\Scripts\Activate.ps1` to activate the environment. Development versions
+are inferred from Git tags; exact release tags retain their tagged version.
 
-```bash
-uv run python -m scripts.ci --fix
-uv run python -m scripts.ci
-```
+During development, apply safe fixes first and then rerun the read-only gate with
+`python -m scripts.ci --fix` followed by `python -m scripts.ci`.
+
+For a broader local compatibility sweep, run `python -m scripts.ci_matrix`. It discovers installed
+Python versions from 3.10 through 3.15, creates or refreshes an isolated `.venv-ci-<version>` for
+each, installs the development dependencies, and runs the full gate. Missing interpreters are
+reported as skipped; install the missing version when you need the complete local sweep.
 
 Hosted CI runs the supported operating-system and Python-version matrix defined in
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml). The gate includes compilation, linting,
@@ -285,7 +292,9 @@ and an `mdrepo` self-check.
 - [Responsibility boundary](docs/responsibility-boundary.md)
 - [Configuration reference](docs/configuration.md)
 - [Git-ignore integration](docs/gitignore.md)
+- [Adopting rumdl and mdrepo](docs/adopting.md)
 - [CI integration](docs/ci-integration.md)
+- [Agent contribution guidance](AGENTS.md)
 - [Design notes](docs/design.md)
 - [Changelog](CHANGELOG.md)
 
@@ -297,7 +306,7 @@ and an `mdrepo` self-check.
 
 [pre-commit]: .pre-commit-config.yaml
 
-[python-badge]: https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white
+[python-badge]: https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white
 
 [python]: https://www.python.org/downloads/
 
