@@ -5,6 +5,10 @@
 a local target is excluded by the applicable ignore policy without invoking the `git` executable.
 It also works in minimal CI images and embedded Python workflows.
 
+The dependency is pinned to `gitignore-walk==0.0.1`, the version validated by this integration.
+Upgrades require an explicit dependency change and rerunning the adapter and consumer tests;
+installing mdrepo will not silently select a newer walker release.
+
 ## Python API
 
 The supported API is exported from the focused `mdrepo.gitignore` submodule:

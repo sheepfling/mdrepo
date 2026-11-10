@@ -183,3 +183,7 @@ configured index documents for orphan analysis. Missing paths, files, external U
 paths, and paths escaping the repository are not changed by this rule. Case and backslash
 corrections combine with slash removal in a single safe edit. Use `--ignore MDR007` or
 `rules.ignore` to disable this check.
+
+`mdrepo check .` never edits files. Preview this rule alone with
+`mdrepo fix . --select MDR007 --dry-run`, then apply it with
+`mdrepo fix . --select MDR007`. The regular `mdrepo fix .` command includes it automatically.
