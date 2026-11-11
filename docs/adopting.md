@@ -103,7 +103,22 @@ Configure rumdl in its own supported config file, commonly `pyproject.toml`:
 ```toml
 [tool.rumdl]
 line-length = 100
+extend-enable = ["MD060"]
+
+[tool.rumdl.MD060]
+style = "aligned"
+
+[tool.rumdl.MD013]
+line-length = 100
+tables = false
 ```
+
+`MD060` pads Markdown table cells so their pipes line up in the plain-text source. This is
+source formatting, not a change to the table's rendered column alignment. Add `MD060` to any
+existing `extend-enable` list rather than replacing other enabled rules. The `aligned` style
+matches mdrepo's own repository defaults; `rumdl check --fix .` applies the formatting and
+`rumdl check .` reports drift without editing files. Setting `MD013.tables = false` lets wide
+tables stay aligned without relaxing the line-length check for prose.
 
 `mdrepo init` deliberately does not edit rumdl settings or merge text into an existing project
 file. See the [configuration guide](configuration.md) for mdrepo options and scope behavior.

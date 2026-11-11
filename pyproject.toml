@@ -110,6 +110,7 @@ style = "aligned"
 
 [tool.rumdl.MD013]
 line-length = 100
+tables = false
 
 [tool.mdrepo]
 include = ["*.md", "**/*.md"]
