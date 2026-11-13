@@ -506,7 +506,7 @@ def test_unreadable_gitignore_is_a_reported_cli_error(
     (tmp_path / "README.md").write_text("[Target](target.txt)\n", encoding="utf-8")
 
     assert main(["check", "."]) == 2
-    assert "unable to read repository .gitignore" in capsys.readouterr().err
+    assert "unable to read Git-ignore source" in capsys.readouterr().err
 
 
 def test_malformed_gitignore_is_a_reported_cli_error(
@@ -515,20 +515,20 @@ def test_malformed_gitignore_is_a_reported_cli_error(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
-    (tmp_path / ".gitignore").write_text("bad\\\n", encoding="utf-8")
+    (tmp_path / ".gitignore").write_text("[z-a]\n", encoding="utf-8")
     (tmp_path / "target.txt").write_text("target\n", encoding="utf-8")
     (tmp_path / "README.md").write_text("[Target](target.txt)\n", encoding="utf-8")
 
     assert main(["check", "."]) == 2
     error = capsys.readouterr().err
     assert "invalid Git-ignore pattern" in error
-    assert "bad\\" in error
+    assert "bad character range z-a" in error
 
 
 def test_malformed_discovery_pattern_is_a_reported_policy_error(
     repository: RepositoryBuilder,
 ) -> None:
-    config = ApplicationConfig.model_validate({"include": ["bad\\"]})
+    config = ApplicationConfig.model_validate({"include": ["[z-a]"]})
 
     with pytest.raises(GitIgnoreError, match="mdrepo include policy"):
         collect_project_markdown(root=repository.root, config=config)
@@ -543,7 +543,7 @@ def test_malformed_exception_pattern_is_a_reported_policy_error(
                 {
                     "id": "bad-path",
                     "rule": "MDR001",
-                    "path": "bad\\",
+                    "path": "[z-a]",
                     "reason": "test malformed path",
                 }
             ]
@@ -555,3 +555,67 @@ def test_malformed_exception_pattern_is_a_reported_policy_error(
             diagnostics=(Diagnostic(rule_id="MDR001", message="finding", severity=Severity.ERROR),),
             config=config,
         )
+
+
+def test_library_parser_accepts_trailing_backslash() -> None:
+    spec = parse_gitignore(["bad\\"], source="test policy")
+
+    assert len(spec.patterns) == 1
+    assert not matches_gitignore(spec, "bad", is_directory=False)
+
+
+def test_portable_scope_reads_global_and_repository_excludes(
+    repository: RepositoryBuilder,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config_home = repository.root / ".git" / "test-config"
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(config_home))
+    repository.write_text(".git/test-config/git/ignore", "global.md\n")
+    repository.write_text(".git/info/exclude", "local.md\n")
+    global_target = repository.write_text("global.md", "global\n")
+    local_target = repository.write_text("local.md", "local\n")
+    kept = repository.write_text("README.md", "root\n")
+    policy = GitIgnorePolicy(repository.root)
+
+    assert policy.is_ignored_many((global_target, local_target, kept)) == (True, True, False)
+    assert policy.explain(global_target).source is not None
+    assert policy.explain(local_target).source is not None
+    assert collect_project_markdown(root=repository.root, config=ApplicationConfig()) == (kept,)
+    assert set(
+        collect_project_markdown(
+            root=repository.root,
+            config=ApplicationConfig.model_validate({"respect-gitignore": False}),
+        )
+    ) == {global_target, local_target, kept}
+
+    repository.write_text(".gitignore", "!global.md\n!local.md\n")
+    assert policy.is_ignored_many((global_target, local_target)) == (False, False)
+
+
+def test_adapter_preserves_empty_initial_exclusions(repository: RepositoryBuilder) -> None:
+    metadata = repository.write_text(".git/metadata.txt", "metadata\n")
+    policy = GitIgnorePolicy(repository.root)
+
+    assert not policy.is_ignored(metadata)
+    assert metadata in tuple(GitIgnoreWalker(repository.root).iter_files(ignored=False))
+    assert GitIgnorePolicy(repository.root, initial_excludes=(".git",)).is_ignored(metadata)
+
+
+def test_portable_scope_includes_repository_ancestors(repository: RepositoryBuilder) -> None:
+    repository.write_text(".gitignore", "docs/ignored.md\n")
+    target = repository.write_text("docs/ignored.md", "ignored\n")
+
+    assert GitIgnorePolicy(repository.root / "docs").is_ignored(target)
+
+
+def test_bottom_up_walk_prunes_ignored_subtrees(repository: RepositoryBuilder) -> None:
+    repository.write_text(".gitignore", "ignored/\n")
+    repository.write_text("ignored/nested/hidden.md", "hidden\n")
+    kept = repository.write_text("docs/visible.md", "visible\n")
+    walker = GitIgnoreWalker(repository.root)
+
+    entries = list(walker.walk(topdown=False, ignored=False))
+    assert entries[-1][0] == repository.root
+    assert all(not path.is_relative_to(repository.root / "ignored") for path, _, _ in entries)
+    assert kept in tuple(walker.iter_files(topdown=False, ignored=False))
+    assert not tuple(walker.iter_files("ignored", ignored=False))

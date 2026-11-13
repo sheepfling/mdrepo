@@ -163,7 +163,8 @@ This repository is also a complete integration example: see its [`pyproject.toml
 for independent rumdl and mdrepo configuration, and the [CI integration guide](docs/ci-integration.md)
 for dependency, hook, and CI setup patterns.
 
-By default, discovery excludes Markdown files matched by the repository's `.gitignore`, along with
+By default, discovery excludes Markdown files matched by the [portable Git-ignore policy](docs/gitignore.md), along
+with
 common transient locations such as virtual environments, tool caches, `build/`, and `dist/`. Use
 top-level `exclude` patterns for project-specific generated or legacy trees. Set
 `respect-gitignore = false` only when ignored Markdown should be inspected explicitly; those files
@@ -238,6 +239,7 @@ Exit statuses are stable:
 | `MDR004` | Standalone missing-target fallback; disabled with rumdl      |                 No |
 | `MDR005` | Path spelling differs from exact on-disk case                |                Yes |
 | `MDR006` | Existing local target is Git-ignored or mdrepo-excluded      |                 No |
+| `MDR007` | Existing local directory destination has a trailing slash    |                Yes |
 | `MDR100` | No configured orphan-graph root exists                       |                 No |
 | `MDR101` | Markdown document is unreachable from all roots              |                 No |
 | `MDR201` | Structured exception is expired                              |                 No |

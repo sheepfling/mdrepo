@@ -16,8 +16,16 @@ def tmp_path() -> Iterator[Path]:
 
     repository_tmp = Path(__file__).resolve().parents[1] / ".tmp"
     repository_tmp.mkdir(exist_ok=True, parents=True)
-    with TemporaryDirectory(prefix="pytest-", dir=repository_tmp) as directory:
+    # Keep this patch separate from the test's monkeypatch fixture so its cwd
+    # changes are undone before TemporaryDirectory cleanup (required on Windows).
+    with (
+        TemporaryDirectory(prefix="pytest-", dir=repository_tmp) as directory,
+        pytest.MonkeyPatch.context() as environment,
+    ):
         test_root = Path(directory)
+        # Bound portable Git discovery and keep machine-global ignores out of fixtures.
+        (test_root / ".git").mkdir()
+        environment.setenv("XDG_CONFIG_HOME", str(test_root / ".git" / "test-config"))
         (test_root / "pyproject.toml").write_text(f"{TOOL_TABLE}\n", encoding="utf-8")
         yield test_root
 

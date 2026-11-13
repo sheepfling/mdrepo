@@ -40,13 +40,13 @@ recorded through `[[tool.mdrepo.exceptions]]` with an ID and reason. See
 
 ## Programmatic Git-ignore checks
 
-The durable Git-ignore evaluator is available from the focused `mdrepo.gitignore` submodule:
+The Git-ignore evaluator uses `gitignore-walk` and is available from `mdrepo.gitignore`:
 
 ```python
 from mdrepo.gitignore import GitIgnorePolicy, GitIgnoreWalker, is_gitignored
 
 if is_gitignored("/path/to/repository", "artifacts/release.md"):
-    print("target is not durable in a clean checkout")
+    print("target is excluded by the active ignore policy")
 
 policy = GitIgnorePolicy("/path/to/repository", initial_excludes=("build/**",))
 walker = GitIgnoreWalker("/path/to/repository", policy=policy)
@@ -64,7 +64,9 @@ remain internal and are not part of the stable import surface.
 
 Use `GitIgnorePolicy.explain()` when policy provenance is needed, and
 `GitIgnoreWalker.iter_files()` when a caller needs only safe file paths rather than
-the full `os.walk`-style directory tuple.
+the full `os.walk`-style directory tuple. The portable policy includes conventional global ignores,
+repository `info/exclude`, and applicable ancestor `.gitignore` files. See
+[Git-ignore semantics](gitignore.md#semantics) for scope and compatibility details.
 
 ## Top-level keys
 
@@ -112,7 +114,7 @@ false by default. `check-case` enables portable exact-case checks.
 `check-missing-targets` enables `MDR004`. Leave it false in the normal rumdl pairing. Enable it only
 when mdrepo is intentionally being used without rumdl and the reduced standalone check is preferable
 to no target validation. `check-durable-targets` enables `MDR006`, which reports existing local
-targets matched by applicable repository `.gitignore` files or by mdrepo's `exclude` patterns. It is
+targets matched by the portable Git-ignore policy or by mdrepo's `exclude` patterns. It is
 enabled by default because an existing transient target is not a durable repository link. Use a
 narrow exception or explicitly disable it when generated or local-only targets are intentional.
 
@@ -171,3 +173,17 @@ mdrepo check . \
 
 Nested tables merge. Scalar values and most lists replace earlier values; `exclude` extends the
 built-in baseline while preserving Gitignore-style ordering and repetitions.
+
+### Directory destinations
+
+`MDR007` reports trailing slashes on existing repository-local relative directory destinations.
+For example, `mdrepo fix .` changes `[Docs](docs/)` to `[Docs](docs)`, preserving link labels,
+titles, queries, fragments, and reference-definition syntax. Directory links still resolve to
+configured index documents for orphan analysis. Missing paths, files, external URLs, absolute
+paths, and paths escaping the repository are not changed by this rule. Case and backslash
+corrections combine with slash removal in a single safe edit. Use `--ignore MDR007` or
+`rules.ignore` to disable this check.
+
+`mdrepo check .` never edits files. Preview this rule alone with
+`mdrepo fix . --select MDR007 --dry-run`, then apply it with
+`mdrepo fix . --select MDR007`. The regular `mdrepo fix .` command includes it automatically.
