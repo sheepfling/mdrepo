@@ -111,9 +111,14 @@ the same `pyproject.toml`, but each tool reads only its own table:
 # mdrepo-doc-example
 [tool.rumdl]
 line-length = 100
+extend-enable = ["MD060"]
+
+[tool.rumdl.MD060]
+style = "aligned"
 
 [tool.rumdl.MD013]
 line-length = 100
+tables = false
 
 [tool.mdrepo]
 include = ["*.md", "**/*.md"]
